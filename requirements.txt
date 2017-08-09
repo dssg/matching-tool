@@ -1,0 +1,7 @@
+flask-security
+flask-sqlalchemy
+goodtables
+alembic
+pyyaml
+psycopg2
+bcrypt

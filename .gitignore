@@ -99,3 +99,7 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# Files specific to this repo
+flask_config.yaml
+database.yaml

@@ -1,0 +1,5 @@
+PGPORT: 5432
+PGHOST: localhost
+PGDATABASE: csh
+PGUSER: csh
+PGPASSWORD: csh
