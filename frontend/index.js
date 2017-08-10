@@ -1,4 +1,4 @@
-import App from 'components/app'
+import App from './components/app'
 import ReactDOM from 'react-dom'
 import { BrowserRouter } from 'react-router-dom'
 import { render } from 'react-dom'
@@ -8,15 +8,9 @@ import { Provider } from 'react-redux'
 import { syncHistoryWithStore, routerReducer } from 'react-router-redux'
 
 import configureStore from './store/configureStore'
-import { rootReducer, initialState } from 'reducers'
-
-console.log(rootReducer)
-console.log(initialState)
+import { rootReducer, initialState } from './reducers'
 
 const store = configureStore(initialState)
-
-console.log('store!')
-console.log(store)
 
 render((
   <Provider store={store}>
