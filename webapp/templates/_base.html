@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <title>Matching Tool</title>
+  <link rel="shortcut icon" href="{{ url_for('static',filename='favicon.ico') }}">
+  <!-- stylesheets -->
+  <link href="{{ url_for('static', filename='main.css') }}" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/react-vis/dist/style.css">
+</head>
+
+<body>
+
+  <!-- Scripts -->
+  <script type="text/javascript" src="https://unpkg.com/react-vis/dist/dist.min.js"></script>
+    <div class="container-fluid center-container nopadding">
+      <!-- messages -->
+      {% for category, message in get_flashed_messages(with_categories=true) %}
+        <div class="alert alert-{{ category }} alert-dismissible" role="alert">
+          <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          {{ message }}
+        </div>
+
+      {% endfor %}
+      <!-- child template -->
+      {% block content %}
+      {% endblock %}
+
+      <!-- errors -->
+      {% if error %}
+      <p class="error"><strong>Error:</strong> {{ error }}</p>
+      {% endif %}
+
+    </div>
+	<!-- /.container -->
+
+  <script type='text/javascript' src="{{ url_for('static', filename='output.js') }}"></script>
+</body>
+
+</html>

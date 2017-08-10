@@ -1,4 +1,4 @@
-from flask import Flask, render_template_string
+from flask import Flask, render_template
 from flask_security import Security, login_required, \
      SQLAlchemySessionUserDatastore
 from webapp.database import db_session
@@ -19,10 +19,11 @@ user_datastore = SQLAlchemySessionUserDatastore(db_session,
 security = Security(app, user_datastore)
 
 
-@app.route('/')
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
 @login_required
-def home():
-    return render_template_string('Here you go!')
+def home(path):
+    return render_template('index.html', parameters={})
 
 if __name__ == '__main__':
     app.run()

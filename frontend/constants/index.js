@@ -1,0 +1,1 @@
+export const REPLACE_DATA = 'REPLACE_DATA'
