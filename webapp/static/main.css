@@ -12,6 +12,17 @@
                     opacity: 0;
                }
 
+.mdl-grid {
+  padding: 0!important;
+}
+
+.mdl-cell {
+  padding: 30px 0;
+  text-align: center;
+  color: #424242;
+  font-weight: bold;
+}
+
 /* Table */
 .table th {
     cursor: pointer;
