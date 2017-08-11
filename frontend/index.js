@@ -1,6 +1,7 @@
 import App from './components/app'
 import ReactDOM from 'react-dom'
 import { BrowserRouter } from 'react-router-dom'
+import { AppContainer } from 'react-hot-loader'
 import { render } from 'react-dom'
 import { createStore, combineReducers } from 'redux'
 import { Router, browserHistory } from 'react-router'
@@ -15,7 +16,13 @@ const store = configureStore(initialState)
 render((
   <Provider store={store}>
     <BrowserRouter>
-      <App />
+      <AppContainer>
+        <App />
+      </AppContainer>
     </BrowserRouter>
   </Provider>
 ), document.getElementById('app'));
+
+if (module.hot) {
+    module.hot.accept('./components/app', () => { render(App) })
+}

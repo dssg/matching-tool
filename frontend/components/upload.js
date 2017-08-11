@@ -1,39 +1,47 @@
 import React from 'react'
 import { bindActionCreators } from 'redux'
-import { makeDataGood, makeDataBad } from '../actions'
+import { selectServiceProvider } from '../actions'
 import RaisedButton from 'material-ui/RaisedButton'
+import Divider from 'material-ui/Divider'
+import Paper from 'material-ui/Paper'
 import { connect } from 'react-redux'
+import Upload from 'material-ui-upload/Upload'
 
 
 function mapStateToProps(state) {
   return {
-    status: state.app.data.status,
-    reason: state.app.data.reason
+    serviceProvider: state.app.serviceProvider,
   }
 }
 
 function mapDispatchToProps(dispatch) {
   return {
-    makeDataGood: () => {
-      dispatch(makeDataGood('because it is good'))
+    selectServiceProvider: (providerType) => {
+      return () => {
+        dispatch(selectServiceProvider(providerType))
+      }
     },
-    makeDataBad: () => {
-      dispatch(makeDataBad('because it is bad'))
-    }
   }
 }
 
-class Upload extends React.Component {
+const styles = {
+  section: { margin: '25px' },
+  button: { margin: 12 }
+}
+class UploadPage extends React.Component {
   render() {
     return (
-      <div>
+      <div style={styles.section}>
         <h2>Upload</h2>
-        <RaisedButton label="Good" onMouseUp={this.props.makeDataGood}/>
-        <RaisedButton label="Bad" onMouseUp={this.props.makeDataBad}/>
-        <div>status: {this.props.status}</div>
-        <div>reason: {this.props.reason}</div>
+        <h4>What type of data do you want to upload?</h4>
+        <RaisedButton style={styles.button} label="HMIS" primary={this.props.serviceProvider === 'HMIS'} onMouseUp={this.props.selectServiceProvider('HMIS')}/>
+        <RaisedButton style={styles.button} label="Jail" primary={this.props.serviceProvider === 'Jail'} onMouseUp={this.props.selectServiceProvider('Jail')}/>
+        <h4>Upload {this.props.serviceProvider} file</h4>
+        <RaisedButton style={styles.button} label="Browse" />
+        <br />
+        <RaisedButton style={styles.button} label="Upload" />
       </div>
     )
   }
 }
-export default connect(mapStateToProps, mapDispatchToProps)(Upload)
+export default connect(mapStateToProps, mapDispatchToProps)(UploadPage)
