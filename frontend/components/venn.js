@@ -42,7 +42,7 @@ export default class Venn extends React.Component {
         const node = d3.select(this)
         node.select("path").style("fill-opacity", .5)
         node.select("text").style("font-weight", "100")
-                           .style("font-size", "24px")
+                           .style("font-size", "18px")
         tooltip.style("opacity", 0)
       })
   }
