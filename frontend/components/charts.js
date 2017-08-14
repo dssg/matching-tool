@@ -40,8 +40,15 @@ export default class Charts extends React.Component {
                 { ID: 13932, Name: 'Evan Jackson', Source: ['Jail', 'Homeless'], Duration: 5, Count: 1 },
                 { ID: 19982, Name: 'Liam Smith', Source: 'Homeless', Duration: 7, Count: 3 },
                 { ID: 19932, Name: 'Griffin Smith', Source: 'Homeless', Duration: 3, Count: 2 },
+      ],
+      bar_data: [
+        [{x: 'Jail', y: 40}, {x: 'Jail & Homeless', y: 30}],
+        [{x: 'Jail', y: 20}, {x: 'Jail & Homeless', y: 30}],
+        [{x: 'Jail', y: 30}, {x: 'Jail & Homeless', y: 20}],
+        [{x: 'Jail', y: 5}, {x: 'Jail & Homeless', y: 10}],
+        [{x: 'Jail', y: 5}, {x: 'Jail & Homeless', y: 10}]
       ]
-    };
+    }
   }
 
   render() {
@@ -66,7 +73,7 @@ export default class Charts extends React.Component {
           </Card>
           <Card style={styles.card}>
             <CardTitle title="Duration Bar Chart" titleStyle={{'font-size': 22}} />
-            <DurationBarChart />
+            <DurationBarChart data={this.state.bar_data} />
           </Card>
         </div>
       </div>
