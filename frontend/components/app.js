@@ -51,11 +51,11 @@ export default class App extends React.Component {
             </Tabs>
           </AppBar>
           <Switch>
-            <Route exact path='/' component={Home}/>
-            <Route path='/upload' component={Upload}/>
+            <Route exact path='/' component={Home} />
+            <Route path='/upload' component={Upload} />
             <Route path='/upload_success' component={UploadSuccess} />
             <Route path='/upload_invalid' component={UploadInvalid} />
-            <Route path='/charts' component={Charts}/>
+            <Route path='/charts' component={Charts} />
           </Switch>
         </div>
       </MuiThemeProvider>
