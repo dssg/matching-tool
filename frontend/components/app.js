@@ -46,8 +46,8 @@ export default class App extends React.Component {
           <AppBar title='Matching Tool' iconStyleLeft={{display: 'none'}} style={styles.appBar}>
             <Tabs style={styles.tabs} value={this.state.value} onChange={this.handleChange}>
               <Tab value={0} label="Home" containerElement={<Link to="/"/>} />
-              <Tab value={1} label="Upload Data" containerElement={<Link to="/upload"/>}/>
-              <Tab value={2} label="Charts" containerElement={<Link to="/charts"/>}/>
+              <Tab value={1} label="Upload Data" containerElement={<Link to="/upload"/>} />
+              <Tab value={2} label="Charts" containerElement={<Link to="/charts"/>} />
             </Tabs>
           </AppBar>
           <Switch>
