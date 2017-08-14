@@ -1,22 +1,9 @@
-import { REPLACE_DATA } from '../constants/index'
+import { SELECT_SERVICE_PROVIDER } from '../constants/index'
 
-export function makeDataGood(message) {
+export function selectServiceProvider(serviceProvider) {
+  console.log('in action creator')
   return {
-    type: REPLACE_DATA,
-    payload: {
-      status: 'good',
-      reason: message
-    }
-  }
-}
-
-export function makeDataBad(message) {
-  console.log(message)
-  return {
-    type: REPLACE_DATA,
-    payload: {
-      status: 'bad',
-      reason: message
-    }
+    type: SELECT_SERVICE_PROVIDER,
+    payload: serviceProvider
   }
 }

@@ -1,22 +1,22 @@
 import { createReducer } from '../utils/redux'
-import { REPLACE_DATA } from '../constants/index'
+import { REPLACE_DATA, SELECT_SERVICE_PROVIDER } from '../constants/index'
 import { combineReducers } from 'redux'
 import { routerReducer } from 'react-router-redux'
 
 const initialState = {
   app: {
-    data: {
-      status: 'unknown',
-      reason: 'because you have not clicked a button'
-    }
+    serviceProvider: 'HMIS'
   }
 }
 
 const app = createReducer(initialState, {
-  [REPLACE_DATA]: (state, payload) =>
-    Object.assign({}, state, {
-      data: payload
+  [SELECT_SERVICE_PROVIDER]: (state, payload) => {
+    console.log(state)
+    console.log(payload)
+    return Object.assign({}, state, {
+      serviceProvider: payload
     })
+  }
 })
 const rootReducer = combineReducers({
   routing: routerReducer,

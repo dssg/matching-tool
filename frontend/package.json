@@ -24,6 +24,7 @@
     "d3": "3.5.17",
     "jquery": "1.11.3",
     "material-ui": "^0.18.7",
+    "material-ui-upload": "^1.1.5",
     "ramda": "^0.23.0",
     "react": "15.6.1",
     "react-dom": "15.6.1",
