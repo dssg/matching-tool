@@ -41,7 +41,7 @@ export default class App extends React.Component {
     return (
       <MuiThemeProvider>
         <div>
-          <AppBar title='CSH Matching Tool' iconStyleLeft={{display: 'none'}} style={styles.appBar}>
+          <AppBar title='Matching Tool' iconStyleLeft={{display: 'none'}} style={styles.appBar}>
             <Tabs style={styles.tabs} value={this.state.value} onChange={this.handleChange}>
               <Tab value={0} label="Home" containerElement={<Link to="/"/>} />
               <Tab value={1} label="Upload Data" containerElement={<Link to="/upload"/>}/>

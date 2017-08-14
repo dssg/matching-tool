@@ -35,36 +35,11 @@ export default class DurationBarChart extends React.Component {
 	          <HorizontalGridLines />
 	          <YAxis />
 	          <XAxis />
-	          <VerticalBarSeries
-	          	data={[
-	          		{x: 'Jail', y: 40},
-	          		{x: 'Jail & Homeless', y: 30},
-	          		]}
-	          	opacity={0.8} />
-	          <VerticalBarSeries
-	          	data={[
-	          		{x: 'Jail', y: 20},
-	          		{x: 'Jail & Homeless', y: 30},
-	          		]}
-	          	opacity={0.8} />
-	          <VerticalBarSeries
-	          	data={[
-	          		{x: 'Jail', y: 30},
-	          		{x: 'Jail & Homeless', y: 20},
-	          		]}
-	          	opacity={0.8} />
-	          <VerticalBarSeries
-	          	data={[
-	          		{x: 'Jail', y: 5},
-	          		{x: 'Jail & Homeless', y: 10},
-	          		]}
-	          	opacity={0.8} />
-	          <VerticalBarSeries
-	          	data={[
-	          		{x: 'Jail', y: 5},
-	          		{x: 'Jail & Homeless', y: 10},
-	          		]}
-	          	opacity={0.8} />
+	          {this.props.data.map((entry) => (
+	          	<VerticalBarSeries
+	          		data={entry}
+	          		opacity={0.8} />
+	          ))}
 	        </FlexibleXYPlot>
 	        </div>
 			</div>
