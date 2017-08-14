@@ -56,7 +56,7 @@ export default class Charts extends React.Component {
           <Card style={styles.card}>
             <CardTitle title="List" titleStyle={{'font-size': 22}} />
             <div style={styles.list}>
-              <h5>Total: <strong>840</strong>&nbsp;
+              <h5>Total: <strong>740</strong>&nbsp;
                 Jail: <strong>500</strong>&nbsp;
                 Homeless: <strong>340</strong>&nbsp;
                 Intersection: <strong>100</strong>&nbsp;
