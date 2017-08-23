@@ -175,7 +175,7 @@ export default class Charts extends React.Component {
           </Card>
         </div>
         <RaisedButton label="Download List" secondary={true} style={styles.button} />
-        <RaisedButton label="Download Chart" secondary={true} style={styles.button} />
+        <RaisedButton label="Download Charts" secondary={true} style={styles.button} />
       </div>
     )
   }
