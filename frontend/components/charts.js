@@ -18,13 +18,13 @@ const styles = {
     'justify-content': 'space-between',
   },
   venn: {
-    width: '70%',
+    width: '60%',
   },
   card: {
     width: '120%',
   },
   bar_chart: {
-    width: '60%',
+    width: '70%',
   },
   list: {
     'text-align': 'center',
