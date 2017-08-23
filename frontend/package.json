@@ -38,7 +38,8 @@
     "reactable": "~0.14.1",
     "redux": "^3.7.2",
     "redux-logger": "^3.0.6",
-    "redux-thunk": "^2.2.0"
+    "redux-thunk": "^2.2.0",
+    "venn.js": "^0.2.15"
   },
   "devDependencies": {
     "babel-cli": "^6.5.2",
