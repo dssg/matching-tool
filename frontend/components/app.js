@@ -1,5 +1,6 @@
 import React from 'react'
 import { Switch, Route } from 'react-router-dom'
+import { connect } from 'react-redux'
 import Charts from './charts'
 import Home from './home'
 import Upload from './upload'
@@ -22,7 +23,22 @@ const styles = {
   }
 }
 
-export default class App extends React.Component {
+function mapStateToProps(state) {
+  return {
+  }
+}
+
+function mapDispatchToProps(dispatch) {
+  return {
+    resetUploadState: () => {
+      return () => {
+        dispatch(resetUploadState())
+      }
+    }
+  }
+}
+
+class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -53,8 +69,6 @@ export default class App extends React.Component {
           <Switch>
             <Route exact path='/' component={Home} />
             <Route path='/upload' component={Upload} />
-            <Route path='/upload_success' component={UploadSuccess} />
-            <Route path='/upload_invalid' component={UploadInvalid} />
             <Route path='/charts' component={Charts} />
           </Switch>
         </div>
@@ -62,3 +76,4 @@ export default class App extends React.Component {
     )
   }
 }
+export default App;

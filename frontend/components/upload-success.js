@@ -1,5 +1,6 @@
 import React from 'react'
 import { selectServiceProvider } from '../actions'
+import { Link } from 'react-router-dom'
 import RaisedButton from 'material-ui/RaisedButton'
 import Divider from 'material-ui/Divider'
 import Paper from 'material-ui/Paper'
@@ -29,6 +30,7 @@ class UploadSuccessPage extends React.Component {
         <h2>Upload Success</h2>
         <p>Your {this.props.serviceProvider} file was successfully uploaded.</p>
         <p>375 valid rows found</p>
+        <Link to='/charts'><RaisedButton style={styles.button} label="View Your Data" /></Link>
       </div>
     )
   }

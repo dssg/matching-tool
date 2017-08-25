@@ -1,20 +1,24 @@
 import { createReducer } from '../utils/redux'
-import { REPLACE_DATA, SELECT_SERVICE_PROVIDER } from '../constants/index'
+import { CHANGE_UPLOAD_STATE, SELECT_SERVICE_PROVIDER } from '../constants/index'
 import { combineReducers } from 'redux'
 import { routerReducer } from 'react-router-redux'
 
 const initialState = {
   app: {
-    serviceProvider: 'HMIS'
+    serviceProvider: 'HMIS',
+    uploadState: '',
   }
 }
 
 const app = createReducer(initialState, {
   [SELECT_SERVICE_PROVIDER]: (state, payload) => {
-    console.log(state)
-    console.log(payload)
     return Object.assign({}, state, {
       serviceProvider: payload
+    })
+  },
+  [CHANGE_UPLOAD_STATE]: (state, payload) => {
+    return Object.assign({}, state, {
+      uploadState: payload
     })
   }
 })

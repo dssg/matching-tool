@@ -1,5 +1,6 @@
 import React from 'react'
-import { selectServiceProvider } from '../actions'
+import { changeUploadState } from '../actions'
+import { Link } from 'react-router-dom'
 import RaisedButton from 'material-ui/RaisedButton'
 import Divider from 'material-ui/Divider'
 import Paper from 'material-ui/Paper'
@@ -18,6 +19,11 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
   return {
+    retryUpload: () => {
+      return () => {
+        dispatch(changeUploadState(''))
+      }
+    },
   }
 }
 
@@ -30,6 +36,7 @@ const invalidRows = [
   {
     'Internal Person ID': "A023918475",
     'Internal Event ID': "248457",
+    'Row #': 4,
     'Birthdate': "1972-01-01",
     'SSN': "123-45-6789",
     'DMV Number': "S123-4567-7890",
@@ -87,14 +94,21 @@ class UploadInvalidPage extends React.Component {
       <div style={styles.section}>
         <h2>Upload Failed</h2>
         <p>Your {this.props.serviceProvider} file had 2 rows with errors.</p>
+        <RaisedButton
+          style={styles.button}
+          label="Try Again" 
+          onMouseUp={this.props.retryUpload()}
+        />
         <List>
           <ListItem>
+            <p><b>Row #</b>: 4</p>
             <p><b>Internal Person ID</b>: 1234567</p>
             <p><b>Internal Event ID</b>: 4567788</p>
             Invalid Fields:
             <p>Date of Birth - '20116' is not a valid date</p>
           </ListItem>
           <ListItem>
+            <p><b>Row #</b>: 26</p>
             <p><b>Internal Person ID</b>: 364723</p>
             <p><b>Internal Event ID</b>: 939383939</p>
             Invalid Fields:
