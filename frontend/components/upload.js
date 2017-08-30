@@ -74,6 +74,11 @@ class UploadPage extends React.Component {
           label="Upload"
           onMouseUp={this.props.succeedUpload()}
         />
+        <h4>Not sure how to format {this.props.serviceProvider} file?</h4>
+        <RaisedButton
+          style={styles.button}
+          label="View Input File Schema"
+        />
       </div>
     )
   }
