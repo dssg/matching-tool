@@ -7,6 +7,7 @@ const initialState = {
   app: {
     serviceProvider: 'HMIS',
     uploadState: '',
+    jurisdiction: 'Your County',
   }
 }
 

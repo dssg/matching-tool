@@ -94,6 +94,7 @@ class UploadInvalidPage extends React.Component {
       <div style={styles.section}>
         <h2>Upload Failed</h2>
         <p>Your {this.props.serviceProvider} file had 2 rows with errors.</p>
+        <p>Please fix the rows and re-upload. If possible, fix the fields at the source so future uploads work without error.</p>
         <RaisedButton
           style={styles.button}
           label="Try Again" 

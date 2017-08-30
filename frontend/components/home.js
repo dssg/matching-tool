@@ -15,13 +15,16 @@ const styles = {
   },
   card: {
     width: '40%',
+  },
+  title: {
+    marginBottom: '40px'
   }
 }
 export default React.createClass({
   render: function() {
     return (
       <div style={styles.page}>
-        <h2>Integrating HMIS and Criminal Justice Data</h2>
+        <h2 style={styles.title}>Integrating HMIS and Criminal Justice Data</h2>
         <div style={styles.container}>
           <Card style={styles.card}>
             <Link to='/upload'><CardTitle title='Upload' /></Link>
