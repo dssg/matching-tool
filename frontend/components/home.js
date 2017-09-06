@@ -10,18 +10,21 @@ const styles = {
   },
   container: {
     display: 'flex',
-    'justify-content': 'space-between',
+    justifyContent: 'space-between',
     width: '50%'
   },
   card: {
     width: '40%',
+  },
+  title: {
+    marginBottom: '40px'
   }
 }
 export default React.createClass({
   render: function() {
     return (
       <div style={styles.page}>
-        <h2>Integrating HMIS and Criminal Justice Data</h2>
+        <h2 style={styles.title}>Integrating HMIS and Criminal Justice Data</h2>
         <div style={styles.container}>
           <Card style={styles.card}>
             <Link to='/upload'><CardTitle title='Upload' /></Link>
@@ -32,7 +35,7 @@ export default React.createClass({
           <Card style={styles.card}>
             <Link to='/charts'><CardTitle title='Charts' /></Link>
             <CardText>
-              View matched data to find overlaps between populations, and frequent utilizers of, county systems.
+              View matched data to find overlaps between populations, and frequent utilizers of county systems.
             </CardText>
           </Card>
         </div>

@@ -105,3 +105,4 @@ flask_config.yaml
 database.yaml
 frontend/node_modules
 webapp/static/output.js
+webapp/static/main.*.css
