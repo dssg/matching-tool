@@ -152,7 +152,7 @@ export default class Charts extends React.Component {
   render() {
     return (
       <div style={styles.page}>
-        <h2>Charts</h2>
+        <h2>Charts - 7/1/2017 through 7/31/2017</h2>
         <div style={styles.container}>
           <Card style={styles.venn}>
             <CardTitle title="Venn Diagram" titleStyle={{'font-size': 22}} />

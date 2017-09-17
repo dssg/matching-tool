@@ -8,6 +8,7 @@ import { connect } from 'react-redux'
 import Upload from 'material-ui-upload/Upload'
 import UploadSuccessPage from './upload-success'
 import UploadInvalidPage from './upload-invalid'
+import UploadConfirmPage from './upload-confirm'
 
 
 function mapStateToProps(state) {
@@ -15,6 +16,7 @@ function mapStateToProps(state) {
     serviceProvider: state.app.serviceProvider,
     showForm: state.app.uploadState == '',
     showSucceeded: state.app.uploadState == 'succeeded',
+    showConfirm: state.app.uploadState == 'needsConfirmation',
     showFailed: state.app.uploadState == 'failed',
   }
 }
@@ -29,6 +31,11 @@ function mapDispatchToProps(dispatch) {
     failUpload: () => {
       return () => {
         dispatch(changeUploadState('failed'))
+      }
+    },
+    promptConfirmUpload: () => {
+      return () => {
+        dispatch(changeUploadState('needsConfirmation'))
       }
     },
     succeedUpload: () => {
@@ -78,6 +85,7 @@ class UploadPage extends React.Component {
         <RaisedButton
           style={styles.button}
           label="View Input File Schema"
+          onMouseUp={this.props.promptConfirmUpload()}
         />
       </div>
     )
@@ -88,6 +96,8 @@ class UploadPage extends React.Component {
       return this.renderForm()
     } else if (this.props.showSucceeded) {
       return (<UploadSuccessPage />)
+    } else if (this.props.showConfirm) {
+      return (<UploadConfirmPage />)  
     } else {
       return (<UploadInvalidPage />)
     }
