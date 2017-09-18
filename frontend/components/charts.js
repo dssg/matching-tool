@@ -6,6 +6,7 @@ import TableList from './table'
 import {Card, CardActions, CardHeader, CardMedia, CardTitle, CardText} from 'material-ui/Card';
 import RaisedButton from 'material-ui/RaisedButton';
 import FlatButton from 'material-ui/FlatButton';
+import Header from './header'
 
 
 const styles = {
@@ -151,31 +152,34 @@ export default class Charts extends React.Component {
 
   render() {
     return (
-      <div style={styles.page}>
-        <h2>Charts - 7/1/2017 through 7/31/2017</h2>
-        <div style={styles.container}>
-          <Card style={styles.venn}>
-            <CardTitle title="Venn Diagram" titleStyle={{'font-size': 22}} />
-            <Venn data={this.state.data} />
-          </Card>
-          <Card style={styles.card}>
-            <CardTitle title="List" titleStyle={{'font-size': 22}} />
-            <div style={styles.list}>
-              <h5>Total: <strong>740</strong>&nbsp;
-                Jail: <strong>500</strong>&nbsp;
-                Homeless: <strong>340</strong>&nbsp;
-                Intersection: <strong>100</strong>&nbsp;
-            </h5>
-            </div>
-            <TableList data={this.state.table_data} />
-          </Card>
-          <Card style={styles.bar_chart}>
-            <CardTitle title="Duration Bar Chart" titleStyle={{'font-size': 22}} />
-            <DurationBarChart data={this.state.bar_data} />
-          </Card>
+      <div>
+        <Header location={this.props.location} />
+        <div style={styles.page}>
+          <h2>Charts - 7/1/2017 through 7/31/2017</h2>
+          <div style={styles.container}>
+            <Card style={styles.venn}>
+              <CardTitle title="Venn Diagram" titleStyle={{'font-size': 22}} />
+              <Venn data={this.state.data} />
+            </Card>
+            <Card style={styles.card}>
+              <CardTitle title="List" titleStyle={{'font-size': 22}} />
+              <div style={styles.list}>
+                <h5>Total: <strong>740</strong>&nbsp;
+                  Jail: <strong>500</strong>&nbsp;
+                  Homeless: <strong>340</strong>&nbsp;
+                  Intersection: <strong>100</strong>&nbsp;
+              </h5>
+              </div>
+              <TableList data={this.state.table_data} />
+            </Card>
+            <Card style={styles.bar_chart}>
+              <CardTitle title="Duration Bar Chart" titleStyle={{'font-size': 22}} />
+              <DurationBarChart data={this.state.bar_data} />
+            </Card>
+          </div>
+          <RaisedButton label="Download List" secondary={true} style={styles.button} />
+          <RaisedButton label="Download Charts" secondary={true} style={styles.button} />
         </div>
-        <RaisedButton label="Download List" secondary={true} style={styles.button} />
-        <RaisedButton label="Download Charts" secondary={true} style={styles.button} />
       </div>
     )
   }
