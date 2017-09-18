@@ -12,6 +12,7 @@ import configureStore from './store/configureStore'
 import { rootReducer, initialState } from './reducers'
 
 const store = configureStore(initialState)
+//const history = syncHistoryWithStore(browserHistory, store)
 
 render((
   <Provider store={store}>

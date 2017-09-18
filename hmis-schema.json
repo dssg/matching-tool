@@ -1,0 +1,198 @@
+{
+    "fields": [
+        {
+            "name": "Internal Person ID",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "Internal Event ID",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "Full Name",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "Birthdate",
+            "type": "date",
+            "format": "any",
+            "constraints": {
+                "required": true
+            }
+        },
+		{
+			"name": "SSN",
+			"type": "string",
+			"constraints": {
+				"required": true
+			}
+		},
+        {
+            "name": "DMV Number",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "DMV State",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "Additional State or Federal ID",
+            "type": "string"
+        },
+        {
+            "name": "Name of Additional State or Federal ID",
+            "type": "string"
+        },
+        {
+            "name": "Race/Ethnicity",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "Ethnicity",
+            "type": "string"
+        },
+		{
+			"name": "Sex/Gender",
+			"type": "string",
+            "constraints": {
+                "required": true
+            }
+		},
+		{
+			"name": "Veteran Status",
+			"type": "boolean",
+            "constraints": {
+                "required": true
+            }
+		},
+		{
+			"name": "Disabling Condition",
+			"type": "boolean",
+            "constraints": {
+                "required": true
+            }
+		},
+        {
+            "name": "Project Start Date",
+            "type": "date",
+            "format": "any",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "Project Exit Date",
+            "type": "date",
+            "format": "any",
+            "constraints": {
+                "required": true
+            }
+        },
+		{
+			"name": "Program Name",
+			"type": "string",
+            "constraints": {
+                "required": true
+            }
+		},
+		{
+			"name": "Program Type",
+			"type": "string",
+            "constraints": {
+                "required": true
+            }
+		},
+		{
+			"name": "Federal Program",
+			"type": "string",
+            "constraints": {
+                "required": true
+            }
+		},
+		{
+			"name": "Destination",
+			"type": "integer",
+            "constraints": {
+                "required": true
+            }
+		},
+		{
+			"name": "Household ID",
+			"type": "string",
+            "constraints": {
+                "required": true
+            }
+		},
+		{
+			"name": "Relationship to Head of Household",
+			"type": "integer",
+            "constraints": {
+                "required": true
+            }
+		},
+		{
+			"name": "Housing Move-in Date",
+            "type": "date",
+            "format": "any",
+            "constraints": {
+                "required": true
+            }
+		},
+		{
+			"name": "Living Situation: Type of Residence",
+			"type": "integer",
+            "constraints": {
+                "required": true
+            }
+		},
+		{
+			"name": "Living Situation: Length of Stay",
+			"type": "integer",
+            "constraints": {
+                "required": true
+            }
+		},
+		{
+			"name": "Living Situation: Date Homelessness Started",
+			"type": "date",
+			"format": "any",
+            "constraints": {
+                "required": true
+            }
+		},
+		{
+			"name": "Living Situation: Number of Times on Street",
+			"type": "integer",
+            "constraints": {
+                "required": true
+            }
+		},
+		{
+			"name": "Living Situation: Number of Months Homeless",
+			"type": "integer",
+            "constraints": {
+                "required": true
+            }
+		}
+    ],
+    "trueValues": [ "true" ],
+    "falseValues": [ "false" ]
+}
