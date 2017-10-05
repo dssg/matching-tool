@@ -34,6 +34,7 @@
     "react-router-dom": "^4.1.2",
     "react-router-redux": "^4.0.8",
     "react-tap-event-plugin": "^2.0.1",
+    "react-upload-file": "^2.0.0-beta.6",
     "react-vis": "^1.6.7",
     "reactable": "~0.14.1",
     "redux": "^3.7.2",

@@ -14,6 +14,7 @@ import { List, ListItem } from 'material-ui/List'
 function mapStateToProps(state) {
   return {
     serviceProvider: state.app.serviceProvider,
+    errorRows: state.app.uploadResponse.exampleRows
   }
 }
 
@@ -80,6 +81,24 @@ const renderRows = (rows) => {
   return addIndex(map)(renderRow, rows)
 }
 
+const renderIdField = (idFieldValue, idFieldName, idFieldObj) => {
+  return (<p key={idFieldName}><b>{idFieldName}</b>: {idFieldValue}</p>)
+}
+
+const renderColumnError = (error) => {
+  return (<p key={error.message}>{error.fieldName}: {error.message}</p>)
+}
+
+const renderBadRow = (badRow) => {
+  return (
+    <ListItem key={badRow.idFields.rowNumber}>
+      {values(mapObjIndexed(renderIdField, badRow.idFields))}
+      Invalid Fields:
+      {map(renderColumnError, badRow.errors)}
+    </ListItem>
+  )
+}
+
 class UploadInvalidPage extends React.Component {
   renderHeaderColumn(column) {
     return (<TableHeaderColumn key={column}>{column}</TableHeaderColumn>)
@@ -88,6 +107,7 @@ class UploadInvalidPage extends React.Component {
   renderHeader() {
     return map(this.renderHeaderColumn, header)
   }
+
 
   render() {
     return (
@@ -101,20 +121,7 @@ class UploadInvalidPage extends React.Component {
           onMouseUp={this.props.retryUpload()}
         />
         <List>
-          <ListItem>
-            <p><b>Row #</b>: 4</p>
-            <p><b>Internal Person ID</b>: 1234567</p>
-            <p><b>Internal Event ID</b>: 4567788</p>
-            Invalid Fields:
-            <p>Date of Birth - '20116' is not a valid date</p>
-          </ListItem>
-          <ListItem>
-            <p><b>Row #</b>: 26</p>
-            <p><b>Internal Person ID</b>: 364723</p>
-            <p><b>Internal Event ID</b>: 939383939</p>
-            Invalid Fields:
-            <p>Living Situation: Length of Stay - 'No' is not a valid number</p>
-          </ListItem>
+          {map(renderBadRow, this.props.errorRows)}
         </List>
       </div>
     )
