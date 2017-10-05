@@ -4,7 +4,10 @@ import {
   CHANGE_UPLOAD_STATE,
   SAVE_AVAILABLE_ROLES,
   SAVE_UPLOAD_RESPONSE,
-  SET_ERROR_MESSAGE
+  SET_ERROR_MESSAGE,
+  VENN_DIAGRAM_DATA,
+  TABLE_DATA,
+  BAR_DATA
 } from '../constants/index'
 import { length } from 'ramda'
 import { validJurisdictions } from '../utils/jurisdictions'
@@ -79,5 +82,26 @@ export function syncAvailableRoles() {
           dispatch(selectJurisdiction(userJurisdictions[0]))
         }
       })
+  }
+}
+
+export function getVennDiagramData(data) {
+  return {
+    type: VENN_DIAGRAM_DATA,
+    payload: data
+  }
+}
+
+export function getTableData(data) {
+  return {
+    type: TABLE_DATA,
+    payload: data
+  }
+}
+
+export function getBarData(data) {
+  return {
+    type: BAR_DATA,
+    payload: data
   }
 }

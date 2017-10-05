@@ -5,7 +5,10 @@ import {
   SELECT_JURISDICTION,
   SAVE_AVAILABLE_ROLES,
   SAVE_UPLOAD_RESPONSE,
-  SET_ERROR_MESSAGE
+  SET_ERROR_MESSAGE,
+  VENN_DIAGRAM_DATA,
+  TABLE_DATA,
+  BAR_DATA
 } from '../constants/index'
 import { combineReducers } from 'redux'
 import { routerReducer } from 'react-router-redux'
@@ -13,7 +16,7 @@ import { routerReducer } from 'react-router-redux'
 const initialState = {
   app: {
     selectedServiceProvider: {
-      name: '', 
+      name: '',
       slug: ''
     },
     uploadResponse: {
@@ -21,10 +24,13 @@ const initialState = {
       exampleRows: []
     },
     selectedJurisdiction: {
-      name: '', 
+      name: '',
       slug: ''
     },
-    availableJurisdictionalRoles: []
+    availableJurisdictionalRoles: [],
+    vennDiagramData: [ {sets: [''], size: null}],
+    tableData: [],
+    barData: [],
   }
 }
 
@@ -59,6 +65,21 @@ const app = createReducer(initialState, {
     })
     console.log(newState)
     return newState
+  },
+  [VENN_DIAGRAM_DATA]: (state, payload) => {
+    return Object.assign({}, state, {
+      vennDiagramData: payload
+    })
+  },
+  [TABLE_DATA]: (state, payload) => {
+    return Object.assign({}, state, {
+      tableData: payload
+    })
+  },
+  [BAR_DATA]: (state, payload) => {
+    return Object.assign({}, state, {
+      barData: payload
+    })
   }
 })
 const rootReducer = combineReducers({

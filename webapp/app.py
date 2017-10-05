@@ -52,7 +52,7 @@ def get_jurisdiction_roles():
             'jurisdictionSlug': jurisdiction,
             'jurisdiction': PRETTY_JURISDICTION_MAP.get(jurisdiction, jurisdiction),
             'serviceProviderSlug': service_provider,
-            'serviceProvider': PRETTY_PROVIDER_MAP.GET(service_provider, service_provider)
+            'serviceProvider': PRETTY_PROVIDER_MAP.get(service_provider, service_provider)
         })
     return jurisdiction_roles
 
