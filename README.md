@@ -33,4 +33,10 @@ will create a role for Boone County's HMIS data.
 
 The following will add a the user we created above to the role we created above.
 
-`FLASK_APP=webapp/app.py flask roles add email@example.com boone_hmis
+`FLASK_APP=webapp/app.py flask roles add email@example.com boone_hmis`
+
+## Removing Users from Roles
+
+The following will remove the user we created above from the role we created above.
+
+`FLASK_APP=webapp/app.py flask roles remove email@example.com boone_hmis`

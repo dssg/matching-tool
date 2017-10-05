@@ -42,7 +42,7 @@ export function resetUploadState() {
 
 function fetchAvailableRoles() {
   return fetch(
-    'http://localhost:5000/jurisdictional_roles.json', {
+    'jurisdictional_roles.json', {
       method: 'GET',
       dataType: 'json',
       credentials: 'include'

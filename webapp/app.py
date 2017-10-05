@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 from flask_security import Security, login_required, \
-     SQLAlchemySessionUserDatastore, http_auth_required
+     SQLAlchemySessionUserDatastore
 from flask_login import current_user
 from webapp.database import db_session
 from webapp.models import User, Role
@@ -116,13 +116,13 @@ def home(path):
     return render_template('index.html')
 
 @app.route('/jurisdictional_roles.json', methods=['GET'])
-@http_auth_required
+@login_required
 def jurisdiction_roles():
     return jsonify(results=get_jurisdiction_roles())
 
 
 @app.route('/upload_file', methods=['POST'])
-@http_auth_required
+@login_required
 def upload_file():
     jurisdiction = request.args.get('jurisdiction')
     service_provider = request.args.get('serviceProvider')
