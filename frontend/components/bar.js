@@ -35,9 +35,10 @@ export default class DurationBarChart extends React.Component {
 	          <HorizontalGridLines />
 	          <YAxis />
 	          <XAxis />
-	          {this.props.data.map((entry) => (
+	          {this.props.data.map((entry, idx) => (
 	          	<VerticalBarSeries
 	          		data={entry}
+	          		key={idx}
 	          		opacity={0.8} />
 	          ))}
 	        </FlexibleXYPlot>

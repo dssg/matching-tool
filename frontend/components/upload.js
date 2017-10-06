@@ -123,7 +123,7 @@ class UploadPage extends React.Component {
         <h4>What type of data do you want to upload?</h4>
         {this.renderServiceProviderButtons()}
         <h4>Upload {this.props.selectedServiceProvider.name} file</h4>
-        
+
         <ReactUploadFile
           options={this.options()}
           chooseFileButton={<RaisedButton style={styles.button} label="Browse for File" />}
@@ -145,7 +145,7 @@ class UploadPage extends React.Component {
     } else if (this.props.showSucceeded) {
       return (<div><Header location={this.props.location} /><UploadSuccessPage /></div>)
     } else if (this.props.showConfirm) {
-      return (<div><Header location={this.props.location} /><UploadConfirmPage /></div>)  
+      return (<div><Header location={this.props.location} /><UploadConfirmPage /></div>)
     } else {
       return (<div><Header location={this.props.location} /><UploadInvalidPage /></div>)
     }
