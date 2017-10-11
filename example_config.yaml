@@ -1,0 +1,2 @@
+---
+raw_uploads_path: 's3://your-bucket/{jurisdiction}/{service_provider}/uploaded/{date}/{upload_id}'

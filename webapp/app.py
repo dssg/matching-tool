@@ -4,12 +4,17 @@ from flask_security import Security, login_required, \
 from flask_login import current_user
 from webapp.database import db_session
 from webapp.models import User, Role
+from webapp.tasks import upload_to_s3, sync_upload_metadata
+from webapp.utils import unique_upload_id
 from goodtables import validate
 from werkzeug.utils import secure_filename
 import yaml
 import logging
 import unicodecsv as csv
+import boto
 import os
+from config import config as path_config
+
 
 # Create app
 app = Flask(__name__)
@@ -37,6 +42,7 @@ PRETTY_PROVIDER_MAP = {
     'other': 'Other',
 }
 
+
 def get_jurisdiction_roles():
     jurisdiction_roles = []
     for role in current_user.roles:
@@ -45,7 +51,11 @@ def get_jurisdiction_roles():
             continue
         parts = role.name.split('_')
         if len(parts) != 2:
-            logging.warning("User role %s does not have two parts, cannot process into jurisdiction and role", role.name)
+            logging.warning(
+                "User role %s does not have two parts,"
+                "cannot process into jurisdiction and service provider",
+                role.name
+            )
             continue
         jurisdiction, service_provider = parts
         jurisdiction_roles.append({
@@ -135,10 +145,44 @@ def upload_file():
         uploaded_file.save(full_filename)
         validation_report = validate_file(full_filename, service_provider)
         if validation_report['valid']:
+            upload_id = unique_upload_id()
+            row_count = validation_report['tables'][0]['row-count']
+            try:
+                upload_to_s3(
+                    path_template=path_config['raw_uploads_path'],
+                    service_provider=service_provider,
+                    jurisdiction=jurisdiction,
+                    upload_id=upload_id,
+                    local_filename=full_filename
+                )
+            except boto.exception.S3ResponseError as e:
+                logging.error(
+                    'Upload id %s failed to upload to s3: %s/%s/%s',
+                    upload_id,
+                    service_provider,
+                    jurisdiction,
+                    uploaded_file.filename
+                )
+                return jsonify(
+                    status='error',
+                )
+
+            sync_upload_metadata(
+                upload_id=upload_id,
+                service_provider=service_provider,
+                jurisdiction=jurisdiction,
+                user=current_user,
+                given_filename=uploaded_file.filename,
+                local_filename=full_filename,
+                db_session=db_session,
+            )
+
             sample_rows = get_sample(full_filename)
             return jsonify(
                 status='valid',
-                exampleRows=sample_rows
+                rowCount=row_count,
+                exampleRows=sample_rows,
+                uploadId=upload_id
             )
         else:
             return jsonify(

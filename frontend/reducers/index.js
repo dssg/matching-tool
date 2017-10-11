@@ -21,7 +21,9 @@ const initialState = {
     },
     uploadResponse: {
       status: '',
-      exampleRows: []
+      exampleRows: [],
+      rowCount: '',
+      uploadId: ''
     },
     selectedJurisdiction: {
       name: '',
@@ -58,12 +60,9 @@ const app = createReducer(initialState, {
     })
   },
   [SAVE_UPLOAD_RESPONSE]: (state, payload) => {
-    console.log('save upload response!')
-    console.log(payload)
     const newState = Object.assign({}, state, {
       uploadResponse: payload
     })
-    console.log(newState)
     return newState
   },
   [VENN_DIAGRAM_DATA]: (state, payload) => {
