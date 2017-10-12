@@ -7,7 +7,8 @@ import {
   SET_ERROR_MESSAGE,
   VENN_DIAGRAM_DATA,
   TABLE_DATA,
-  BAR_DATA
+  JAIL_BAR_DATA,
+  HOMELESS_BAR_DATA
 } from '../constants/index'
 import { length } from 'ramda'
 import { validJurisdictions } from '../utils/jurisdictions'
@@ -99,9 +100,16 @@ export function getTableData(data) {
   }
 }
 
-export function getBarData(data) {
+export function getJailBarData(data) {
   return {
-    type: BAR_DATA,
+    type: JAIL_BAR_DATA,
+    payload: data
+  }
+}
+
+export function getHomelessBarData(data) {
+  return {
+    type: HOMELESS_BAR_DATA,
     payload: data
   }
 }

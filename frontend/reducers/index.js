@@ -8,7 +8,8 @@ import {
   SET_ERROR_MESSAGE,
   VENN_DIAGRAM_DATA,
   TABLE_DATA,
-  BAR_DATA
+  JAIL_BAR_DATA,
+  HOMELESS_BAR_DATA
 } from '../constants/index'
 import { combineReducers } from 'redux'
 import { routerReducer } from 'react-router-redux'
@@ -30,7 +31,8 @@ const initialState = {
     availableJurisdictionalRoles: [],
     vennDiagramData: [ {sets: [''], size: null}],
     tableData: [],
-    barData: [],
+    jailBarData: [],
+    homelessBarData: [],
   }
 }
 
@@ -76,9 +78,14 @@ const app = createReducer(initialState, {
       tableData: payload
     })
   },
-  [BAR_DATA]: (state, payload) => {
+  [JAIL_BAR_DATA]: (state, payload) => {
     return Object.assign({}, state, {
-      barData: payload
+      jailBarData: payload
+    })
+  },
+  [HOMELESS_BAR_DATA]: (state, payload) => {
+    return Object.assign({}, state, {
+      homelessBarData: payload
     })
   }
 })
