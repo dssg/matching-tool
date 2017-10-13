@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "d3": "3.5.17",
+    "d3-sankey-align": "^0.1.0",
     "jquery": "1.11.3",
     "material-ui": "^0.18.7",
     "material-ui-upload": "^1.1.5",
@@ -35,7 +36,7 @@
     "react-router-redux": "^4.0.8",
     "react-tap-event-plugin": "^2.0.1",
     "react-upload-file": "^2.0.0-beta.6",
-    "react-vis": "^1.6.7",
+    "react-vis": "^1.7.9",
     "reactable": "~0.14.1",
     "redux": "^3.7.2",
     "redux-logger": "^3.0.6",

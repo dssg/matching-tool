@@ -16,10 +16,10 @@ export default class Venn extends React.Component {
   }
 
   createVenn() {
-    const chart = venn.VennDiagram().width(450).height(300)
+    const chart = venn.VennDiagram().width(380).height(300)
     const node = this.node
     const div = d3.select(node)
-    var tooltip = d3.select(node).append("div").attr("class", "venntooltip")
+    var tooltip = d3.select(node).append("span").attr("class", "venntooltip")
     div.datum(this.props.data).call(chart)
     d3.selectAll(".venn-circle path").style("fill-opacity", .5)
     d3.selectAll(".venn-area path").style("fill-opacity", .5)
