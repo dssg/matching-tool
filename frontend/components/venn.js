@@ -16,7 +16,7 @@ export default class Venn extends React.Component {
   }
 
   createVenn() {
-    const chart = venn.VennDiagram().width(330).height(280)
+    const chart = venn.VennDiagram().width(380).height(300)
     const node = this.node
     const div = d3.select(node)
     var tooltip = d3.select(node).append("span").attr("class", "venntooltip")

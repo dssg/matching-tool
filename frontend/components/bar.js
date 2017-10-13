@@ -2,6 +2,8 @@ import {
   DiscreteColorLegend,
   HorizontalGridLines,
   makeWidthFlexible,
+  onValueClick,
+  onItemClick,
   VerticalBarSeries,
   XAxis,
   XYPlot,
@@ -35,6 +37,7 @@ export default class DurationBarChart extends React.Component {
               <VerticalBarSeries
                 data={entry}
                 key={idx}
+                onValueClick={(datapoint, event) => {console.log(datapoint)}}
                 opacity={0.8} />
             ))}
           </FlexibleXYPlot>
@@ -43,6 +46,7 @@ export default class DurationBarChart extends React.Component {
           <DiscreteColorLegend
             margin={{ left: 5, right: 5 }}
             orientation="vertical"
+            onItemClick={(Object, number) => {console.log(Object)}}
             items={["0 day", "1 day", "2-9 days", "10-89 days", "90+ days"]} />
         </div>
       </div>
