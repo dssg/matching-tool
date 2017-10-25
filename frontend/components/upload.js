@@ -27,6 +27,7 @@ function mapStateToProps(state) {
     showSucceeded: state.app.uploadResponse.status === 'succeeded',
     showConfirm: state.app.uploadResponse.status === 'valid',
     showFailed: state.app.uploadResponse.status === 'invalid',
+    showError: state.app.uploadResponse.status === 'error'
   }
 }
 
@@ -146,6 +147,8 @@ class UploadPage extends React.Component {
       return (<div><Header location={this.props.location} /><UploadSuccessPage /></div>)
     } else if (this.props.showConfirm) {
       return (<div><Header location={this.props.location} /><UploadConfirmPage /></div>)
+    } else if (this.props.showError) {
+      return (<div><Header location={this.props.location} />Oops! There was an unexpected error when uploading. The error has been logged.</div>)
     } else {
       return (<div><Header location={this.props.location} /><UploadInvalidPage /></div>)
     }

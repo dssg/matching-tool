@@ -12,7 +12,8 @@ import Reactable from 'reactable'
 function mapStateToProps(state) {
   return {
     serviceProvider: state.app.serviceProvider,
-    exampleRows: state.app.uploadResponse.exampleRows
+    exampleRows: state.app.uploadResponse.exampleRows,
+    numRows: state.app.uploadResponse.rowCount
   }
 }
 
@@ -103,7 +104,7 @@ class UploadConfirmPage extends React.Component {
     return (
       <div style={styles.section}>
         <h2>Upload Confirmation</h2>
-        <p>Your {this.props.serviceProvider} file was successfully validated. 375 valid rows were found.</p>
+        <p>Your {this.props.serviceProvider} file was successfully validated. {this.props.numRows} valid rows were found.</p>
         <p>Verify that the first ten rows shown below uploaded in the way you expect. If you are satisfied then click 'Confirm Upload' below, or else click 'Cancel Upload' to try again.</p>
         <Reactable.Table
           className="table"

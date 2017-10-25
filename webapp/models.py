@@ -1,7 +1,7 @@
 from webapp.database import Base
 from flask_security import UserMixin, RoleMixin
 from sqlalchemy.orm import relationship, backref
-from sqlalchemy import Boolean, DateTime, Column, Integer, \
+from sqlalchemy import BigInteger, Boolean, DateTime, Column, Integer, \
                        String, ForeignKey
 
 
@@ -34,3 +34,16 @@ class User(Base, UserMixin):
     confirmed_at = Column(DateTime())
     roles = relationship('Role', secondary='roles_users',
                          backref=backref('users', lazy='dynamic'))
+
+
+class Upload(Base):
+    __tablename__ = 'upload_log'
+    id = Column(String(255), primary_key=True)
+    jurisdiction_slug = Column(String(255))
+    service_provider_slug = Column(String(255))
+    user_id = Column(Integer, ForeignKey('user.id'))
+    given_filename = Column(String(255))
+    upload_timestamp = Column(DateTime())
+    num_rows = Column(Integer)
+    file_size = Column(BigInteger)
+    file_hash = Column(String(255))

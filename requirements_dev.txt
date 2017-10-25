@@ -1,0 +1,4 @@
+moto
+pytest
+testing.postgresql
+moto[server]

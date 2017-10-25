@@ -102,6 +102,7 @@ ENV/
 
 # Files specific to this repo
 flask_config.yaml
+config.yaml
 database.yaml
 frontend/node_modules
 webapp/static/output.js
