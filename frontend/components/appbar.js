@@ -6,6 +6,13 @@ import { connect } from 'react-redux'
 import { browserHistory } from 'react-router'
 import { syncAvailableRoles } from '../actions'
 
+import FlatButton from 'material-ui/FlatButton';
+import IconButton from 'material-ui/IconButton';
+import ActionHome from 'material-ui/svg-icons/action/home';
+
+import { Toolbar, ToolbarGroup } from 'material-ui/Toolbar'
+import { grey50 } from 'material-ui/styles/colors'
+
 const styles = {
   appBar: {
     flexWrap: 'wrap',
@@ -31,6 +38,7 @@ function mapStateToProps(state, ownProps) {
   }
 }
 
+
 class MatchingAppBar extends React.Component {
   handleChange = (value) => {
     this.setState({
@@ -47,13 +55,14 @@ class MatchingAppBar extends React.Component {
       <AppBar
         title={this.props.title}
         style={styles.appBar}
-        onLeftIconButtonTouchTap={this.handleToggle}
+        showMenuIconButton={false}
       >
         <Tabs style={styles.tabs} value={this.props.location.pathname}>
           <Tab value="/" label="Home" containerElement={<Link to="/"/>} />
           <Tab value="/upload" label="Upload Data" containerElement={<Link to="/upload"/>} />
           <Tab value="/charts" label="Charts" containerElement={<Link to="/charts"/>} />
         </Tabs>
+      <IconButton onClick={this.props.handleToggle}><ActionHome color={grey50} /></IconButton>
       </AppBar>
     )
   }

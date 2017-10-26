@@ -28,7 +28,7 @@ export default class DurationBarChart extends React.Component {
             margin={{ left: 100, right: 30, top: 20 }}
             xType="ordinal"
             stackBy="y"
-            height={250}>
+            height={300}>
             <HorizontalGridLines />
             <YAxis />
             <YAxis hideLine hideTicks left={-60} title={this.props.title} top={85} />

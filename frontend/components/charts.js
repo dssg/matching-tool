@@ -5,10 +5,15 @@ import d3 from 'd3'
 import DurationBarChart from './bar'
 import Venn from './venn'
 import TableList from './table'
-import {Card, CardActions, CardHeader, CardMedia, CardTitle, CardText} from 'material-ui/Card';
-import RaisedButton from 'material-ui/RaisedButton';
-import FlatButton from 'material-ui/FlatButton';
+import {Card, CardActions, CardHeader, CardMedia, CardTitle, CardText} from 'material-ui/Card'
+import RaisedButton from 'material-ui/RaisedButton'
+import FlatButton from 'material-ui/FlatButton'
 import Header from './header'
+
+import FloatingActionButton from 'material-ui/FloatingActionButton'
+import ContentAdd from 'material-ui/svg-icons/content/add'
+import NavigationClose from 'material-ui/svg-icons/navigation/close'
+import Drawer from 'material-ui/Drawer'
 
 const venn_diagram_data = [ {sets: ['Jail'], size: 500}, {sets: ['Homeless'], size: 340}, {sets: ['Jail','Homeless'], size: 100}]
 
@@ -149,6 +154,7 @@ const styles = {
     "text-align": "left",
     float:"left",
     "margin-top": 10.5,
+    marginLeft: '5%',
   },
   h5: {
     "text-align": "right",
@@ -163,21 +169,41 @@ const styles = {
     'justify-content': 'space-between',
   },
   venn: {
-    width: '40%',
+    width: '100%',
   },
   card: {
     width: '300%',
     expanded: true,
   },
-  bar_chart: {
-    width: '70%',
+  card_close: {
+    width: '300%',
+    expanded: true,
+    marginLeft: '5%',
+    marginRight: '1%'
   },
-  list: {
-    'text-align': 'center',
+  bar_chart_jail: {
+    expanded: true,
+    width: '50%',
+    marginLeft: '5%',
+  },
+  bar_chart_homeless: {
+    expanded: true,
+    width: '50%',
+    marginRight: '1%'
   },
   button: {
     margin: '12',
-  }
+  },
+  floatingActionButtonAdd: {
+    position: 'absolute',
+    top: '50%',
+    marginLeft: '1%'
+  },
+  floatingActionButtonClose: {
+    position: 'absolute',
+    top: '50%',
+    marginLeft: '85%'
+  },
 }
 
 function mapStateToProps(state) {
@@ -207,6 +233,15 @@ function mapDispatchToProps(dispatch) {
 }
 
 class Charts extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {open: true};
+  }
+
+  handleToggle = () => this.setState({open: !this.state.open});
+
+  handleClose = () => this.setState({open: false});
+
   componentDidMount() {
     this.props.updateTableData(table_data)
     this.props.updateJailBarData(jail_bar_data)
@@ -215,10 +250,43 @@ class Charts extends React.Component {
   }
 
   render() {
+    const contentStyle = {  transition: 'margin-left 300ms cubic-bezier(0.23, 1, 0.32, 1)',  }
+    if (this.state.open) {
+      contentStyle.marginLeft = 450
+    }
     return (
       <div>
         <Header location={this.props.location} />
-        <div style={styles.page}>
+        <div>
+          <FloatingActionButton
+            style={styles.floatingActionButtonAdd}
+            onClick={this.handleToggle} >
+            <ContentAdd />
+          </FloatingActionButton>
+          <Drawer
+            docked={true}
+            width={450}
+            open={this.state.open}
+            containerStyle={{height: 'calc(100% - 64px)', top: 64}}
+            onRequestChange={(open) => this.setState({open})} >
+            <FloatingActionButton
+              onClick={this.handleClose}
+              mini={true}
+              secondary={true}
+              style={styles.floatingActionButtonClose} >
+              <NavigationClose />
+            </FloatingActionButton>
+            <div style={styles.container}>
+              <Card style={styles.venn}>
+                <CardTitle title="Venn Diagram" titleStyle={{'font-size': 20}} />
+                <Venn data={this.props.vennDiagramData} />
+              </Card>
+            </div>
+            <RaisedButton label="Download List" secondary={true} style={styles.button} />
+            <RaisedButton label="Download Charts" secondary={true} style={styles.button} />
+          </Drawer>
+        </div>
+        <div style={contentStyle}>
           <div>
             <h3 style={styles.h3}>Charts - 7/1/2017 through 7/31/2017</h3>
             <h5 style={styles.h5}>
@@ -230,28 +298,20 @@ class Charts extends React.Component {
             <hr style={styles.hr}/>
           </div>
           <div style={styles.container}>
-             <Card style={styles.card}>
-              <div style={styles.list}>
-              </div>
+            <Card style={styles.card_close}>
               <TableList data={this.props.tableData} />
             </Card>
           </div>
           <div style={styles.container}>
-            <Card style={styles.venn}>
-              <CardTitle title="Venn Diagram" titleStyle={{'font-size': 20}} />
-              <Venn data={this.props.vennDiagramData} />
-            </Card>
-            <Card style={styles.bar_chart}>
+            <Card style={styles.bar_chart_jail}>
               <CardTitle title="Jail Duration Bar Chart" titleStyle={{'font-size': 20}} />
-              <DurationBarChart data={this.props.jailBarData} title='Jail Days' />
-            </Card>
-            <Card style={styles.bar_chart}>
+                <DurationBarChart data={this.props.jailBarData} title='Jail Days' />
+              </Card>
+            <Card style={styles.bar_chart_homeless}>
               <CardTitle title="Homeless Duration Bar Chart" titleStyle={{'font-size': 20}} />
               <DurationBarChart data={this.props.homelessBarData} title='Homeless Days' />
             </Card>
           </div>
-          <RaisedButton label="Download List" secondary={true} style={styles.button} />
-          <RaisedButton label="Download Charts" secondary={true} style={styles.button} />
         </div>
       </div>
     )

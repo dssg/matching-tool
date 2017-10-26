@@ -28,11 +28,12 @@ class Header extends React.Component {
   render() {
     return (
       <div>
-        <MatchingAppBar location={this.props.location} />
+        <MatchingAppBar location={this.props.location} handleToggle={this.handleToggle} />
         <Drawer
           open={this.state.open}
           docked={false}
           onRequestChange={this.handleToggle}
+          openSecondary={true}
         >
           <MenuItem primaryText='Welcome, Joe Walsh' />
           <Divider />
