@@ -106,6 +106,14 @@ To upgrade npm:
 
 New components can be added in the `frontend/components` directory. There is a directory for each component, because soon (not yet) we will start bundling styles in individual component directories. Other components will be able to import your new component right away, but if you would like the component to made available *globally* (in other words, a Flask template), you will have to add this to `frontend/index.js`
 
+### Running front-end tests
+Jest is used for front-end tests. There are two convenience npm commands available for running tests:
+
+- `npm run test` to run the test suite once
+- `npm run test:watch` to run jest in watch mode, which will re-run tests upon file save
+
+Tests are located in `frontend/__tests__`. For tests that encompass web service calls, add the mocked output in `endpoint_examples`, and use it similarly to `actions.js#syncRoleAction`, so the JSON interface can remain in sync with the Flask server's expectations.
+
 ### Installing new modules
 In the `frontend` directory, install the package you want with `npm install --save <pkg-name>`. The --save option will persist this change to package.json.
 
