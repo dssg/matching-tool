@@ -5,7 +5,13 @@ import Home from './home'
 import Upload from './upload'
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider'
 import injectTapEventPlugin from 'react-tap-event-plugin'
+import getMuiTheme from 'material-ui/styles/getMuiTheme';
 
+const muiTheme = getMuiTheme({
+  appBar: {
+    height: 48,
+  },
+})
 
 class App extends React.Component {
   componentWillMount() {
@@ -14,7 +20,7 @@ class App extends React.Component {
 
   render() {
     return (
-      <MuiThemeProvider>
+      <MuiThemeProvider muiTheme={muiTheme}>
         <Switch>
           <Route exact path='/' component={Home} />
           <Route path='/upload' component={Upload} />

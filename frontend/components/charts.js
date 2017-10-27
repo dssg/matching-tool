@@ -38,130 +38,132 @@ const table_data = [
     Name: 'Roy Batty',
     Source: ['Jail', 'Homeless'],
     'Total Counts': 5,
-    '# of Jail Days': 8,
-    '# of Jail Counts': 3,
-    '# of Homeless Days': 2,
-    '# of Homeless Counts': 2,
-    'Last Jail Encounter': '1982-06-25',
-    'Last Homeless Encounter': '1981-06-25' },
+    'Jail Days': 8,
+    'Jail Counts': 3,
+    'Homeless Days': 2,
+    'Homeless Counts': 2,
+    'Last Jail Contact': '1982-06-25',
+    'Last Homeless Contact': '1981-06-25' },
   { ID: 17144,
     Name: 'James Moriarty',
     Source: ['Jail', 'Homeless'],
     'Total Counts': 8,
-    '# of Jail Days': 16,
-    '# of Jail Counts': 5,
-    '# of Homeless Days': 2,
-    '# of Homeless Counts': 3,
-    'Last Jail Encounter': '2017-08-21',
-    'Last Homeless Encounter': '1982-06-25' },
+    'Jail Days': 16,
+    'Jail Counts': 5,
+    'Homeless Days': 2,
+    'Homeless Counts': 3,
+    'Last Jail Contact': '2017-08-21',
+    'Last Homeless Contact': '1982-06-25' },
   { ID: 12432,
     Name: 'Jason Smith',
     Source: 'Homeless',
     'Total Counts': 1,
-    '# of Jail Days': 0,
-    '# of Jail Counts': 0,
-    '# of Homeless Days': 1,
-    '# of Homeless Counts': 2,
-    'Last Jail Encounter': null,
-    'Last Homeless Encounter': '2017-07-25' },
+    'Jail Days': 0,
+    'Jail Counts': 0,
+    'Homeless Days': 1,
+    'Homeless Counts': 2,
+    'Last Jail Contact': null,
+    'Last Homeless Contact': '2017-07-25' },
   { ID: 19332,
     Name: 'H. H. Holmes',
     Source: 'Jail',
     'Total Counts': 1,
-    '# of Jail Days': 241,
-    '# of Jail Counts': 1,
-    '# of Homeless Days': 0,
-    '# of Homeless Counts': 0,
-    'Last Jail Encounter': '1894-11-17',
-    'Last Homeless Encounter': null },
+    'Jail Days': 241,
+    'Jail Counts': 1,
+    'Homeless Days': 0,
+    'Homeless Counts': 0,
+    'Last Jail Contact': '1894-11-17',
+    'Last Homeless Contact': null },
   { ID: 19032,
     Name: 'Jack Ripper',
     Source: 'Jail',
     'Total Counts': 2,
-    '# of Jail Days': 102,
-    '# of Jail Counts': 2,
-    '# of Homeless Days': 0,
-    '# of Homeless Counts': 0,
-    'Last Jail Encounter': '1891-10-17',
-    'Last Homeless Encounter': null },
+    'Jail Days': 102,
+    'Jail Counts': 2,
+    'Homeless Days': 0,
+    'Homeless Counts': 0,
+    'Last Jail Contact': '1891-10-17',
+    'Last Homeless Contact': null },
   { ID: 12143,
     Name: 'Lee Salminen',
     Source: 'Homeless',
     'Total Counts': 5,
-    '# of Jail Days': 0,
-    '# of Jail Counts': 0,
-    '# of Homeless Days': 43,
-    '# of Homeless Counts': 5,
-    'Last Jail Encounter': null,
-    'Last Homeless Encounter': '2017-09-25' },
+    'Jail Days': 0,
+    'Jail Counts': 0,
+    'Homeless Days': 43,
+    'Homeless Counts': 5,
+    'Last Jail Contact': null,
+    'Last Homeless Contact': '2017-09-25' },
   { ID: 12833,
     Name: 'John Doe',
     Source: ['Jail', 'Homeless'],
     'Total Counts': 3,
-    '# of Jail Days': 2,
-    '# of Jail Counts': 1,
-    '# of Homeless Days': 8,
-    '# of Homeless Counts': 2,
-    'Last Jail Encounter': '2017-05-17',
-    'Last Homeless Encounter': '2016-04-25' },
+    'Jail Days': 2,
+    'Jail Counts': 1,
+    'Homeless Days': 8,
+    'Homeless Counts': 2,
+    'Last Jail Contact': '2017-05-17',
+    'Last Homeless Contact': '2016-04-25' },
   { ID: 13833,
     Name: 'Jane Doe',
     Source: 'Homeless',
     'Total Counts': 2,
-    '# of Jail Days': 0,
-    '# of Jail Counts': 0,
-    '# of Homeless Days': 2,
-    '# of Homeless Counts': 2,
-    'Last Jail Encounter': null,
-    'Last Homeless Encounter': '2017-10-03' },
+    'Jail Days': 0,
+    'Jail Counts': 0,
+    'Homeless Days': 2,
+    'Homeless Counts': 2,
+    'Last Jail Contact': null,
+    'Last Homeless Contact': '2017-10-03' },
   { ID: 13932,
     Name: 'Evan Jackson',
     Source: ['Jail', 'Homeless'],
     'Total Counts': 2,
-    '# of Jail Days': 1,
-    '# of Jail Counts': 1,
-    '# of Homeless Days': 4,
-    '# of Homeless Counts': 1,
-    'Last Jail Encounter': '2017-09-11',
-    'Last Homeless Encounter': '2013-02-19' },
+    'Jail Days': 1,
+    'Jail Counts': 1,
+    'Homeless Days': 4,
+    'Homeless Counts': 1,
+    'Last Jail Contact': '2017-09-11',
+    'Last Homeless Contact': '2013-02-19' },
   { ID: 19982,
     Name: 'Liam Smith',
     Source: 'Homeless',
     'Total Counts': 3,
-    '# of Jail Days': 0,
-    '# of Jail Counts': 0,
-    '# of Homeless Days': 7,
-    '# of Homeless Counts': 3,
-    'Last Jail Encounter': null,
-    'Last Homeless Encounter': '2011-04-15' },
+    'Jail Days': 0,
+    'Jail Counts': 0,
+    'Homeless Days': 7,
+    'Homeless Counts': 3,
+    'Last Jail Contact': null,
+    'Last Homeless Contact': '2011-04-15' },
   { ID: 19932,
     Name: 'Griffin Smith',
     Source: 'Homeless',
     'Total Counts': 2,
-    '# of Jail Days': 0,
-    '# of Jail Counts': 0,
-    '# of Homeless Days': 3,
-    '# of Homeless Counts': 2,
-    'Last Jail Encounter': null,
-    'Last Homeless Encounter': '2017-08-19' },
+    'Jail Days': 0,
+    'Jail Counts': 0,
+    'Homeless Days': 3,
+    'Homeless Counts': 2,
+    'Last Jail Contact': null,
+    'Last Homeless Contact': '2017-08-19' },
 ]
 
 const styles = {
   hr: {
     clear: "both",
+    margin: 0
   },
-  h3: {
+  h4: {
     "text-align": "left",
     float:"left",
-    "margin-top": 10.5,
-    marginLeft: '5%',
+    "margin-top": 6,
+    marginLeft: 60,
   },
   h5: {
     "text-align": "right",
     float:"right",
+    marginRight: '1%'
   },
   page: {
-    margin: '10px',
+    margin: '5px',
     'font-family': 'Roboto, sans-serif',
   },
   container: {
@@ -172,24 +174,22 @@ const styles = {
     width: '100%',
   },
   card: {
-    width: '300%',
+    width: '50%',
     expanded: true,
   },
   card_close: {
-    width: '300%',
+    width: '100%',
     expanded: true,
-    marginLeft: '5%',
-    marginRight: '1%'
+    marginLeft: 60,
+    marginRight: 7
   },
   bar_chart_jail: {
-    expanded: true,
     width: '50%',
-    marginLeft: '5%',
+    marginLeft: 60,
   },
   bar_chart_homeless: {
-    expanded: true,
     width: '50%',
-    marginRight: '1%'
+    marginRight: 7
   },
   button: {
     margin: '12',
@@ -197,11 +197,11 @@ const styles = {
   floatingActionButtonAdd: {
     position: 'absolute',
     top: '50%',
-    marginLeft: '1%'
+    marginLeft: 5
   },
   floatingActionButtonClose: {
     position: 'absolute',
-    top: '50%',
+    top: '2%',
     marginLeft: '85%'
   },
 }
@@ -250,35 +250,36 @@ class Charts extends React.Component {
   }
 
   render() {
-    const contentStyle = {  transition: 'margin-left 300ms cubic-bezier(0.23, 1, 0.32, 1)',  }
+    const contentStyle = {  transition: 'margin-left 300ms cubic-bezier(0.23, 1, 0.32, 1)' }
     if (this.state.open) {
-      contentStyle.marginLeft = 450
+      contentStyle.marginLeft = '25%'
     }
     return (
       <div>
         <Header location={this.props.location} />
-        <div>
+        <div style={styles.page}>
           <FloatingActionButton
             style={styles.floatingActionButtonAdd}
+            mini={true}
             onClick={this.handleToggle} >
             <ContentAdd />
           </FloatingActionButton>
           <Drawer
             docked={true}
-            width={450}
+            width={'25%'}
             open={this.state.open}
-            containerStyle={{height: 'calc(100% - 64px)', top: 64}}
+            containerStyle={{height: 'calc(100% - 48px)', top: 48}}
             onRequestChange={(open) => this.setState({open})} >
-            <FloatingActionButton
-              onClick={this.handleClose}
-              mini={true}
-              secondary={true}
-              style={styles.floatingActionButtonClose} >
-              <NavigationClose />
-            </FloatingActionButton>
             <div style={styles.container}>
               <Card style={styles.venn}>
                 <CardTitle title="Venn Diagram" titleStyle={{'font-size': 20}} />
+                <FloatingActionButton
+                  onClick={this.handleClose}
+                  mini={true}
+                  secondary={true}
+                  style={styles.floatingActionButtonClose} >
+                  <NavigationClose />
+                </FloatingActionButton>
                 <Venn data={this.props.vennDiagramData} />
               </Card>
             </div>
@@ -288,7 +289,7 @@ class Charts extends React.Component {
         </div>
         <div style={contentStyle}>
           <div>
-            <h3 style={styles.h3}>Charts - 7/1/2017 through 7/31/2017</h3>
+            <h4 style={styles.h4}>Results - 7/1/2017 through 7/31/2017</h4>
             <h5 style={styles.h5}>
                 Total: <strong>740</strong>&nbsp;
                 Jail: <strong>500</strong>&nbsp;
@@ -306,10 +307,10 @@ class Charts extends React.Component {
             <Card style={styles.bar_chart_jail}>
               <CardTitle title="Jail Duration Bar Chart" titleStyle={{'font-size': 20}} />
                 <DurationBarChart data={this.props.jailBarData} title='Jail Days' />
-              </Card>
+            </Card>
             <Card style={styles.bar_chart_homeless}>
               <CardTitle title="Homeless Duration Bar Chart" titleStyle={{'font-size': 20}} />
-              <DurationBarChart data={this.props.homelessBarData} title='Homeless Days' />
+                <DurationBarChart data={this.props.homelessBarData} title='Homeless Days' />
             </Card>
           </div>
         </div>

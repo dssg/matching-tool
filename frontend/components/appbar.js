@@ -19,6 +19,9 @@ const styles = {
   },
   tabs: {
     width: '50%'
+  },
+  titleStyle: {
+    'font-size': 20,
   }
 }
 
@@ -54,6 +57,7 @@ class MatchingAppBar extends React.Component {
     return (
       <AppBar
         title={this.props.title}
+        titleStyle={styles.titleStyle}
         style={styles.appBar}
         showMenuIconButton={false}
       >
