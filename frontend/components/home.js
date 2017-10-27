@@ -1,8 +1,8 @@
+import FlatButton from 'material-ui/FlatButton';
+import Header from './header'
 import React from 'react'
 import {Card, CardActions, CardHeader, CardMedia, CardTitle, CardText} from 'material-ui/Card';
-import FlatButton from 'material-ui/FlatButton';
 import {Link} from 'react-router-dom'
-import Header from './header'
 
 
 const styles = {

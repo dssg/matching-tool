@@ -1,17 +1,14 @@
+import ActionHome from 'material-ui/svg-icons/action/home';
 import AppBar from 'material-ui/AppBar'
-import Tabs from 'material-ui/Tabs/Tabs'
-import Tab from 'material-ui/Tabs/Tab'
-import { Link } from 'react-router-dom'
-import { connect } from 'react-redux'
-import { browserHistory } from 'react-router'
-import { syncAvailableRoles } from '../actions'
-
 import FlatButton from 'material-ui/FlatButton';
 import IconButton from 'material-ui/IconButton';
-import ActionHome from 'material-ui/svg-icons/action/home';
-
-import { Toolbar, ToolbarGroup } from 'material-ui/Toolbar'
+import Tab from 'material-ui/Tabs/Tab'
+import Tabs from 'material-ui/Tabs/Tabs'
+import { Link } from 'react-router-dom'
+import { browserHistory } from 'react-router'
+import { connect } from 'react-redux'
 import { grey50 } from 'material-ui/styles/colors'
+import { syncAvailableRoles } from '../actions'
 
 const styles = {
   appBar: {
