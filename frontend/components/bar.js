@@ -23,13 +23,13 @@ export default class DurationBarChart extends React.Component {
     return (
       <div>
         <div className="col-sm-8">
-          <XYPlot
+          <FlexibleXYPlot
             animation
             margin={{ left: 100, right: 20, top: 20 }}
             xType="ordinal"
             stackBy="y"
             width={300}
-            height={250}>
+            height={270}>
             <HorizontalGridLines />
             <YAxis />
             <YAxis hideLine hideTicks left={-60} title={this.props.title} top={85} />
@@ -41,7 +41,7 @@ export default class DurationBarChart extends React.Component {
                 onValueClick={(datapoint, event) => {console.log(datapoint)}}
                 opacity={0.8} />
             ))}
-          </XYPlot>
+          </FlexibleXYPlot>
         </div>
         <div className="col-sm-4">
           <DiscreteColorLegend

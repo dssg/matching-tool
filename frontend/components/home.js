@@ -36,7 +36,7 @@ export default React.createClass({
               </CardText>
             </Card>
             <Card style={styles.card}>
-              <Link to='/charts'><CardTitle title='Charts' /></Link>
+              <Link to='/results'><CardTitle title='Results' /></Link>
               <CardText>
                 View matched data to find overlaps between populations, and frequent utilizers of county systems.
               </CardText>

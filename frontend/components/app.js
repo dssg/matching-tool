@@ -1,6 +1,6 @@
 import React from 'react'
 import { Switch, Route } from 'react-router-dom'
-import Charts from './charts'
+import Results from './results'
 import Home from './home'
 import Upload from './upload'
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider'
@@ -24,7 +24,7 @@ class App extends React.Component {
         <Switch>
           <Route exact path='/' component={Home} />
           <Route path='/upload' component={Upload} />
-          <Route path='/charts' component={Charts} />
+          <Route path='/results' component={Results} />
         </Switch>
       </MuiThemeProvider>
     )

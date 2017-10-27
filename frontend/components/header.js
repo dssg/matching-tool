@@ -1,6 +1,6 @@
 import React from 'react'
 import { Switch, Route } from 'react-router-dom'
-import Charts from './charts'
+import Results from './results'
 import Home from './home'
 import Upload from './upload'
 import UploadSuccess from './upload-success'
@@ -39,7 +39,7 @@ class Header extends React.Component {
           <Divider />
           <Link to='/'><MenuItem primaryText='Home' onTouchTap={this.handleToggle} /></Link>
           <Link to='/upload'><MenuItem primaryText='Upload' onTouchTap={this.handleToggle} /></Link>
-          <Link to='/charts'><MenuItem primaryText='Charts' onTouchTap={this.handleToggle} /></Link>
+          <Link to='/results'><MenuItem primaryText='Results' onTouchTap={this.handleToggle} /></Link>
           <Divider />
           <Link to='/logout'><MenuItem value={'/logout'} primaryText='Logout' /></Link>
         </Drawer>

@@ -160,7 +160,6 @@ const styles = {
   h5: {
     "text-align": "right",
     float:"right",
-    marginRight: '1%'
   },
   page: {
     margin: '5px',
@@ -232,7 +231,7 @@ function mapDispatchToProps(dispatch) {
   }
 }
 
-class Charts extends React.Component {
+class Results extends React.Component {
   constructor(props) {
     super(props);
     this.state = {open: true};
@@ -319,4 +318,4 @@ class Charts extends React.Component {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Charts)
+export default connect(mapStateToProps, mapDispatchToProps)(Results)
