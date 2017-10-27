@@ -30,8 +30,8 @@ export default class DurationBarChart extends React.Component {
             width={300}
             height={270}>
             <HorizontalGridLines />
-            <YAxis />
-            <YAxis hideLine hideTicks left={-60} title={this.props.title} top={85} />
+            <YAxis tickFormat={v => `${v}%`} />
+            <YAxis hideLine hideTicks left={-60} title={'Percent of Population'} top={85} />
             <XAxis />
             {this.props.data.map((entry, idx) => (
               <VerticalBarSeries

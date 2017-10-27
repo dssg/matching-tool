@@ -29,6 +29,7 @@ const styles = {
   h5: {
     "text-align": "right",
     float:"right",
+    marginRight: 7
   },
   page: {
     margin: '5px',
@@ -221,11 +222,11 @@ class Results extends React.Component {
           <div style={styles.container}>
             <Card style={styles.bar_chart_jail}>
               <CardTitle title="Jail Duration Bar Chart" titleStyle={{'font-size': 20}} />
-                <DurationBarChart data={this.props.jailBarData} title='Jail Days' />
+                <DurationBarChart data={this.props.jailBarData} />
             </Card>
             <Card style={styles.bar_chart_homeless}>
               <CardTitle title="Homeless Duration Bar Chart" titleStyle={{'font-size': 20}} />
-                <DurationBarChart data={this.props.homelessBarData} title='Homeless Days' />
+                <DurationBarChart data={this.props.homelessBarData} />
             </Card>
           </div>
         </div>
