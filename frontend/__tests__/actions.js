@@ -46,3 +46,23 @@ describe('syncRoleAction', () => {
     })
   })
 })
+
+
+describe('confirmUpload', () => {
+  it('should tell the server to merge the file and then save the results locally', () => {
+    fetchMock.postOnce(
+      'merge_file?uploadId=123',
+      {
+        body: { totalUniqueRows: 5, newUniqueRows: 4 } ,
+        headers: { 'content-type': 'application/json' }
+      }
+    )
+    const expectedActions = [
+      { type: constants.SAVE_MERGE_RESULTS, payload: { totalUniqueRows: 5, newUniqueRows: 4 } }
+    ]
+    const store = mockStore({mergeResults: {}})
+    return store.dispatch(actions.confirmUpload('123')).then(() => {
+      expect(store.getActions()).toEqual(expectedActions)
+    })
+  })
+})

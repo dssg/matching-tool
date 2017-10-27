@@ -3,11 +3,14 @@ from unittest.mock import patch
 import json
 from moto import mock_s3_deprecated
 import boto
-from tests.utils import rig_test_client, authenticate
+from tests.utils import rig_test_client,\
+    authenticate,\
+    create_and_populate_raw_table
 from datetime import date
 from smart_open import smart_open
 from webapp.database import db_session
-from webapp.models import Upload
+from webapp.models import Upload, MergeLog
+import unicodecsv as csv
 
 
 class UploadFileTestCase(unittest.TestCase):
@@ -15,7 +18,7 @@ class UploadFileTestCase(unittest.TestCase):
         sample_config = {
             'raw_uploads_path': 's3://test-bucket/{jurisdiction}/{service_provider}/uploaded/{date}/{upload_id}'
         }
-        with patch.dict('webapp.app.path_config', sample_config):
+        with patch.dict('webapp.utils.path_config', sample_config):
             with rig_test_client() as app:
                 authenticate(app)
                 with mock_s3_deprecated():
@@ -37,3 +40,46 @@ class UploadFileTestCase(unittest.TestCase):
                             assert expected_s3_file.read() == source_file.read()
 
                     assert db_session.query(Upload).filter(Upload.id == response_data['uploadId']).one
+
+
+class MergeFileTestCase(unittest.TestCase):
+    def test_good_file(self):
+        sample_config = {
+            'raw_uploads_path': 's3://test-bucket/{jurisdiction}/{service_provider}/uploaded/{date}/{upload_id}',
+            'merged_uploads_path': 's3://test-bucket/{jurisdiction}/{service_provider}/merged'
+        }
+        with patch.dict('webapp.utils.path_config', sample_config):
+            with rig_test_client() as app:
+                authenticate(app)
+                with mock_s3_deprecated():
+                    s3_conn = boto.connect_s3()
+                    s3_conn.create_bucket('test-bucket')
+                    # to set up, we want a raw file to have been uploaded
+                    # present in s3 and metadata in the database
+                    # use the upload file endpoint as a shortcut for setting
+                    # this environment up quickly, though this is not ideal
+                    response = app.post(
+                        '/upload_file?jurisdiction=boone&serviceProvider=hmis',
+                        content_type='multipart/form-data',
+                        data={'file_field': (open('hmis-good.csv', 'rb'), 'myfile.csv')}
+                    )
+                    # parse and assert the response just in case something
+                    # breaks before the merge stage it will show itself here
+                    # and not make us think the merge is broken
+                    response_data = json.loads(response.get_data().decode('utf-8'))
+                    assert response_data['status'] == 'valid'
+                    upload_id = json.loads(response.get_data().decode('utf-8'))['uploadId']
+
+                    # okay, here's what we really want to test.
+                    # call the merge endpoint
+                    response = app.post('/merge_file?uploadId={}'.format(upload_id))
+                    response_data = json.loads(response.get_data().decode('utf-8'))
+                    assert response_data['status'] == 'valid'
+                    # make sure that there is a new merged file on s3
+                    expected_s3_path = 's3://test-bucket/boone/hmis/merged'
+                    with smart_open(expected_s3_path, 'rb') as expected_s3_file:
+                        reader = csv.reader(expected_s3_file)
+                        assert len([row for row in reader]) == 2
+
+                    # and make sure that the merge log has a record of this
+                    assert db_session.query(MergeLog).filter(MergeLog.upload_id == '123-456').one
