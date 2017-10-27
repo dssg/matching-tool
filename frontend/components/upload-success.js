@@ -31,7 +31,7 @@ class UploadSuccessPage extends React.Component {
         <h2>Upload Success</h2>
         <p>Your {this.props.serviceProvider} file was successfully uploaded.</p>
         <p>{this.props.rowCount} valid rows found</p>
-        <Link to='/charts'><RaisedButton style={styles.button} label="View Your Data" /></Link>
+        <Link to='/results'><RaisedButton style={styles.button} label="View Your Data" /></Link>
       </div>
     )
   }
