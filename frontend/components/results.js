@@ -1,7 +1,6 @@
 import React from 'react'
 import { getVennDiagramData, getTableData, getJailBarData, getHomelessBarData } from '../actions'
 import { connect } from 'react-redux'
-import d3 from 'd3'
 import DurationBarChart from './bar'
 import Venn from './venn'
 import TableList from './table'
@@ -9,7 +8,9 @@ import {Card, CardActions, CardHeader, CardMedia, CardTitle, CardText} from 'mat
 import RaisedButton from 'material-ui/RaisedButton'
 import FlatButton from 'material-ui/FlatButton'
 import Header from './header'
-
+import SelectField from 'material-ui/SelectField';
+import MenuItem from 'material-ui/MenuItem';
+import DatePicker from 'material-ui/DatePicker';
 import FloatingActionButton from 'material-ui/FloatingActionButton'
 import ContentAdd from 'material-ui/svg-icons/content/add'
 import NavigationClose from 'material-ui/svg-icons/navigation/close'
@@ -169,8 +170,12 @@ const styles = {
     display: 'flex',
     'justify-content': 'space-between',
   },
-  venn: {
+  datepicker: {
+    marginLeft: 15,
+  },
+  panel: {
     width: '100%',
+    marginLeft: 5
   },
   card: {
     width: '50%',
@@ -234,12 +239,36 @@ function mapDispatchToProps(dispatch) {
 class Results extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {open: true};
+    this.state = {
+      open: true,
+      controlledDate: null,
+      duration: null
+    }
   }
 
-  handleToggle = () => this.setState({open: !this.state.open});
+  handleToggle = () => {
+    this.setState({
+      open: !this.state.open
+    })
+  }
 
-  handleClose = () => this.setState({open: false});
+  handleClose = () => {
+    this.setState({
+      open: false
+    })
+  }
+
+  handleDateChange = (event, date) => {
+    this.setState({
+      controlledDate: date,
+    })
+  }
+
+  handleDurationChange = (event, index, value) => {
+    this.setState({
+      duration: value
+    })
+  }
 
   componentDidMount() {
     this.props.updateTableData(table_data)
@@ -270,8 +299,8 @@ class Results extends React.Component {
             containerStyle={{height: 'calc(100% - 48px)', top: 48}}
             onRequestChange={(open) => this.setState({open})} >
             <div style={styles.container}>
-              <Card style={styles.venn}>
-                <CardTitle title="Venn Diagram" titleStyle={{'font-size': 20}} />
+              <Card style={styles.panel}>
+                <CardTitle title="Control Panel" titleStyle={{'font-size': 20}} />
                 <FloatingActionButton
                   onClick={this.handleClose}
                   mini={true}
@@ -279,6 +308,25 @@ class Results extends React.Component {
                   style={styles.floatingActionButtonClose} >
                   <NavigationClose />
                 </FloatingActionButton>
+                <div style={styles.datepicker}>
+                  <h5>End Date:
+                    <DatePicker
+                      hintText="Pick the data to go back"
+                      value={this.state.controlledDate}
+                      onChange={this.handleDateChange} />
+                  </h5>
+                  <h5>Duration:</h5>
+                  <h5>
+                    <SelectField
+                      value={this.state.duration}
+                      onChange={this.handleDurationChange}
+                      maxHeight={200} >
+                      <MenuItem value={30} key={1} primaryText={`1 Month`} />
+                      <MenuItem value={90} key={2} primaryText={`3 Months`} />
+                      <MenuItem value={365} key={3} primaryText={`1 Year`} />
+                    </SelectField>
+                  </h5>
+                </div>
                 <Venn data={this.props.vennDiagramData} />
               </Card>
             </div>

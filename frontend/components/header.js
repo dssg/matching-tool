@@ -23,8 +23,9 @@ class Header extends React.Component {
   handleToggle = () => {
     this.setState({
       open: !this.state.open
-    });
+    })
   }
+
   render() {
     return (
       <div>
