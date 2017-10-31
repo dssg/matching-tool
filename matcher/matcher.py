@@ -9,7 +9,9 @@ from typing import List
 
 
 def select_columns(df, columns_to_select: List):
-    pass
+    """ Reduces the dataframe to the columns selected for matching.
+    """
+    return df[columns_to_select]
 
 def indexing(df):
     pass
