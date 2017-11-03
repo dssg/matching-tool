@@ -5,10 +5,9 @@ import {
   SAVE_AVAILABLE_ROLES,
   SAVE_UPLOAD_RESPONSE,
   SET_ERROR_MESSAGE,
-  VENN_DIAGRAM_DATA,
-  TABLE_DATA,
-  JAIL_BAR_DATA,
-  HOMELESS_BAR_DATA
+  MATCHING_RESULTS,
+  UPDATE_CONTROLLED_DATE,
+  UPDATE_DURATION
 } from '../constants/index'
 import { length } from 'ramda'
 import { validJurisdictions } from '../utils/jurisdictions'
@@ -86,30 +85,23 @@ export function syncAvailableRoles() {
   }
 }
 
-export function getVennDiagramData(data) {
+export function getMatchingResults(data) {
   return {
-    type: VENN_DIAGRAM_DATA,
+    type: MATCHING_RESULTS,
     payload: data
   }
 }
 
-export function getTableData(data) {
+export function updateControlledDate(date) {
   return {
-    type: TABLE_DATA,
-    payload: data
+    type: UPDATE_CONTROLLED_DATE,
+    payload: date
   }
 }
 
-export function getJailBarData(data) {
+export function updateDuration(data) {
   return {
-    type: JAIL_BAR_DATA,
-    payload: data
-  }
-}
-
-export function getHomelessBarData(data) {
-  return {
-    type: HOMELESS_BAR_DATA,
+    type: UPDATE_DURATION,
     payload: data
   }
 }

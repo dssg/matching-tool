@@ -12,7 +12,7 @@ import SelectField from 'material-ui/SelectField'
 import TableList from './table'
 import Venn from './venn'
 import { connect } from 'react-redux'
-import { getVennDiagramData, getTableData, getJailBarData, getHomelessBarData } from '../actions'
+import { getMatchingResults, updateControlledDate, updateDuration } from '../actions'
 import {Card, CardActions, CardHeader, CardMedia, CardTitle, CardText} from 'material-ui/Card'
 
 const styles = {
@@ -81,27 +81,23 @@ const styles = {
 
 function mapStateToProps(state) {
   return {
-    vennDiagramData: state.app.vennDiagramData,
-    tableData: state.app.tableData,
-    jailBarData: state.app.jailBarData,
-    homelessBarData: state.app.homelessBarData,
+    matchingResults: state.app.matchingResults,
+    controlledDate: state.app.matchingResults.filters.controlledDate,
+    duration: state.app.matchingResults.filters.duration
   }
 }
 
 function mapDispatchToProps(dispatch) {
   return {
-    updateVennDiagramData: (data) => {
-      dispatch(getVennDiagramData(data))
+    updateMatchingResults: (data) => {
+      dispatch(getMatchingResults(data))
     },
-    updateTableData: (data) => {
-      dispatch(getTableData(data))
+    handleControlledDate: (event, date) => {
+      dispatch(updateControlledDate(date))
     },
-    updateJailBarData: (data) => {
-      dispatch(getJailBarData(data))
-    },
-    updateHomelessBarData: (data) => {
-      dispatch(getHomelessBarData(data))
-    },
+    handleDurationChange: (event, index, value) => {
+      dispatch(updateDuration(value))
+    }
   }
 }
 
@@ -110,8 +106,6 @@ class Results extends React.Component {
     super(props);
     this.state = {
       open: true,
-      controlledDate: null,
-      duration: null
     }
   }
 
@@ -127,23 +121,8 @@ class Results extends React.Component {
     })
   }
 
-  handleDateChange = (event, date) => {
-    this.setState({
-      controlledDate: date,
-    })
-  }
-
-  handleDurationChange = (event, index, value) => {
-    this.setState({
-      duration: value
-    })
-  }
-
   componentDidMount() {
-    this.props.updateTableData(table_data)
-    this.props.updateJailBarData(jail_bar_data)
-    this.props.updateHomelessBarData(homeless_bar_data)
-    this.props.updateVennDiagramData(venn_diagram_data)
+    this.props.updateMatchingResults(matching_results)
   }
 
   render() {
@@ -181,14 +160,14 @@ class Results extends React.Component {
                   <h5>End Date:
                     <DatePicker
                       hintText="Pick the data to go back"
-                      value={this.state.controlledDate}
-                      onChange={this.handleDateChange} />
+                      value={this.props.controlledDate}
+                      onChange={this.props.handleControlledDate} />
                   </h5>
                   <h5>Duration:</h5>
                   <h5>
                     <SelectField
-                      value={this.state.duration}
-                      onChange={this.handleDurationChange}
+                      value={this.props.duration}
+                      onChange={this.props.handleDurationChange}
                       maxHeight={200} >
                       <MenuItem value={30} key={1} primaryText={`1 Month`} />
                       <MenuItem value={90} key={2} primaryText={`3 Months`} />
@@ -196,7 +175,7 @@ class Results extends React.Component {
                     </SelectField>
                   </h5>
                 </div>
-                <Venn data={this.props.vennDiagramData} />
+                <Venn data={this.props.matchingResults.vennDiagramData} />
               </Card>
             </div>
             <RaisedButton label="Download List" secondary={true} style={styles.button} />
@@ -216,17 +195,17 @@ class Results extends React.Component {
           </div>
           <div style={styles.container}>
             <Card style={styles.card_close}>
-              <TableList data={this.props.tableData} />
+              <TableList data={this.props.matchingResults.filteredData.tableData} />
             </Card>
           </div>
           <div style={styles.container}>
             <Card style={styles.bar_chart_jail}>
               <CardTitle title="Jail Duration Bar Chart" titleStyle={{'font-size': 20}} />
-                <DurationBarChart data={this.props.jailBarData} />
+                <DurationBarChart data={this.props.matchingResults.filteredData.jailBarData} />
             </Card>
             <Card style={styles.bar_chart_homeless}>
               <CardTitle title="Homeless Duration Bar Chart" titleStyle={{'font-size': 20}} />
-                <DurationBarChart data={this.props.homelessBarData} />
+                <DurationBarChart data={this.props.matchingResults.filteredData.homelessBarData} />
             </Card>
           </div>
         </div>
@@ -236,6 +215,7 @@ class Results extends React.Component {
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Results)
+
 
 const venn_diagram_data = [ {sets: ['Jail'], size: 500}, {sets: ['Homeless'], size: 340}, {sets: ['Jail','Homeless'], size: 100}]
 
@@ -367,3 +347,17 @@ const table_data = [
     'Last Jail Contact': null,
     'Last Homeless Contact': '2017-08-19' },
 ]
+
+const matching_results = {
+  filters: {
+    controlledDate: '2017-07-01',
+    duration: '1 year',
+    serviceProviders: ['jail', 'hmis', 'intersection']
+  },
+  vennDiagramData: venn_diagram_data,
+  filteredData: {
+    tableData: table_data,
+    jailBarData: jail_bar_data,
+    homelessBarData: homeless_bar_data,
+  },
+}

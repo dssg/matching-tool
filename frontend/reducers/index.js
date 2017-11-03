@@ -6,13 +6,13 @@ import {
   SAVE_AVAILABLE_ROLES,
   SAVE_UPLOAD_RESPONSE,
   SET_ERROR_MESSAGE,
-  VENN_DIAGRAM_DATA,
-  TABLE_DATA,
-  JAIL_BAR_DATA,
-  HOMELESS_BAR_DATA
+  MATCHING_RESULTS,
+  UPDATE_CONTROLLED_DATE,
+  UPDATE_DURATION
 } from '../constants/index'
 import { combineReducers } from 'redux'
 import { routerReducer } from 'react-router-redux'
+import update from 'react-addons-update'
 
 const initialState = {
   app: {
@@ -31,10 +31,19 @@ const initialState = {
       slug: ''
     },
     availableJurisdictionalRoles: [],
-    vennDiagramData: [ {sets: [''], size: null}],
-    tableData: [],
-    jailBarData: [],
-    homelessBarData: [],
+    matchingResults: {
+      filters: {
+        controlledDate: '2017-07-01',
+        duration: '1 year',
+        serviceProviders: ['jail', 'hmis', 'intersection']
+      },
+      vennDiagramData: [{sets: [''], size: null}],
+      filteredData: {
+        tableData: [],
+        jailBarData: [],
+        homelessBarData: [],
+      }
+    }
   }
 }
 
@@ -67,25 +76,30 @@ const app = createReducer(initialState, {
     })
     return newState
   },
-  [VENN_DIAGRAM_DATA]: (state, payload) => {
+  [MATCHING_RESULTS]: (state, payload) => {
     return Object.assign({}, state, {
-      vennDiagramData: payload
+      matchingResults: payload
     })
   },
-  [TABLE_DATA]: (state, payload) => {
-    return Object.assign({}, state, {
-      tableData: payload
+  [UPDATE_CONTROLLED_DATE]: (state, payload) => {
+    const newState = update(state, {
+      matchingResults: {
+        filters: {
+          controlledDate: {$set: payload}
+        }
+      }
     })
+    return newState
   },
-  [JAIL_BAR_DATA]: (state, payload) => {
-    return Object.assign({}, state, {
-      jailBarData: payload
+  [UPDATE_DURATION]: (state, payload) => {
+    const newState = update(state, {
+      matchingResults: {
+        filters: {
+          duration: {$set: payload}
+        }
+      }
     })
-  },
-  [HOMELESS_BAR_DATA]: (state, payload) => {
-    return Object.assign({}, state, {
-      homelessBarData: payload
-    })
+    return newState
   }
 })
 const rootReducer = combineReducers({
