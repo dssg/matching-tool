@@ -6,7 +6,7 @@ logger = logging.getLogger('indexer')
 import pandas as pd
 
 
-def identity(df):
+def identity(df:pd.DataFrame) -> pd.DataFrame:
     ## Every row in the data frame belongs to the same index, i.e. every row will be compare with every other row
     logger.debug("Creating subsets")
     df.loc[:,('index')] = 1
