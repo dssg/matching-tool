@@ -12,7 +12,7 @@ import {
 } from '../constants/index'
 import { combineReducers } from 'redux'
 import { routerReducer } from 'react-router-redux'
-import update from 'react-addons-update'
+import update from 'immutability-helper'
 
 const initialState = {
   app: {

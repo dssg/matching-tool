@@ -23,12 +23,12 @@
   "dependencies": {
     "d3": "3.5.17",
     "d3-sankey-align": "^0.1.0",
+    "immutability-helper": "^2.4.0",
     "jquery": "1.11.3",
     "material-ui": "^0.18.7",
     "material-ui-upload": "^1.1.5",
     "ramda": "^0.23.0",
     "react": "15.6.1",
-    "react-addons-update": "^15.6.2",
     "react-dom": "15.6.1",
     "react-flexbox-grid": "^1.1.4",
     "react-material-responsive-grid": "^1.2.0",
