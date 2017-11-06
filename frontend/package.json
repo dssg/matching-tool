@@ -24,6 +24,7 @@
   "dependencies": {
     "d3": "3.5.17",
     "d3-sankey-align": "^0.1.0",
+    "immutability-helper": "^2.4.0",
     "jquery": "1.11.3",
     "material-ui": "^0.18.7",
     "material-ui-upload": "^1.1.5",

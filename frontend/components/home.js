@@ -1,8 +1,8 @@
+import FlatButton from 'material-ui/FlatButton';
+import Header from './header'
 import React from 'react'
 import {Card, CardActions, CardHeader, CardMedia, CardTitle, CardText} from 'material-ui/Card';
-import FlatButton from 'material-ui/FlatButton';
 import {Link} from 'react-router-dom'
-import Header from './header'
 
 
 const styles = {
@@ -36,7 +36,7 @@ export default React.createClass({
               </CardText>
             </Card>
             <Card style={styles.card}>
-              <Link to='/charts'><CardTitle title='Charts' /></Link>
+              <Link to='/results'><CardTitle title='Results' /></Link>
               <CardText>
                 View matched data to find overlaps between populations, and frequent utilizers of county systems.
               </CardText>
