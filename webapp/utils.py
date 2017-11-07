@@ -16,19 +16,22 @@ def unique_upload_id():
 def s3_upload_path(jurisdiction, service_provider, upload_id):
     datestring = date.today().isoformat()
     path_template = path_config['raw_uploads_path']
-    full_s3_path = path_template\
-        .replace('{service_provider}', service_provider)\
-        .replace('{jurisdiction}', jurisdiction)\
-        .replace('{date}', datestring)\
-        .replace('{upload_id}', upload_id)
+
+    full_s3_path = path_template.format(
+        service_provider=service_provider,
+        jurisdiction=jurisdiction,
+        date=datestring,
+        upload_id=upload_id
+    )
     return full_s3_path
 
 
 def merged_file_path(jurisdiction, service_provider):
     path_template = path_config['merged_uploads_path']
-    full_s3_path = path_template\
-        .replace('{service_provider}', service_provider)\
-        .replace('{jurisdiction}', jurisdiction)
+    full_s3_path = path_template.format(
+        service_provider=service_provider,
+        jurisdiction=jurisdiction
+    )
     return full_s3_path
 
 

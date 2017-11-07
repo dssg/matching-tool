@@ -59,8 +59,6 @@ const app = createReducer(initialState, {
     })
   },
   [SELECT_JURISDICTION]: (state, payload) => {
-    console.log('selecting jurisdiction')
-    console.log(payload)
     return Object.assign({}, state, {
       selectedJurisdiction: payload
     })
@@ -76,8 +74,6 @@ const app = createReducer(initialState, {
     })
   },
   [SAVE_UPLOAD_RESPONSE]: (state, payload) => {
-    console.log('saving uploading response')
-    console.log(payload)
     const newState = Object.assign({}, state, {
       uploadResponse: payload
     })
