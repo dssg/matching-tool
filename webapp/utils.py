@@ -49,7 +49,7 @@ def makeNamedTemporaryCSV(content, separator='|'):
 
 
 def load_schema_file(service_provider):
-    with open('{}-schema.json'.format(service_provider)) as f:
+    with open('{}-schema.json'.format(service_provider.replace('_', '-'))) as f:
         return json.load(f)
 
 

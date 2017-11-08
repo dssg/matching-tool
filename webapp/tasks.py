@@ -145,5 +145,5 @@ def sync_merged_file_to_s3(jurisdiction, service_provider, db_engine):
     table_name = generate_master_table_name(jurisdiction, service_provider)
     with smart_open(full_s3_path, 'w') as outfile:
         cursor = db_engine.raw_connection().cursor()
-        copy_stmt = 'copy "{}" to stdout with csv header delimiter as \',\''.format(table_name)
+        copy_stmt = 'copy "{}" to stdout with csv header delimiter as \'|\''.format(table_name)
         cursor.copy_expert(copy_stmt, outfile)
