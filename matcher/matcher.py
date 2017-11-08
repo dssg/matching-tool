@@ -6,18 +6,24 @@ logger = logging.getLogger('matcher')
 
 import pandas as pd
 
-from typing import List
+from typing import List, Callable
 
+import utils
 import indexer
+import contraster
 
-
-def select_columns(df, columns_to_select: List):
+def select_columns(df:pd.DataFrame, keys: List) -> pd.DataFrame:
     """ 
     Reduces the dataframe to the columns selected for matching.
-    """
-    return  df[columns_to_select]
 
-def indexing(df, func):
+    We always expect at least two columns: source and source_id
+    """
+
+    columns_to_select = ['source', 'source_id'] + keys
+    
+    return  df.loc[:,columns_to_select]
+
+def indexing(df:pd.DataFrame, indexer:Callable[[pd.DataFrame], pd.DataFrame]) -> pd.DataFrame:
     """
     Creates a subsets of the data frame using a function. This subset will be 
     formed by the *candidate record pairs*
@@ -27,33 +33,40 @@ def indexing(df, func):
     See for reference:
       - *Probabilistic record linkage with the Fellegi and Sunter framework*, M.S. Thesis, **Jonathan de Bruin** (2015)
     """
-    logger.info(f"Starting indexing using the strategy {func.__name__}")
+    logger.info(f"Starting indexing using the strategy {indexer.__name__}")
 
-    df = func(df)
+    df = indexer(df)
 
-    logger.info(f"Indexing {func.__name__} done")
+    logger.info(f"Indexing {indexer.__name__} done")
 
     return df
 
 
-def deduplicate(df):
+def match(df:pd.DataFrame, contraster:Callable[[pd.DataFrame], pd.DataFrame], keys: List) -> pd.DataFrame:
     """
     """
-    pass
+    logger.info(f"Starting matching process using the strategy {contraster.__name__}")
 
+    df = contraster(df, keys)
 
-def run(df, columns_to_select, indexing_strategy):
-    return  deduplicate(
+    logger.info(f"Matching {contraster.__name__} done")
+
+    return df
+
+def run(df:pd.DataFrame, keys:List, indexer:Callable[[pd.DataFrame], pd.DataFrame], contraster:Callable[[pd.DataFrame], pd.DataFrame]) -> pd.DataFrame:
+    return  match(
         indexing(
             select_columns(df, columns_to_select),
-            func=indexing_strategy)
+            indexer=indexer),
+        contraster=contraster
     )
 
 
 if __name__ == "main":
     df = None
     
-    columns_to_select = None
-    indexing_strategy = indexer.identity
+    keys = None
+    indexer = indexer.identity
+    contraster = contraster.exact
     
-    run(df, columns_to_select, indexing_strategy)
+    run(df, keys, indexer, contraster)
