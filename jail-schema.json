@@ -1,0 +1,260 @@
+{
+    "fields": [
+        {
+            "name": "Internal Person ID",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "Internal Event ID",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+		{
+			"name": "Inmate Number",
+			"type": "string"
+		},
+        {
+            "name": "Full Name",
+            "type": "string"
+        },
+        {
+            "name": "Prefix",
+            "type": "string"
+        },
+        {
+            "name": "First Name",
+            "type": "string"
+        },
+        {
+            "name": "Middle Name",
+            "type": "string"
+        },
+        {
+            "name": "Last Name",
+            "type": "string"
+        },
+        {
+            "name": "Suffix",
+            "type": "string"
+        },
+        {
+            "name": "Birthdate",
+            "type": "date",
+            "format": "any",
+            "constraints": {
+                "required": true
+            }
+        },
+		{
+			"name": "SSN",
+			"type": "string"
+		},
+		{
+			"name": "Hash SSN",
+			"type": "string"
+		},
+		{
+			"name": "Hash SSN Bigrams",
+			"type": "string"
+		},
+		{
+			"name": "Fingerprint ID",
+			"type": "string"
+		},
+        {
+            "name": "DMV Number",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "DMV State",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "Additional State or Federal ID",
+            "type": "string"
+        },
+        {
+            "name": "Name of Additional State or Federal ID",
+            "type": "string"
+        },
+        {
+            "name": "Race/Ethnicity",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "Ethnicity",
+            "type": "string"
+        },
+		{
+			"name": "Sex/Gender",
+			"type": "string",
+            "constraints": {
+                "required": true
+            }
+		},
+		{
+			"name": "Hair Color",
+			"type": "string"
+		},
+		{
+			"name": "Eye Color",
+			"type": "string"
+		},
+		{
+			"name": "Height",
+			"type": "integer"
+		},
+		{
+			"name": "Weight",
+			"type": "integer"
+		},
+		{
+			"name": "Street Address",
+			"type": "string"
+		},
+		{
+			"name": "City",
+			"type": "string"
+		},
+		{
+			"name": "State",
+			"type": "string"
+		},
+		{
+			"name": "Postal Code",
+			"type": "string"
+		},
+		{
+			"name": "County",
+			"type": "string"
+		},
+		{
+			"name": "Country",
+			"type": "string"
+		},
+		{
+			"name": "Birth Place",
+			"type": "string"
+		},
+		{
+			"name": "Booking Number",
+			"type": "string"
+		},
+        {
+            "name": "Jail Entry Date",
+            "type": "date",
+            "format": "any",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "Jail Exit Date",
+            "type": "date",
+            "format": "any",
+            "constraints": {
+                "required": true
+            }
+        },
+		{
+			"name": "Homelessness Flag",
+			"type": "boolean"
+		},
+		{
+			"name": "Mental Health Flag",
+			"type": "boolean"
+		},
+		{
+			"name": "Veteran Flag",
+			"type": "boolean"
+		},
+		{
+			"name": "Special Initiative",
+			"type": "string"
+		},
+		{
+			"name": "Bond Amount",
+			"type": "integer"
+		},
+		{
+			"name": "Arresting Agency",
+			"type": "string"
+		},
+		{
+			"name": "Bed Number",
+			"type": "string"
+		},
+		{
+			"name": "Cell Number",
+			"type": "string"
+		},
+		{
+			"name": "Block ID",
+			"type": "string"
+		},
+		{
+			"name": "Building ID",
+			"type": "string"
+		},
+		{
+			"name": "Annex ID",
+			"type": "string"
+		},
+		{
+			"name": "Floor Number",
+			"type": "string"
+		},
+		{
+			"name": "Classification Code",
+			"type": "string"
+		},
+		{
+			"name": "Detention Type",
+			"type": "string"
+		},
+		{
+			"name": "Location Type",
+			"type": "string"
+		},
+        {
+            "name": "Relocation Date",
+            "type": "date",
+            "format": "any"
+        },
+		{
+			"name": "Case Number",
+			"type": "string"
+		},
+		{
+			"name": "Source",
+			"type": "string"
+		},
+        {
+            "name": "Date Created",
+            "type": "date",
+            "format": "any"
+        },
+        {
+            "name": "Date Updated",
+            "type": "date",
+            "format": "any"
+        }
+    ],
+    "trueValues": [ "true" ],
+    "falseValues": [ "false" ],
+	"primaryKey": "Internal Event ID"
+}

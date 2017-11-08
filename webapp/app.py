@@ -42,7 +42,7 @@ PRETTY_JURISDICTION_MAP = {
 
 PRETTY_PROVIDER_MAP = {
     'hmis': 'HMIS',
-    'jail': 'Jail',
+    'jail': 'Jail Bookings',
     'other': 'Other',
 }
 
