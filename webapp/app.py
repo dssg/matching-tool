@@ -117,8 +117,8 @@ def can_access_file(upload_id):
 
 
 IDENTIFIER_COLUMNS = {
-    'hmis': ['Internal Person ID', 'Internal Event ID'],
-    'jail': ['Internal Person ID', 'Internal Event ID']
+    'hmis': ['internal_person_id', 'internal_event_id'],
+    'jail': ['internal_person_id', 'internal_event_id']
 }
 
 

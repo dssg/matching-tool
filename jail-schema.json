@@ -1,49 +1,49 @@
 {
     "fields": [
         {
-            "name": "Internal Person ID",
+            "name": "internal_person_id",
             "type": "string",
             "constraints": {
                 "required": true
             }
         },
         {
-            "name": "Internal Event ID",
+            "name": "internal_event_id",
             "type": "string",
             "constraints": {
                 "required": true
             }
         },
 		{
-			"name": "Inmate Number",
+			"name": "inmate_number",
 			"type": "string"
 		},
         {
-            "name": "Full Name",
+            "name": "full_name",
             "type": "string"
         },
         {
-            "name": "Prefix",
+            "name": "prefix",
             "type": "string"
         },
         {
-            "name": "First Name",
+            "name": "first_name",
             "type": "string"
         },
         {
-            "name": "Middle Name",
+            "name": "middle_name",
             "type": "string"
         },
         {
-            "name": "Last Name",
+            "name": "last_name",
             "type": "string"
         },
         {
-            "name": "Suffix",
+            "name": "suffix",
             "type": "string"
         },
         {
-            "name": "Birthdate",
+            "name": "dob",
             "type": "date",
             "format": "any",
             "constraints": {
@@ -51,111 +51,111 @@
             }
         },
 		{
-			"name": "SSN",
+			"name": "ssn",
 			"type": "string"
 		},
 		{
-			"name": "Hash SSN",
+			"name": "ssn_hash",
 			"type": "string"
 		},
 		{
-			"name": "Hash SSN Bigrams",
+			"name": "ssn_bigrams",
 			"type": "string"
 		},
 		{
-			"name": "Fingerprint ID",
+			"name": "fingerprint_id",
 			"type": "string"
 		},
         {
-            "name": "DMV Number",
+            "name": "dmv_number",
             "type": "string",
             "constraints": {
                 "required": true
             }
         },
         {
-            "name": "DMV State",
+            "name": "dmv_state",
             "type": "string",
             "constraints": {
                 "required": true
             }
         },
         {
-            "name": "Additional State or Federal ID",
+            "name": "additional_id_number",
             "type": "string"
         },
         {
-            "name": "Name of Additional State or Federal ID",
+            "name": "additional_id_name",
             "type": "string"
         },
         {
-            "name": "Race/Ethnicity",
+            "name": "race",
             "type": "string",
             "constraints": {
                 "required": true
             }
         },
         {
-            "name": "Ethnicity",
+            "name": "ethnicity",
             "type": "string"
         },
 		{
-			"name": "Sex/Gender",
+			"name": "sex",
 			"type": "string",
             "constraints": {
                 "required": true
             }
 		},
 		{
-			"name": "Hair Color",
+			"name": "hair_color",
 			"type": "string"
 		},
 		{
-			"name": "Eye Color",
+			"name": "eye_color",
 			"type": "string"
 		},
 		{
-			"name": "Height",
+			"name": "height",
 			"type": "integer"
 		},
 		{
-			"name": "Weight",
+			"name": "weight",
 			"type": "integer"
 		},
 		{
-			"name": "Street Address",
+			"name": "street_address",
 			"type": "string"
 		},
 		{
-			"name": "City",
+			"name": "city",
 			"type": "string"
 		},
 		{
-			"name": "State",
+			"name": "state",
 			"type": "string"
 		},
 		{
-			"name": "Postal Code",
+			"name": "postal_code",
 			"type": "string"
 		},
 		{
-			"name": "County",
+			"name": "county",
 			"type": "string"
 		},
 		{
-			"name": "Country",
+			"name": "country",
 			"type": "string"
 		},
 		{
-			"name": "Birth Place",
+			"name": "birth_place",
 			"type": "string"
 		},
 		{
-			"name": "Booking Number",
+			"name": "booking_number",
 			"type": "string"
 		},
         {
-            "name": "Jail Entry Date",
+            "name": "jail_entry_date",
             "type": "date",
             "format": "any",
             "constraints": {
@@ -163,7 +163,7 @@
             }
         },
         {
-            "name": "Jail Exit Date",
+            "name": "jail_exit_date",
             "type": "date",
             "format": "any",
             "constraints": {
@@ -171,90 +171,90 @@
             }
         },
 		{
-			"name": "Homelessness Flag",
+			"name": "homeless",
 			"type": "boolean"
 		},
 		{
-			"name": "Mental Health Flag",
+			"name": "mental_health",
 			"type": "boolean"
 		},
 		{
-			"name": "Veteran Flag",
+			"name": "veteran",
 			"type": "boolean"
 		},
 		{
-			"name": "Special Initiative",
+			"name": "special_initiative",
 			"type": "string"
 		},
 		{
-			"name": "Bond Amount",
+			"name": "bond_amount",
 			"type": "integer"
 		},
 		{
-			"name": "Arresting Agency",
+			"name": "arresting_agency",
 			"type": "string"
 		},
 		{
-			"name": "Bed Number",
+			"name": "bed",
 			"type": "string"
 		},
 		{
-			"name": "Cell Number",
+			"name": "cell",
 			"type": "string"
 		},
 		{
-			"name": "Block ID",
+			"name": "block",
 			"type": "string"
 		},
 		{
-			"name": "Building ID",
+			"name": "building",
 			"type": "string"
 		},
 		{
-			"name": "Annex ID",
+			"name": "annex",
 			"type": "string"
 		},
 		{
-			"name": "Floor Number",
+			"name": "floor",
 			"type": "string"
 		},
 		{
-			"name": "Classification Code",
+			"name": "classification",
 			"type": "string"
 		},
 		{
-			"name": "Detention Type",
+			"name": "detention",
 			"type": "string"
 		},
 		{
-			"name": "Location Type",
+			"name": "location_type",
 			"type": "string"
 		},
         {
-            "name": "Relocation Date",
+            "name": "relocation_date",
             "type": "date",
             "format": "any"
         },
 		{
-			"name": "Case Number",
+			"name": "case_number",
 			"type": "string"
 		},
 		{
-			"name": "Source",
+			"name": "source_name",
 			"type": "string"
 		},
         {
-            "name": "Date Created",
+            "name": "created_date",
             "type": "date",
             "format": "any"
         },
         {
-            "name": "Date Updated",
+            "name": "updated_date",
             "type": "date",
             "format": "any"
         }
     ],
     "trueValues": [ "true" ],
     "falseValues": [ "false" ],
-	"primaryKey": "Internal Event ID"
+	"primaryKey": "internal_event_id"
 }
