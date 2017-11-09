@@ -94,7 +94,8 @@ def validate_file(request_file, service_provider_slug):
     report = validate(
         request_file,
         schema='{}-schema.json'.format(service_provider_slug),
-        format='csv'
+        format='csv',
+        checks=['required-constraint', 'type-or-format-error'],
     )
     return report
 
@@ -116,7 +117,8 @@ def can_access_file(upload_id):
 
 
 IDENTIFIER_COLUMNS = {
-    'hmis': ['Internal Person ID', 'Internal Event ID']
+    'hmis': ['Internal Person ID', 'Internal Event ID'],
+    'jail': ['Internal Person ID', 'Internal Event ID']
 }
 
 
