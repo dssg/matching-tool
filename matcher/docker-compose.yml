@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  matcher:
+    container_name: matcher
+    build: .
+    volumes:
+      - '.:/csh/matcher'
+    ports:
+      - 5001:5000 # HOST:CONTAINER

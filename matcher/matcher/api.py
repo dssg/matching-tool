@@ -2,8 +2,6 @@
 
 from flask import Flask, jsonify
 
-import config
-
 app = Flask(__name__)
 
 
@@ -14,6 +12,14 @@ app.config.update(dict(
     ))
 
 app.config.from_envvar('FLASKR_SETTINGS', silent=True)
+
+@app.route('/')
+def index():
+    return jsonify({
+        'status': 'success',
+        'message': 'Zzzzzzz'
+        })
+
 
 @app.route('/poke', methods=['GET'])
 def poke():

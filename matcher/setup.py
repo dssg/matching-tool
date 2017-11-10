@@ -2,7 +2,9 @@
 
 import os
 
-from setuptools import setup
+from matcher import __version__
+
+from setuptools import setup, find_packages
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -11,7 +13,11 @@ with open(os.path.join(here, 'requirements.txt'), encoding='utf-8') as f:
 
 setup(
     name='matcher',
-    packages=['matcher', 'api'],
+    version='0.0.1',
+    description='CSH matcher',
+    url='https://github.com/dssg/csh',
+    packages=find_packages(),
     include_package_data=True,
-    install_requires=requirements
+    install_requires=requirements,
+    zip_safe=False
 )
