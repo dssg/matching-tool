@@ -28,3 +28,11 @@ pip install -r requirements.txt
 #+BEGIN_SRC shell
 pip install -r requirements-dev.txt
 #+END_SRC
+
+* Run the API
+
+#+BEGIN_SRC shell
+export FLASK_APP=matcher.api
+export FLASK_DEBUG=true
+flask run
+#+END_SRC
