@@ -12,7 +12,9 @@ import utils
 import distances
 import rules
 
-def exact(df, keys):
+from typing import List, Callable
+
+def exact(df:pd.DataFrame, keys:List) -> pd.DataFrame:
     """
     Applies the *exact* rule. The distance used is an exact match too.
     """
