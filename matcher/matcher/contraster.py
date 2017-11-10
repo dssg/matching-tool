@@ -8,9 +8,9 @@ import numpy as np
 import pandas as pd
 import itertools
 
-import utils
-import distances
-import rules
+from . import utils
+from . import distances
+from . import rules
 
 from typing import List, Callable
 
