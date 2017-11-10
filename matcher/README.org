@@ -32,7 +32,11 @@ pip install -r requirements-dev.txt
 * Run the API
 
 #+BEGIN_SRC shell
-export FLASK_APP=matcher.api
-export FLASK_DEBUG=true
-flask run
+docker-compose up -d
+#+END_SRC
+
+You can test the API with
+
+#+BEGIN_SRC shell
+http 0.0.0.0:5001/poke
 #+END_SRC
