@@ -1,0 +1,43 @@
+{
+    "fields": [
+        {
+            "name": "Internal Person ID",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "Internal Event ID",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "Full Name",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "Birthdate",
+            "type": "date",
+            "format": "any",
+            "constraints": {
+                "required": true
+            }
+        },
+		{
+			"name": "SSN",
+			"type": "string",
+			"constraints": {
+				"required": true
+			}
+		}
+    ],
+    "trueValues": [ "true" ],
+    "falseValues": [ "false" ],
+	"primaryKey": "Internal Event ID"
+}

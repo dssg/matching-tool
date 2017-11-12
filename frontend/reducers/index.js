@@ -5,6 +5,7 @@ import {
   SELECT_JURISDICTION,
   SAVE_AVAILABLE_ROLES,
   SAVE_UPLOAD_RESPONSE,
+  SAVE_MERGE_RESULTS,
   SET_ERROR_MESSAGE,
   MATCHING_RESULTS,
   UPDATE_CONTROLLED_DATE,
@@ -25,6 +26,10 @@ const initialState = {
       exampleRows: [],
       rowCount: '',
       uploadId: ''
+    },
+    mergeResults: {
+      totalUniqueRows: '',
+      newUniqueRows: '',
     },
     selectedJurisdiction: {
       name: '',
@@ -54,8 +59,6 @@ const app = createReducer(initialState, {
     })
   },
   [SELECT_JURISDICTION]: (state, payload) => {
-    console.log('selecting jurisdiction')
-    console.log(payload)
     return Object.assign({}, state, {
       selectedJurisdiction: payload
     })
@@ -97,6 +100,15 @@ const app = createReducer(initialState, {
         filters: {
           duration: {$set: payload}
         }
+      }
+    })
+    return newState
+  },
+  [SAVE_MERGE_RESULTS]: (state, payload) => {
+    const newState = Object.assign({}, state, {
+      mergeResults: {
+        newUniqueRows: payload.new_unique_rows,
+        totalUniqueRows: payload.total_unique_rows
       }
     })
     return newState

@@ -194,5 +194,6 @@
 		}
     ],
     "trueValues": [ "true" ],
-    "falseValues": [ "false" ]
+    "falseValues": [ "false" ],
+	"primaryKey": "Internal Event ID"
 }

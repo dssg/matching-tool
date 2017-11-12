@@ -4,6 +4,7 @@ import {
   CHANGE_UPLOAD_STATE,
   SAVE_AVAILABLE_ROLES,
   SAVE_UPLOAD_RESPONSE,
+  SAVE_MERGE_RESULTS,
   SET_ERROR_MESSAGE,
   MATCHING_RESULTS,
   UPDATE_CONTROLLED_DATE,
@@ -103,5 +104,23 @@ export function updateDuration(data) {
   return {
     type: UPDATE_DURATION,
     payload: data
+  }
+}
+
+
+function saveMergeResults(results) {
+  return {
+    type: SAVE_MERGE_RESULTS,
+    payload: results
+  }
+}
+
+export function confirmUpload(uploadId) {
+  return function(dispatch) {
+    return fetch('merge_file?uploadId='+uploadId, { method: 'POST', credentials: 'include'})
+        .then((resp) => resp.json())
+        .then((data) => {
+          dispatch(saveMergeResults(data)) 
+        })
   }
 }

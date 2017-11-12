@@ -1,6 +1,7 @@
 from webapp.app import app, security
 from webapp.models import User, Role
 from webapp.database import Base, db_session
+from webapp.utils import create_statement_from_goodtables_schema, load_schema_file
 from sqlalchemy import create_engine
 import contextlib
 import testing.postgresql
@@ -79,3 +80,11 @@ def populate_data(app, user_datastore):
 def init_app_with_options(app, datastore, **options):
     security.datastore = datastore
     populate_data(app, datastore)
+
+def create_and_populate_raw_table(raw_table, data, db_engine):
+    schema = load_schema_file('test')
+    create = create_statement_from_goodtables_schema(schema, raw_table)
+    db_engine.execute(create)
+    for row in data:
+        db_engine.execute('insert into "{}" values (%s, %s, %s, %s, %s)'.format(raw_table), *row)
+    db_engine.execute('insert into upload_log (id, jurisdiction_slug, service_provider_slug) values (%s, %s, %s)', raw_table, 'test', 'test')

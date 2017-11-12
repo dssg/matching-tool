@@ -47,3 +47,14 @@ class Upload(Base):
     num_rows = Column(Integer)
     file_size = Column(BigInteger)
     file_hash = Column(String(255))
+    s3_upload_path = Column(String(255))
+
+
+class MergeLog(Base):
+    __tablename__ = 'merge_log'
+    id = Column(Integer, primary_key=True)
+    upload_id = Column(String(255), ForeignKey('upload_log.id'))
+    new_unique_rows = Column(Integer)
+    total_unique_rows = Column(Integer)
+    merge_start_timestamp = Column(DateTime())
+    merge_complete_timestamp = Column(DateTime())
