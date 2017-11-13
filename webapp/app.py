@@ -19,6 +19,7 @@ import unicodecsv as csv
 import boto
 import os
 
+logging.basicConfig(level=logging.INFO)
 
 # Create app
 app = Flask(__name__)

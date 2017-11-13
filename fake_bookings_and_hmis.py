@@ -12,28 +12,90 @@ booking_fakers = [
     ('internal_person_id', lambda: str(random.randint(0, 10000000))),
     ('internal_event_id', lambda: str(random.randint(0, 100000000))),
     ('inmate_number', lambda: str(random.randint(0, 10000000))),
+    ('full_name', lambda: ''),
+    ('prefix', lambda: ''),
     ('first_name', fake.first_name),
+    ('middle_name', lambda: ''),
     ('last_name', fake.last_name),
+    ('suffix', lambda: ''),
     ('dob', partial(fake.date_time_between, start_date='-75y', end_date='-18y')),
     ('ssn', fake.ssn),
+    ('ssn_hash', lambda: ''),
+    ('ssn_bigrams', lambda: ''),
     ('fingerprint_id', lambda: str(random.randint(0, 1000000))),
+    ('dmv_number', lambda: str(random.randint(0, 1000000))),
+    ('dmv_state', lambda: 'FL'),
+    ('additional_id_number', lambda: ''),
+    ('additional_id_name', lambda: ''),
     ('race', lambda: random.choice(['white', 'black', 'amindian', 'asian', 'pacisland', 'other'])),
     ('ethnicity', lambda: random.choice(['hispanic', 'nonhispanic'])),
+    ('sex', lambda: 'F'),
+    ('hair_color', lambda: ''),
+    ('eye_color', lambda: ''),
+    ('height', lambda: None),
+    ('weight', lambda: None),
+    ('street_address', lambda: ''),
+    ('city', lambda: ''),
+    ('state', lambda: ''),
+    ('postal_code', lambda: ''),
+    ('county', lambda: ''),
+    ('country', lambda: ''),
+    ('birth_place', lambda: ''),
+    ('booking_number', lambda: ''),
     ('jail_entry_date', partial(fake.date_time_between, start_date='-1y', end_date='-90d')),
     ('jail_exit_date', partial(fake.date_time_between, start_date='-90d', end_date='-1d')),
+    ('homeless', lambda: ''),
+    ('mental_health', lambda: ''),
+    ('veteran', lambda: ''),
+    ('special_initiative', lambda: ''),
+    ('bond_amount', lambda: ''),
+    ('arresting_agency', lambda: ''),
+    ('bed', lambda: ''),
+    ('cell', lambda: ''),
+    ('block', lambda: ''),
+    ('building', lambda: ''),
+    ('annex', lambda: ''),
+    ('floor', lambda: ''),
+    ('classification', lambda: ''),
+    ('detention', lambda: ''),
+    ('location_type', lambda: ''),
+    ('relocation_date', lambda: ''),
+    ('case_number', lambda: ''),
+    ('source_name', lambda: ''),
+    ('created_date', lambda: datetime.today()),
+    ('updated_date', lambda: datetime.today()),
 ]
 
 hmis_fakers = [
     ('internal_person_id', lambda: str(random.randint(0, 10000000))),
     ('internal_event_id', lambda: str(random.randint(0, 100000000))),
+    ('full_name', lambda: ''),
+    ('prefix', lambda: ''),
     ('first_name', fake.first_name),
+    ('middle_name', lambda: ''),
     ('last_name', fake.last_name),
+    ('suffix', lambda: ''),
+    ('name_data_quality', lambda: ''),
     ('dob', partial(fake.date_time_between, start_date='-75y', end_date='-18y')),
     ('ssn', fake.ssn),
+    ('ssn_hash', lambda: ''),
+    ('ssn_bigrams', lambda: ''),
     ('dmv_number', lambda: str(random.randint(0, 1000000))),
     ('dmv_state', lambda: 'FL'),
+    ('additional_id_number', lambda: ''),
+    ('additional_id_name', lambda: ''),
     ('race', lambda: random.choice(['white', 'black', 'amindian', 'asian', 'pacisland', 'other'])),
     ('ethnicity', lambda: random.choice(['hispanic', 'nonhispanic'])),
+    ('sex', lambda: 'F'),
+    ('street_address', lambda: ''),
+    ('city', lambda: ''),
+    ('state', lambda: ''),
+    ('postal_code', lambda: ''),
+    ('county', lambda: ''),
+    ('country', lambda: ''),
+    ('address_data_quality', lambda: ''),
+    ('veteran_status', lambda: 'False'),
+    ('disabling_condition', lambda: 'False'),
     ('project_start_date', partial(fake.date_time_between, start_date='-1y', end_date='-90d')),
     ('project_exit_date', partial(fake.date_time_between, start_date='-90d', end_date='-1d')),
     ('program_name', lambda: 'SAFE HAVEN SHELTER'),
@@ -79,14 +141,14 @@ def main():
         booking[6] = stay[5]
 
     with open('bookings-fake.csv', 'w') as f:
-        writer = csv.writer(f, quoting=csv.QUOTE_NONNUMERIC)
+        writer = csv.writer(f, quoting=csv.QUOTE_MINIMAL)
         headers = [column_name for column_name, _ in booking_fakers]
         writer.writerow(headers)
         for booking in bookings:
             writer.writerow(booking)
 
     with open('stays-fake.csv', 'w') as f:
-        writer = csv.writer(f, quoting=csv.QUOTE_NONNUMERIC)
+        writer = csv.writer(f, quoting=csv.QUOTE_MINIMAL)
         headers = [column_name for column_name, _ in hmis_fakers]
         writer.writerow(headers)
         for stay in homeless_stays:

@@ -215,14 +215,14 @@
 		},
 		{
 			"name": "living_situation_type",
-			"type": "integer",
+			"type": "string",
             "constraints": {
                 "required": true
             }
 		},
 		{
 			"name": "living_situation_length",
-			"type": "integer",
+			"type": "string",
             "constraints": {
                 "required": true
             }
@@ -237,14 +237,14 @@
 		},
 		{
 			"name": "times_on_street",
-			"type": "integer",
+			"type": "string",
             "constraints": {
                 "required": true
             }
 		},
 		{
 			"name": "months_homeless",
-			"type": "integer",
+			"type": "string",
             "constraints": {
                 "required": true
             }
@@ -263,7 +263,7 @@
 		},
 		{
 			"name": "source_name",
-			"type": "text"
+			"type": "string"
 		},
 		{
 			"name": "created_date",
