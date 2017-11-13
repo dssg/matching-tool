@@ -1,5 +1,6 @@
 # coding: utf-8
 
+import subprocess
 
 import pandas as pd
 
@@ -27,4 +28,14 @@ def cartesian(df1:pd.DataFrame, df2:pd.DataFrame=None) -> pd.DataFrame:
     df1.drop("_tmpkey", axis=1, inplace=True)
     df2.drop("_tmpkey", axis=1, inplace=True)
 
+    return df
+
+
+def version(df:pd.DataFrame) -> pd.DataFrame:
+    """
+    Adds the code version (git head hash) to the passed DataFrame.
+    """
+    head_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD']).rstrip()
+    df['code_version'] = head_hash
+    
     return df
