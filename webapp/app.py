@@ -42,8 +42,8 @@ PRETTY_JURISDICTION_MAP = {
 }
 
 PRETTY_PROVIDER_MAP = {
-    'hmis': 'HMIS',
-    'jail': 'Jail Bookings',
+    'hmis_service_stays': 'HMIS Service Stays',
+    'jail_bookings': 'Jail Bookings',
     'other': 'Other',
 }
 
@@ -54,7 +54,7 @@ def get_jurisdiction_roles():
         if not role.name:
             logging.warning("User Role %s has no name", role)
             continue
-        parts = role.name.split('_')
+        parts = role.name.split('_', maxsplit=1)
         if len(parts) != 2:
             logging.warning(
                 "User role %s does not have two parts,"
@@ -94,7 +94,7 @@ def get_sample(saved_filename):
 def validate_file(request_file, service_provider_slug):
     report = validate(
         request_file,
-        schema='{}-schema.json'.format(service_provider_slug),
+        schema='{}-schema.json'.format(service_provider_slug.replace('_', '-')),
         format='csv',
         checks=['required-constraint', 'type-or-format-error'],
     )
