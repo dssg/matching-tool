@@ -7,7 +7,7 @@
 - Create a /virtual environment/ called `csh`
 
 #+BEGIN_SRC shell
-pyenv virtualenv csh
+pyenv virtualenv 3.6.0 csh
 #+END_SRC
 
 - Activate the virtual environment that you just created

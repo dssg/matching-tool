@@ -1,6 +1,7 @@
 # coding: utf-8
 
 import os
+import subprocess
 
 import pandas as pd
 import boto3
@@ -55,3 +56,13 @@ def load_data_from_s3(
         print("The merged data file does not exist.")
     else:
         raise
+
+
+def version(df:pd.DataFrame) -> pd.DataFrame:
+    """
+    Adds the code version (git head hash) to the passed DataFrame.
+    """
+    head_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD']).rstrip()
+    df['code_version'] = head_hash
+    
+    return df
