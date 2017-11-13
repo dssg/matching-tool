@@ -49,7 +49,7 @@ def load_data_from_s3(
     # try to download & return the file, provide feedback or raise error if fails
     try:
         obj = s3.get_object(Bucket='csh', Key=key)
-        return(pd.read_csv(obj['Body']))
+        return(pd.read_csv(obj['Body'], sep='|'))
     except botocore.exceptions.ClientError as e:
         if e.response['Error']['Code'] == "404":
         print("The merged data file does not exist.")
