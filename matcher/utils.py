@@ -35,28 +35,23 @@ def cartesian(df1:pd.DataFrame, df2:pd.DataFrame=None) -> pd.DataFrame:
 
 def load_data_from_s3(
     bucket:str,
-    data_type:str,
-    county:str,
+    jurisdiction:str,
+    event_type:str,
     timestamp:str=None
 ) -> pd.DataFrame:
     """
-    Given a bucket, a datatype, a county, download the merged data file from S3.
+    Given a bucket, jurisdiction, & event type, download the merged data file from S3.
     """
     # setup
-    s3 = boto3.resource('s3')
-    key = '{jurisdiction}/{service_provider}/merged'.format(county, data_type)
-    local_filename = 'temp_data.csv'
-
-    # try to download the file, provide feedback or raise error if fails
+    s3 = boto3.client('s3')
+    key = f'{jurisdiction}/{event_type}/merged'
+    
+    # try to download & return the file, provide feedback or raise error if fails
     try:
-        s3.Bucket('csh').download_file(key, local_filename)
+        obj = s3.get_object(Bucket='csh', Key=key)
+        return(pd.read_csv(obj['Body']))
     except botocore.exceptions.ClientError as e:
         if e.response['Error']['Code'] == "404":
         print("The merged data file does not exist.")
     else:
         raise
-
-    # read in the data, delete the file, and return
-    df = pd.read_csv(local_filename)
-    os.remove(local_filename)
-    return df
