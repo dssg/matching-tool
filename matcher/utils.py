@@ -44,7 +44,7 @@ def load_data_from_s3(
     """
     # setup
     s3 = boto3.client('s3')
-    key = f'{jurisdiction}/{event_type}/merged'
+    key = f'matcher/{jurisdiction}/{event_type}/merged'
     
     # try to download & return the file, provide feedback or raise error if fails
     try:
