@@ -10,6 +10,9 @@ from datetime import datetime
 
 fake = Faker()
 
+flags = ['N'] * 5
+flags.append('Y')
+
 
 
 booking_fakers = [
@@ -48,10 +51,10 @@ booking_fakers = [
     ('booking_number', lambda: ''),
     ('jail_entry_date', partial(fake.date_time_between, start_date='-1y', end_date='-90d')),
     ('jail_exit_date', partial(fake.date_time_between, start_date='-90d', end_date='-1d')),
-    ('homeless', lambda: ''),
-    ('mental_health', lambda: ''),
-    ('veteran', lambda: ''),
-    ('special_initiative', lambda: ''),
+    ('homeless', lambda: random.choice(flags)),
+    ('mental_health', lambda: random.choice(flags)),
+    ('veteran', lambda: random.choice(flags)),
+    ('special_initiative', lambda: random.choice(flags)),
     ('bond_amount', lambda: ''),
     ('arresting_agency', lambda: ''),
     ('bed', lambda: ''),
@@ -98,8 +101,8 @@ hmis_fakers = [
     ('county', lambda: ''),
     ('country', lambda: ''),
     ('address_data_quality', lambda: ''),
-    ('veteran_status', lambda: 'False'),
-    ('disabling_condition', lambda: 'False'),
+    ('veteran_status', lambda: random.choice(flags)),
+    ('disabling_condition', lambda: random.choice(flags)),
     ('project_start_date', partial(fake.date_time_between, start_date='-1y', end_date='-90d')),
     ('project_exit_date', partial(fake.date_time_between, start_date='-90d', end_date='-1d')),
     ('program_name', lambda: 'SAFE HAVEN SHELTER'),
