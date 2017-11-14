@@ -38,8 +38,7 @@ def cartesian(df1:pd.DataFrame, df2:pd.DataFrame=None) -> pd.DataFrame:
 def load_data_from_s3(
     bucket:str,
     jurisdiction:str,
-    event_type:str,
-    timestamp:str=None
+    event_type:str
 ) -> pd.DataFrame:
     """
     Given a bucket, jurisdiction, & event type, download the merged data file from S3.
@@ -54,7 +53,7 @@ def load_data_from_s3(
         return(pd.read_csv(obj['Body'], sep='|'))
     except botocore.exceptions.ClientError as e:
         if e.response['Error']['Code'] == "404":
-        logging.warning("The merged data file does not exist.")
+            logging.warning("The merged data file does not exist.")
     else:
         raise
 
