@@ -40,3 +40,9 @@ You can test the API with
 #+BEGIN_SRC shell
 http 0.0.0.0:5001/poke
 #+END_SRC
+
+Also, there is a postgres container running, you can access it using:
+
+#+BEGIN_SRC shell
+psql "postgresql://csh:csh@0.0.0.0:5444/csh"
+#+END_SRC

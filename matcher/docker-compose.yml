@@ -14,3 +14,7 @@ services:
     image: postgres:10
     ports:
       - 5444:5432
+    environment:
+      - POSTGRES_USER=csh
+      - POSTGRES_PASSWORD=csh
+      - POSTGRES_DB=csh
