@@ -8,3 +8,9 @@ services:
       - '.:/csh/matcher'
     ports:
       - 5001:5000 # HOST:CONTAINER
+
+  db:
+    container_name: csh_db
+    image: postgres:10
+    ports:
+      - 5444:5432
