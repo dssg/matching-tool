@@ -155,15 +155,39 @@ def generate_rows(datasets, rows):
     return fake_datasets
 
 
-def generate_matches(fake_datasets, matches_within, matches_between):
+def apply_matches(fake_datasets, matches_within, matches_between):
+    """
+    For all pairs of datasets (including a dataset paired with itself), randomly
+    select pairs of rows from each dataset and set the name, dob, and ssn of the
+    row from the first dataset equal to those values in the second dataset.
+    
+    For example, if we are making bookings-0, hmis-0, and bookings-1 datasets, we
+    want to create matches for the following pairs:
+        - bookings-0 with bookings-0 (creating matching rows within the dataset)
+        - bookings-0 with hmis-0 (creating matches between two different datasets)
+        - bookings-0 with bookings-1
+        - hmis-0 with hmis-0
+        - hmis-0 with bookings-1
+        - bookings-1 with bookings-1
+    """
+    # iterate through all pairs of datasets
     for dataset1, dataset2 in itertools.product(fake_datasets, repeat=2):
+        # the number of matches to apply depends on whether the rows are being
+        # matched within the same dataset or between datasets
         if dataset1 == dataset2:
             num_matches = matches_within
         else:
             num_matches = matches_between
+           
         for _ in range(0, num_matches):
+            # select a row from each dataset to match
             row1 = dataset1['data'][random.randint(0, (len(dataset1['data']) - 1))]
             row2 = dataset2['data'][random.randint(0, (len(dataset2['data']) - 1))]
+            
+            # indices 3 through 13 in the HMIS data correspond to the name, dob, 
+            # and ssn. but in bookings datasets, the indices for these values
+            # are all 1 digit higher because of the presence of the inmate_number
+            # at index 3, so we need to move one index up in any booking dataset
             for i in range(3, 13):
                 i1 = i2 = i
                 if dataset1['type'] == 'bookings':
@@ -199,7 +223,7 @@ def write_csvs(fake_datasets):
 
 def main(datasets, rows, matches_within, matches_between):
     fake_datasets = generate_rows(datasets, rows)
-    fake_datasets = generate_matches(fake_datasets, matches_within, matches_between)
+    apply_matches(fake_datasets, matches_within, matches_between)
     filenames = write_csvs(fake_datasets)
     
     print(('Data faking complete! Congratulations! You are a totally cool ' 
