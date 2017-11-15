@@ -1,5 +1,6 @@
 # coding: utf-8
 
+__version__='0.0.1'
 
 import logging
 logger = logging.getLogger('matcher')
@@ -8,9 +9,11 @@ import pandas as pd
 
 from typing import List, Callable
 
-import utils
-import indexer
-import contraster
+
+from . import utils ## Any idea about how to improve this?
+from . import indexer
+from . import contraster
+
 
 def select_columns(df:pd.DataFrame, keys: List) -> pd.DataFrame:
     """ 
