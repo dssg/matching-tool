@@ -1,6 +1,5 @@
 # coding: utf-8
 
-import os
 import subprocess
 import logging
 
@@ -47,15 +46,13 @@ def load_data_from_s3(
     s3 = boto3.client('s3')
     key = f'matcher/{jurisdiction}/{event_type}/merged'
     
-    # try to download & return the file, provide feedback or raise error if fails
+    # try to download & return the file, raise error if fails
     try:
         obj = s3.get_object(Bucket=bucket, Key=key)
-        return(pd.read_csv(obj['Body'], sep='|'))
-    except botocore.exceptions.ClientError as e:
-        if e.response['Error']['Code'] == "404":
-            logging.warning("The merged data file does not exist.")
-    else:
+    except:
         raise
+    else:
+        return(pd.read_csv(obj['Body'], sep='|'))
 
 
 def version(df:pd.DataFrame) -> pd.DataFrame:
