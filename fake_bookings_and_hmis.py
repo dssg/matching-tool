@@ -1,5 +1,7 @@
 from __future__ import division
 
+import argparse
+import itertools
 import random
 import csv
 from functools import partial
@@ -7,6 +9,11 @@ from faker import Faker
 from datetime import datetime
 
 fake = Faker()
+
+flags = ['N'] * 5
+flags.append('Y')
+
+
 
 booking_fakers = [
     ('internal_person_id', lambda: str(random.randint(0, 10000000))),
@@ -44,10 +51,10 @@ booking_fakers = [
     ('booking_number', lambda: ''),
     ('jail_entry_date', partial(fake.date_time_between, start_date='-1y', end_date='-90d')),
     ('jail_exit_date', partial(fake.date_time_between, start_date='-90d', end_date='-1d')),
-    ('homeless', lambda: ''),
-    ('mental_health', lambda: ''),
-    ('veteran', lambda: ''),
-    ('special_initiative', lambda: ''),
+    ('homeless', lambda: random.choice(flags)),
+    ('mental_health', lambda: random.choice(flags)),
+    ('veteran', lambda: random.choice(flags)),
+    ('special_initiative', lambda: random.choice(flags)),
     ('bond_amount', lambda: ''),
     ('arresting_agency', lambda: ''),
     ('bed', lambda: ''),
@@ -94,8 +101,8 @@ hmis_fakers = [
     ('county', lambda: ''),
     ('country', lambda: ''),
     ('address_data_quality', lambda: ''),
-    ('veteran_status', lambda: 'False'),
-    ('disabling_condition', lambda: 'False'),
+    ('veteran_status', lambda: random.choice(flags)),
+    ('disabling_condition', lambda: random.choice(flags)),
     ('project_start_date', partial(fake.date_time_between, start_date='-1y', end_date='-90d')),
     ('project_exit_date', partial(fake.date_time_between, start_date='-90d', end_date='-1d')),
     ('program_name', lambda: 'SAFE HAVEN SHELTER'),
@@ -127,32 +134,140 @@ def fake_stay():
     return [fake_func() for _, fake_func in hmis_fakers]
 
 
-def main():
-    bookings = [fake_booking() for _ in range(0, 100)]
-    homeless_stays = [fake_stay() for _ in range(0, 150)]
+def generate_rows(datasets, rows):
+    fake_datasets = []
+    i = 0
+    for dataset in datasets:
+        try:
+            length = rows[i]
+        except:
+            i = 0
+            length = rows[i]
+        i = i + 1
+        if dataset == 'bookings':
+            data = [fake_booking() for _ in range(0, length)]
+        elif dataset == 'hmis':
+            data = [fake_stay() for _ in range(0, length)]
+        else:
+            raise ValueError(f'Unrecognized dataset type: {dataset}')
 
-    num_matches = 10
-    for _ in range(0, num_matches):
-        booking = bookings[random.randint(0, 100)]
-        stay = homeless_stays[random.randint(0, 150)]
-        booking[3] = stay[2]
-        booking[4] = stay[3]
-        booking[5] = stay[4]
-        booking[6] = stay[5]
+        fake_datasets.append({'data': data, 'type': dataset})
+    return fake_datasets
 
-    with open('bookings-fake.csv', 'w') as f:
-        writer = csv.writer(f, quoting=csv.QUOTE_MINIMAL)
-        headers = [column_name for column_name, _ in booking_fakers]
-        writer.writerow(headers)
-        for booking in bookings:
-            writer.writerow(booking)
 
-    with open('stays-fake.csv', 'w') as f:
-        writer = csv.writer(f, quoting=csv.QUOTE_MINIMAL)
-        headers = [column_name for column_name, _ in hmis_fakers]
-        writer.writerow(headers)
-        for stay in homeless_stays:
-            writer.writerow(stay)
+def apply_matches(fake_datasets, matches_within, matches_between):
+    """
+    For all pairs of datasets (including a dataset paired with itself), randomly
+    select pairs of rows from each dataset and set the name, dob, and ssn of the
+    row from the first dataset equal to those values in the second dataset.
+    
+    For example, if we are making bookings-0, hmis-0, and bookings-1 datasets, we
+    want to create matches for the following pairs:
+        - bookings-0 with bookings-0 (creating matching rows within the dataset)
+        - bookings-0 with hmis-0 (creating matches between two different datasets)
+        - bookings-0 with bookings-1
+        - hmis-0 with hmis-0
+        - hmis-0 with bookings-1
+        - bookings-1 with bookings-1
+    """
+    # iterate through all pairs of datasets
+    for dataset1, dataset2 in itertools.product(fake_datasets, repeat=2):
+        # the number of matches to apply depends on whether the rows are being
+        # matched within the same dataset or between datasets
+        if dataset1 == dataset2:
+            num_matches = matches_within
+        else:
+            num_matches = matches_between
+           
+        for _ in range(0, num_matches):
+            # select a row from each dataset to match
+            row1 = dataset1['data'][random.randint(0, (len(dataset1['data']) - 1))]
+            row2 = dataset2['data'][random.randint(0, (len(dataset2['data']) - 1))]
+            
+            # indices 3 through 13 in the HMIS data correspond to the name, dob, 
+            # and ssn. but in bookings datasets, the indices for these values
+            # are all 1 digit higher because of the presence of the inmate_number
+            # at index 3, so we need to move one index up in any booking dataset
+            for i in range(3, 13):
+                i1 = i2 = i
+                if dataset1['type'] == 'bookings':
+                    i1 = i + 1
+                if dataset2['type'] == 'bookings':
+                    i2 = i + 1
+                row1[i1] = row2[i2]
+    return fake_datasets
+
+
+def write_csvs(fake_datasets):
+    counters = {'bookings': 0, 'hmis': 0}
+    filenames = []
+
+    for fake_dataset in fake_datasets:
+        event_type = fake_dataset['type']
+        counter = counters[event_type]
+        filename = f'{event_type}-fake-{counter}.csv'
+        with open(filename, 'w') as f:
+            writer = csv.writer(f, quoting=csv.QUOTE_MINIMAL)
+            if event_type == 'bookings':
+                headers = [column_name for column_name, _ in booking_fakers]
+            elif event_type == 'hmis':
+                headers = [column_name for column_name, _ in hmis_fakers]
+            writer.writerow(headers)
+            for row in fake_dataset['data']:
+                writer.writerow(row)
+        counters[event_type] = counter + 1
+        filenames.append(filename)
+
+    return filenames
+
+
+def main(datasets, rows, matches_within, matches_between):
+    fake_datasets = generate_rows(datasets, rows)
+    apply_matches(fake_datasets, matches_within, matches_between)
+    filenames = write_csvs(fake_datasets)
+    
+    print(('Data faking complete! Congratulations! You are a totally cool ' 
+           f'person! Your files are {filenames}'))
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-d",
+        "--datasets",
+        type=str,
+        nargs='+',
+        default=['bookings', 'hmis'],
+        help="tell me what type of datasets you want to fake; values should be 'bookings' or 'hmis'"
+    )
+    parser.add_argument(
+        "-r",
+        "--rows",
+        type=int,
+        nargs='+',
+        default=[10],
+        help="pass number of rows per file; will loop through values if fewer than number of datasets"
+    )
+    parser.add_argument(
+        "-mw",
+        "--matches_within",
+        type=int,
+        nargs='?',
+        default=5,
+        help="how many rows should match within files?"
+    )
+    parser.add_argument(
+        "-mb",
+        "--matches_between",
+        type=int,
+        nargs='?',
+        default=5,
+        help="how many rows should match between files?"
+    )
+
+    args = parser.parse_args()
+    main(
+        args.datasets,
+        args.rows,
+        args.matches_within,
+        args.matches_between
+    )
