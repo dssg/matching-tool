@@ -13,7 +13,19 @@ fake = Faker()
 flags = ['N'] * 5
 flags.append('Y')
 
-
+# dictionaries of fields to match values on
+MATCH_FIELD_INDICES = [
+    {'bookings': 3, 'hmis': 2},   # full_name
+    {'bookings': 4, 'hmis': 3},   # prefix
+    {'bookings': 5, 'hmis': 4},   # first_name
+    {'bookings': 6, 'hmis': 5},   # middle_name
+    {'bookings': 7, 'hmis': 6},   # last_name
+    {'bookings': 8, 'hmis': 7},   # suffix
+    {'bookings': 9, 'hmis': 9},   # dob
+    {'bookings': 10, 'hmis': 10}, # ssn
+    {'bookings': 11, 'hmis': 11}, # ssn_hash
+    {'bookings': 12, 'hmis': 12}  # ssn_bigrams
+]
 
 booking_fakers = [
     ('internal_person_id', lambda: str(random.randint(0, 10000000))),
@@ -184,21 +196,12 @@ def apply_matches(fake_datasets, matches_within, matches_between):
             row1 = dataset1['data'][random.randint(0, (len(dataset1['data']) - 1))]
             row2 = dataset2['data'][random.randint(0, (len(dataset2['data']) - 1))]
             
-            # indices 2 through 12 in the HMIS data correspond to the name, dob, 
-            # and ssn. however, there is also the name_data_quality field that
-            # falls between the name fields and the other fields we want to
-            # match. so when we get beyond field 7 (suffix), we need to 
-            # increment the index by 1. in bookings datasets, the indices for
-            # the name values are all 1 digit higher than in hmis because of the
-            # presence of inmate_number at index 3, so we need to move 1 index
-            #  up for any field in a booking dataset.
-            for i in range(2, 13):
-                i1 = i2 = i
-                if dataset1['type'] == 'bookings' or i > 7:
-                    i1 = i + 1
-                if dataset2['type'] == 'bookings' or i > 7:
-                    i2 = i + 1
-                row1[i1] = row2[i2]
+            # use the lookup dictionaries to match the name, dob, and ssn
+            for match_field in MATCH_FIELD_INDICES:
+                first_index = match_field[dataset1['type']]
+                second_index = match_field[dataset2['type']]
+                row1[first_index] = row2[second_index]
+
     return fake_datasets
 
 
