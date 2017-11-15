@@ -1,1 +1,3 @@
 ipython
+httpie
+jupyter
