@@ -22,7 +22,9 @@ def select_columns(df:pd.DataFrame, keys: List) -> pd.DataFrame:
     We always expect at least two columns: source and source_id
     """
 
-    columns_to_select = ['source', 'source_id'] + keys
+    columns_to_select = ['source', 'source_id']
+    if keys:
+        columns_to_select = columns_to_select + keys
     
     return  df.loc[:,columns_to_select]
 
@@ -61,7 +63,7 @@ def run(df:pd.DataFrame, keys:List, indexer:Callable[[pd.DataFrame], pd.DataFram
     return  utils.version(
         match(
             indexing(
-                select_columns(df, columns_to_select),
+                select_columns(df, keys),
                 indexer=indexer),
             contraster=contraster
         )
