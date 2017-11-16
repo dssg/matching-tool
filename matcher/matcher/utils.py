@@ -5,7 +5,6 @@ import logging
 
 import pandas as pd
 import boto3
-import botocore
 
 
 def cartesian(df1:pd.DataFrame, df2:pd.DataFrame=None) -> pd.DataFrame:
