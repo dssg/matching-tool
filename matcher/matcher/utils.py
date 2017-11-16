@@ -46,13 +46,9 @@ def load_data_from_s3(
     s3 = boto3.client('s3')
     key = f'matcher/{jurisdiction}/{event_type}/merged'
     
-    # try to download & return the file, raise error if fails
-    try:
-        obj = s3.get_object(Bucket=bucket, Key=key)
-    except:
-        raise
-    else:
-        return(pd.read_csv(obj['Body'], sep='|'))
+    # return the file as a dataframe
+    obj = s3.get_object(Bucket=bucket, Key=key)
+    return(pd.read_csv(obj['Body'], sep='|'))
 
 
 def version(df:pd.DataFrame) -> pd.DataFrame:
