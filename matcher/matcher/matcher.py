@@ -62,10 +62,12 @@ def match(df:pd.DataFrame, contraster:Callable[[pd.DataFrame], pd.DataFrame], ke
 def run(df:pd.DataFrame, keys:List, indexer:Callable[[pd.DataFrame], pd.DataFrame], contraster:Callable[[pd.DataFrame], pd.DataFrame]) -> pd.DataFrame:
     return  utils.version(
         match(
-            indexing(
+            df=indexing(
                 select_columns(df, keys),
-                indexer=indexer),
-            contraster=contraster
+                indexer=indexer
+            ),
+            contraster=contraster,
+            keys=keys
         )
     )
 
