@@ -5,6 +5,7 @@ from webapp.database import db_session
 from webapp.models import User, Role, Upload, MergeLog
 import yaml
 from webapp.apis.upload import upload_api
+from webapp.apis.chart import chart_api
 
 # Create app
 app = Flask(__name__)
@@ -14,7 +15,7 @@ with open('flask_config.yaml') as f:
         app.config[key] = val
 
 app.register_blueprint(upload_api)
-
+app.register_blueprint(chart_api)
 # Setup Flask-Security
 user_datastore = SQLAlchemySessionUserDatastore(db_session,
                                                 User, Role)
