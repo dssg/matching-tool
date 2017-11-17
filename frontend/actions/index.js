@@ -1,6 +1,7 @@
 import {
   SELECT_SERVICE_PROVIDER,
   SELECT_JURISDICTION,
+  PICK_FILE,
   CHANGE_UPLOAD_STATE,
   SAVE_AVAILABLE_ROLES,
   SAVE_UPLOAD_RESPONSE,
@@ -24,6 +25,12 @@ export function selectJurisdiction(jurisdiction) {
   return {
     type: SELECT_JURISDICTION,
     payload: jurisdiction
+  }
+}
+
+export function pickFile() {
+  return {
+    type: PICK_FILE,
   }
 }
 

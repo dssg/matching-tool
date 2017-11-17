@@ -1,6 +1,6 @@
 import React from 'react'
 import { bindActionCreators } from 'redux'
-import { selectServiceProvider, changeUploadState, resetUploadState, saveUploadResponse, resetUploadResponse } from '../actions'
+import { selectServiceProvider, changeUploadState, resetUploadState, saveUploadResponse, resetUploadResponse, pickFile } from '../actions'
 import RaisedButton from 'material-ui/RaisedButton'
 import Divider from 'material-ui/Divider'
 import Paper from 'material-ui/Paper'
@@ -27,7 +27,8 @@ function mapStateToProps(state) {
     showSucceeded: state.app.uploadResponse.status === 'succeeded',
     showConfirm: state.app.uploadResponse.status === 'valid',
     showFailed: state.app.uploadResponse.status === 'invalid',
-    showError: state.app.uploadResponse.status === 'error'
+    showError: state.app.uploadResponse.status === 'error',
+    filePicked: state.app.filePicked
   }
 }
 
@@ -37,6 +38,10 @@ function mapDispatchToProps(dispatch) {
       return () => {
         dispatch(selectServiceProvider(providerType))
       }
+    },
+    pickFile: (files) => {
+      console.log('dispatching pick file!')
+      dispatch(pickFile())
     },
     saveUploadResponse: (uploadResponse) => {
       dispatch(saveUploadResponse(JSON.parse(uploadResponse)))
@@ -86,7 +91,9 @@ const uploadSuccess = (res) => {
 
 const styles = {
   section: { margin: '25px' },
-  button: { margin: 12 }
+  button: { margin: 12, },
+  disabledButton: { margin: 12 },
+  step: { color: '#222222'}
 }
 
 class UploadPage extends React.Component {
@@ -94,7 +101,7 @@ class UploadPage extends React.Component {
     return {
       baseUrl: 'api/upload/upload_file',
       withCredentials: true,
-      didChoose: didChoose,
+      didChoose: this.props.pickFile,
       beforeUpload: beforeUpload,
       didUpload: didUpload,
       uploadSuccess: this.props.saveUploadResponse,
@@ -124,17 +131,18 @@ class UploadPage extends React.Component {
     return map(renderProviderButton, this.props.availableServiceProviders)
   }
   renderForm() {
+    const selectedServiceProvider = this.props.selectedServiceProvider.name
     return (
       <div style={styles.section}>
         <h2>Upload</h2>
-        <h4>What type of data do you want to upload?</h4>
-        {this.renderServiceProviderButtons()}
-        <h4>Upload {this.props.selectedServiceProvider.name} file</h4>
-
+        <div style={styles.step}><h4>1. What type of data do you want to upload?</h4>
+          {this.renderServiceProviderButtons()}
+          </div>
+          <div style={styles.step}><h4>2. Pick a {selectedServiceProvider} file</h4></div>
         <ReactUploadFile
           options={this.options()}
           chooseFileButton={<RaisedButton style={styles.button} label="Browse for File" />}
-          uploadFileButton={<RaisedButton style={styles.button} label="Upload" />}
+          uploadFileButton={<div style={styles.step}><h4>3. Upload</h4> <RaisedButton style={this.props.filePicked ? styles.button : styles.disabledButton} label="Upload" /></div>}
         />
         <br />
         <h4>Not sure how to format {this.props.selectedServiceProvider.name} file?</h4>

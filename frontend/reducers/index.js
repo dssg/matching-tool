@@ -3,6 +3,7 @@ import {
   CHANGE_UPLOAD_STATE,
   SELECT_SERVICE_PROVIDER,
   SELECT_JURISDICTION,
+  PICK_FILE,
   SAVE_AVAILABLE_ROLES,
   SAVE_UPLOAD_RESPONSE,
   SAVE_MERGE_RESULTS,
@@ -21,6 +22,7 @@ const initialState = {
       name: '',
       slug: ''
     },
+    filePicked: false,
     uploadResponse: {
       status: '',
       exampleRows: [],
@@ -62,6 +64,11 @@ const app = createReducer(initialState, {
   [SELECT_JURISDICTION]: (state, payload) => {
     return Object.assign({}, state, {
       selectedJurisdiction: payload
+    })
+  },
+  [PICK_FILE]: (state) => {
+    return Object.assign({}, state, {
+      filePicked: true
     })
   },
   [CHANGE_UPLOAD_STATE]: (state, payload) => {
