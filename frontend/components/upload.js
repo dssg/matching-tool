@@ -1,6 +1,6 @@
 import React from 'react'
 import { bindActionCreators } from 'redux'
-import { selectServiceProvider, changeUploadState, resetUploadState, saveUploadResponse } from '../actions'
+import { selectServiceProvider, changeUploadState, resetUploadState, saveUploadResponse, resetUploadResponse } from '../actions'
 import RaisedButton from 'material-ui/RaisedButton'
 import Divider from 'material-ui/Divider'
 import Paper from 'material-ui/Paper'
@@ -40,6 +40,9 @@ function mapDispatchToProps(dispatch) {
     },
     saveUploadResponse: (uploadResponse) => {
       dispatch(saveUploadResponse(JSON.parse(uploadResponse)))
+    },
+    resetUploadResponse: () => {
+      dispatch(resetUploadResponse())
     },
     failUpload: () => {
       return () => {
@@ -102,6 +105,9 @@ class UploadPage extends React.Component {
         }
       }
     }
+  }
+  componentWillUnmount() {
+    this.props.resetUploadResponse()
   }
   renderServiceProviderButtons() {
     const renderProviderButton = (provider) => {

@@ -65,6 +65,13 @@ export function saveUploadResponse(response) {
   }
 }
 
+export function resetUploadResponse() {
+  return {
+    type: SAVE_UPLOAD_RESPONSE,
+    payload: {}
+  }
+}
+
 function errorMessage(error) {
   return {
     type: SET_ERROR_MESSAGE,
