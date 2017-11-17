@@ -1,0 +1,148 @@
+{
+    "table":[
+        {
+            "ID":12319,
+            "Name":"Roy Batty",
+            "Source":[
+                "Jail",
+                "Homeless"
+            ],
+            "Total Contacts":5,
+            "Jail Days":8,
+            "Jail Contacts":3,
+            "Homeless Days":2,
+            "Homeless Contacts":2,
+            "Last Jail Contact":"1982-06-25",
+            "Last Homeless Contact":"1981-06-25"
+        },
+        {
+            "ID":17144,
+            "Name":"James Moriarty",
+            "Source":[
+                "Jail",
+                "Homeless"
+            ],
+            "Total Contacts":8,
+            "Jail Days":16,
+            "Jail Contacts":5,
+            "Homeless Days":2,
+            "Homeless Contacts":3,
+            "Last Jail Contact":"2017-08-21",
+            "Last Homeless Contact":"1982-06-25"
+        },
+        {
+            "ID":12432,
+            "Name":"Jason Smith",
+            "Source":"Homeless",
+            "Total Contacts":1,
+            "Jail Days":0,
+            "Jail Contacts":0,
+            "Homeless Days":1,
+            "Homeless Contacts":2,
+            "Last Jail Contact":null,
+            "Last Homeless Contact":"2017-07-25"
+        },
+        {
+            "ID":19332,
+            "Name":"H. H. Holmes",
+            "Source":"Jail",
+            "Total Contacts":1,
+            "Jail Days":241,
+            "Jail Contacts":1,
+            "Homeless Days":0,
+            "Homeless Contacts":0,
+            "Last Jail Contact":"1894-11-17",
+            "Last Homeless Contact":null
+        },
+        {
+            "ID":19032,
+            "Name":"Jack Ripper",
+            "Source":"Jail",
+            "Total Contacts":2,
+            "Jail Days":102,
+            "Jail Contacts":2,
+            "Homeless Days":0,
+            "Homeless Contacts":0,
+            "Last Jail Contact":"1891-10-17",
+            "Last Homeless Contact":null
+        },
+        {
+            "ID":12143,
+            "Name":"Lee Salminen",
+            "Source":"Homeless",
+            "Total Contacts":5,
+            "Jail Days":0,
+            "Jail Contacts":0,
+            "Homeless Days":43,
+            "Homeless Contacts":5,
+            "Last Jail Contact":null,
+            "Last Homeless Contact":"2017-09-25"
+        },
+        {
+            "ID":12833,
+            "Name":"John Doe",
+            "Source":[
+                "Jail",
+                "Homeless"
+            ],
+            "Total Contacts":3,
+            "Jail Days":2,
+            "Jail Contacts":1,
+            "Homeless Days":8,
+            "Homeless Contacts":2,
+            "Last Jail Contact":"2017-05-17",
+            "Last Homeless Contact":"2016-04-25"
+        },
+        {
+            "ID":13833,
+            "Name":"Jane Doe",
+            "Source":"Homeless",
+            "Total Contacts":2,
+            "Jail Days":0,
+            "Jail Contacts":0,
+            "Homeless Days":2,
+            "Homeless Contacts":2,
+            "Last Jail Contact":null,
+            "Last Homeless Contact":"2017-10-03"
+        },
+        {
+            "ID":13932,
+            "Name":"Evan Jackson",
+            "Source":[
+                "Jail",
+                "Homeless"
+            ],
+            "Total Contacts":2,
+            "Jail Days":1,
+            "Jail Contacts":1,
+            "Homeless Days":4,
+            "Homeless Contacts":1,
+            "Last Jail Contact":"2017-09-11",
+            "Last Homeless Contact":"2013-02-19"
+        },
+        {
+            "ID":19982,
+            "Name":"Liam Smith",
+            "Source":"Homeless",
+            "Total Contacts":3,
+            "Jail Days":0,
+            "Jail Contacts":0,
+            "Homeless Days":7,
+            "Homeless Contacts":3,
+            "Last Jail Contact":null,
+            "Last Homeless Contact":"2011-04-15"
+        },
+        {
+            "ID":19932,
+            "Name":"Griffin Smith",
+            "Source":"Homeless",
+            "Total Contacts":2,
+            "Jail Days":0,
+            "Jail Contacts":0,
+            "Homeless Days":3,
+            "Homeless Contacts":2,
+            "Last Jail Contact":null,
+            "Last Homeless Contact":"2017-08-19"
+        }
+    ]
+}

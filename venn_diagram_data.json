@@ -1,0 +1,23 @@
+{
+    "venn_diagram_data":[
+        {
+            "sets":[
+                "Jail"
+            ],
+            "size":500
+        },
+        {
+            "sets":[
+                "Homeless"
+            ],
+            "size":340
+        },
+        {
+            "sets":[
+                "Jail",
+                "Homeless"
+            ],
+            "size":100
+        }
+    ]
+}
