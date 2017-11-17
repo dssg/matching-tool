@@ -85,7 +85,7 @@ class UploadConfirmPage extends React.Component {
           data={this.props.exampleRows}
           columns={this.props.fieldOrder} />
         <RaisedButton onMouseUp={this.props.confirm(this.props.uploadId)} style={styles.button} label="Confirm Upload" />
-        <Link to='/upload'><RaisedButton style={styles.button} label="Cancel Upload" /></Link>
+        <RaisedButton style={styles.button} onClick={this.redirect} label="Cancel Upload" />
         {this.props.showModal ? renderModal(this.props.totalUniqueRows, this.props.newUniqueRows, this.redirect) : null} 
         {this.state.redirect ? homeRedirect() : null}
       </div>

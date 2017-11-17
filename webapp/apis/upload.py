@@ -154,7 +154,7 @@ def upload_file():
         validation_report = validate_file(full_filename, service_provider)
         if validation_report['valid']:
             upload_id = unique_upload_id()
-            row_count = validation_report['tables'][0]['row-count']
+            row_count = validation_report['tables'][0]['row-count'] - 1
             upload_path = s3_upload_path(jurisdiction, service_provider, upload_id)
             try:
                 upload_to_s3(upload_path, full_filename)
