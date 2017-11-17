@@ -135,14 +135,14 @@
 		},
 		{
 			"name": "veteran_status",
-			"type": "boolean",
+			"type": "string",
             "constraints": {
                 "required": true
             }
 		},
 		{
 			"name": "disabling_condition",
-			"type": "boolean",
+			"type": "string",
             "constraints": {
                 "required": true
             }
@@ -251,11 +251,13 @@
 		},
 		{
 			"name": "client_location_start_date",
-			"type": "date"
+			"type": "datetime",
+			"format": "%Y-%m-%d %H:%M:%S"
 		},
 		{
 			"name": "client_location_end_date",
-			"type": "date"
+			"type": "datetime",
+			"format": "%Y-%m-%d %H:%M:%S"
 		},
 		{
 			"name": "client_location",
@@ -267,14 +269,17 @@
 		},
 		{
 			"name": "created_date",
-			"type": "date"
+			"type": "datetime",
+			"format": "%Y-%m-%d %H:%M:%S.%f"
+
 		},
 		{
 			"name": "updated_date",
-			"type": "date"
+			"type": "datetime",
+			"format": "%Y-%m-%d %H:%M:%S.%f"
 		}
     ],
-    "trueValues": [ "true" ],
-    "falseValues": [ "false" ],
+    "trueValues": [ "true", "Y" ],
+    "falseValues": [ "false", "N" ],
 	"primaryKey": "internal_event_id"
 }

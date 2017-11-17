@@ -59,6 +59,8 @@ def column_list_from_goodtables_schema(goodtables_schema):
     def type_map(gt_type):
         if gt_type == 'string':
             return 'varchar'
+        if gt_type == 'datetime':
+            return 'timestamp'
         else:
             return gt_type
 
