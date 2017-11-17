@@ -9,7 +9,8 @@ import {
   SET_ERROR_MESSAGE,
   MATCHING_RESULTS,
   UPDATE_CONTROLLED_DATE,
-  UPDATE_DURATION
+  UPDATE_DURATION,
+  UPDATE_TABLE_DATA
 } from '../constants/index'
 import { combineReducers } from 'redux'
 import { routerReducer } from 'react-router-redux'
@@ -38,11 +39,13 @@ const initialState = {
     availableJurisdictionalRoles: [],
     matchingResults: {
       filters: {
-        controlledDate: '2017-07-01',
-        duration: '1 year',
+        controlledDate: '2017-10-31',
+        duration: '1 month',
+        startDate: '2016-11-18',
+        endDate: '2017-11-18',
         serviceProviders: ['jail', 'hmis', 'intersection']
       },
-      vennDiagramData: [{sets: [''], size: null}],
+      vennDiagramData: [{sets: [''], size: null}, {sets: [''], size: null}, {sets: [''], size: null}],
       filteredData: {
         tableData: [],
         jailBarData: [],
@@ -112,7 +115,17 @@ const app = createReducer(initialState, {
       }
     })
     return newState
-  }
+  },
+  [UPDATE_TABLE_DATA]: (state, payload) => {
+    const newState = update(state, {
+      matchingResults: {
+        filteredData: {
+          tableData: {$set: payload}
+        }
+      }
+    })
+    return newState
+  },
 })
 const rootReducer = combineReducers({
   routing: routerReducer,

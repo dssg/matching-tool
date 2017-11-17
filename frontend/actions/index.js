@@ -8,9 +8,10 @@ import {
   SET_ERROR_MESSAGE,
   MATCHING_RESULTS,
   UPDATE_CONTROLLED_DATE,
-  UPDATE_DURATION
+  UPDATE_DURATION,
+  UPDATE_TABLE_DATA
 } from '../constants/index'
-import { length } from 'ramda'
+import { length, filter } from 'ramda'
 import { validJurisdictions } from '../utils/jurisdictions'
 
 export function selectServiceProvider(serviceProvider) {
@@ -43,7 +44,7 @@ export function resetUploadState() {
 
 function fetchAvailableRoles() {
   return fetch(
-    'jurisdictional_roles.json', {
+    '/api/upload/jurisdictional_roles.json', {
       method: 'GET',
       dataType: 'json',
       credentials: 'include'
@@ -86,10 +87,24 @@ export function syncAvailableRoles() {
   }
 }
 
-export function getMatchingResults(data) {
+
+export function showMatchingResults(data) {
   return {
     type: MATCHING_RESULTS,
-    payload: data
+    payload: data.result
+  }
+}
+
+export function getMatchingResults(d) {
+  return function(dispatch) {
+    return $.ajax({
+      url: '/api/chart/get_full_json_for_view'+d,
+      dataType: 'json',
+      method: 'GET'
+    })
+    .then((data) => {
+      return dispatch(showMatchingResults(data))
+    })
   }
 }
 
@@ -120,7 +135,35 @@ export function confirmUpload(uploadId) {
     return fetch('merge_file?uploadId='+uploadId, { method: 'POST', credentials: 'include'})
         .then((resp) => resp.json())
         .then((data) => {
-          dispatch(saveMergeResults(data)) 
+          dispatch(saveMergeResults(data))
         })
+  }
+}
+
+export function updateTableData(data, section) {
+  const isHmisAndBooking = n => n['hmis_id'].length != 0 && n['booking_id'].length != 0;
+  const isHmis = n => n['hmis_id'].length != 0;
+  const isBooking = n => n['booking_id'].length != 0;
+  if (section.length == 2) {
+    console.log("H&J")
+    const newData = filter(isHmisAndBooking, data)
+    return {
+      type: UPDATE_TABLE_DATA,
+      payload: newData
+    }
+  } else if (section[0] == "Jail") {
+    console.log("J")
+    const newData = filter(isBooking, data)
+    return {
+      type: UPDATE_TABLE_DATA,
+      payload: newData
+    }
+  } else if (section[0] == "Homeless") {
+    console.log("H")
+    const newData = filter(isHmis, data)
+    return {
+      type: UPDATE_TABLE_DATA,
+      payload: newData
+    }
   }
 }
