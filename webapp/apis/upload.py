@@ -27,11 +27,12 @@ PRETTY_JURISDICTION_MAP = {
     'saltlake': 'Salt Lake County',
     'clark': 'Clark County',
     'mclean': 'McLean County',
+    'test': 'Test County',
 }
 
 PRETTY_PROVIDER_MAP = {
-    'hmis': 'HMIS',
-    'jail': 'Jail',
+    'hmis_service_stays': 'HMIS Service Stays',
+    'jail_bookings': 'Jail Bookings',
     'other': 'Other',
 }
 
@@ -41,7 +42,7 @@ def get_jurisdiction_roles():
         if not role.name:
             logging.warning("User Role %s has no name", role)
             continue
-        parts = role.name.split('_')
+        parts = role.name.split('_', maxsplit=1)
         if len(parts) != 2:
             logging.warning(
                 "User role %s does not have two parts,"
@@ -81,7 +82,7 @@ def get_sample(saved_filename):
 def validate_file(request_file, service_provider_slug):
     report = validate(
         request_file,
-        schema='{}-schema.json'.format(service_provider_slug),
+        schema='{}-schema.json'.format(service_provider_slug.replace('_', '-')),
         format='csv'
     )
     return report
@@ -104,7 +105,8 @@ def can_access_file(upload_id):
 
 
 IDENTIFIER_COLUMNS = {
-    'hmis': ['Internal Person ID', 'Internal Event ID']
+    'hmis_service_stays': ['internal_person_id', 'internal_event_id'],
+    'jail_bookings': ['internal_person_id', 'internal_event_id'],
 }
 
 
@@ -124,7 +126,7 @@ def format_error_report(report, service_provider_slug):
         if error['row-number'] not in new_errors:
             new_errors[error['row-number']] = formatted_error
         error_fields = {
-            'fieldName': headers[error['column-number']],
+            'fieldName': headers[error['column-number'] - 1],
             'message': error['message'],
         }
         new_errors[error['row-number']]['errors'].append(error_fields)

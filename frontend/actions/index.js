@@ -43,7 +43,7 @@ export function resetUploadState() {
 
 function fetchAvailableRoles() {
   return fetch(
-    'jurisdictional_roles.json', {
+    'api/upload/jurisdictional_roles.json', {
       method: 'GET',
       dataType: 'json',
       credentials: 'include'
@@ -117,7 +117,7 @@ function saveMergeResults(results) {
 
 export function confirmUpload(uploadId) {
   return function(dispatch) {
-    return fetch('merge_file?uploadId='+uploadId, { method: 'POST', credentials: 'include'})
+    return fetch('api/upload/merge_file?uploadId='+uploadId, { method: 'POST', credentials: 'include'})
         .then((resp) => resp.json())
         .then((data) => {
           dispatch(saveMergeResults(data)) 
