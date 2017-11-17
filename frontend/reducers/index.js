@@ -24,6 +24,7 @@ const initialState = {
     uploadResponse: {
       status: '',
       exampleRows: [],
+      fieldOrder: [],
       rowCount: '',
       uploadId: ''
     },

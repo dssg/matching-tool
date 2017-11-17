@@ -15,6 +15,7 @@ function mapStateToProps(state) {
   return {
     serviceProvider: state.app.serviceProvider,
     exampleRows: state.app.uploadResponse.exampleRows,
+    fieldOrder: state.app.uploadResponse.fieldOrder,
     numRows: state.app.uploadResponse.rowCount,
     uploadId: state.app.uploadResponse.uploadId,
     showModal: state.app.mergeResults.totalUniqueRows !== '',
@@ -81,7 +82,8 @@ class UploadConfirmPage extends React.Component {
         <p>Verify that the first ten rows shown below uploaded in the way you expect. If you are satisfied then click 'Confirm Upload' below, or else click 'Cancel Upload' to try again.</p>
         <Reactable.Table
           className="table"
-          data={this.props.exampleRows} />
+          data={this.props.exampleRows}
+          columns={this.props.fieldOrder} />
         <RaisedButton onMouseUp={this.props.confirm(this.props.uploadId)} style={styles.button} label="Confirm Upload" />
         <Link to='/upload'><RaisedButton style={styles.button} label="Cancel Upload" /></Link>
         {this.props.showModal ? renderModal(this.props.totalUniqueRows, this.props.newUniqueRows, this.redirect) : null} 
