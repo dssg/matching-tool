@@ -5,3 +5,4 @@ pytz==2017.3
 six==1.11.0
 Flask==0.12.2
 boto3==1.4.7
+python-dotenv==0.7.1

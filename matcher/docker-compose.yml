@@ -5,9 +5,14 @@ services:
     container_name: matcher
     build: .
     volumes:
-      - '.:/csh/matcher'
+      - '.:/csh'
     ports:
       - 5001:5000 # HOST:CONTAINER
+    environment:
+      - S3_BUCKET=dsapp_criminal_justice/csh/matcher
+      - INDEXER=identity
+      - KEYS=["first_name","last_name"]
+      - CONTRASTER=exact
 
   db:
     container_name: csh_db
