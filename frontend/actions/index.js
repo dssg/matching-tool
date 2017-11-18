@@ -1,5 +1,6 @@
 import {
   SELECT_SERVICE_PROVIDER,
+  RESET_SERVICE_PROVIDER,
   SELECT_JURISDICTION,
   PICK_FILE,
   CHANGE_UPLOAD_STATE,
@@ -21,6 +22,12 @@ export function selectServiceProvider(serviceProvider) {
   }
 }
 
+export function resetServiceProvider(serviceProvider) {
+  return {
+    type: RESET_SERVICE_PROVIDER
+  }
+}
+
 export function selectJurisdiction(jurisdiction) {
   return {
     type: SELECT_JURISDICTION,
@@ -28,9 +35,10 @@ export function selectJurisdiction(jurisdiction) {
   }
 }
 
-export function pickFile() {
+export function pickFile(filename) {
   return {
     type: PICK_FILE,
+    payload: filename
   }
 }
 

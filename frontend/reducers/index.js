@@ -1,6 +1,7 @@
 import { createReducer } from '../utils/redux'
 import {
   CHANGE_UPLOAD_STATE,
+  RESET_SERVICE_PROVIDER,
   SELECT_SERVICE_PROVIDER,
   SELECT_JURISDICTION,
   PICK_FILE,
@@ -22,7 +23,7 @@ const initialState = {
       name: '',
       slug: ''
     },
-    filePicked: false,
+    filePicked: '',
     uploadResponse: {
       status: '',
       exampleRows: [],
@@ -61,15 +62,21 @@ const app = createReducer(initialState, {
       selectedServiceProvider: payload
     })
   },
+  [RESET_SERVICE_PROVIDER]: (state) => {
+    return Object.assign({}, state, {
+      selectedServiceProvider: {
+        name: '',
+        slug: '',
+      }
+    })
+  },
   [SELECT_JURISDICTION]: (state, payload) => {
     return Object.assign({}, state, {
       selectedJurisdiction: payload
     })
   },
-  [PICK_FILE]: (state) => {
-    return Object.assign({}, state, {
-      filePicked: true
-    })
+  [PICK_FILE]: (state, payload) => {
+    return update(state, { filePicked: { $set: payload } })
   },
   [CHANGE_UPLOAD_STATE]: (state, payload) => {
     return Object.assign({}, state, {

@@ -1,9 +1,15 @@
 import React from 'react'
 import { bindActionCreators } from 'redux'
-import { selectServiceProvider, changeUploadState, resetUploadState, saveUploadResponse, resetUploadResponse, pickFile } from '../actions'
+import { selectServiceProvider, resetServiceProvider, changeUploadState, resetUploadState, saveUploadResponse, resetUploadResponse, pickFile } from '../actions'
 import RaisedButton from 'material-ui/RaisedButton'
 import Divider from 'material-ui/Divider'
 import Paper from 'material-ui/Paper'
+import {
+  Step,
+  Stepper,
+  StepLabel,
+  StepContent
+} from 'material-ui/Stepper'
 import { connect } from 'react-redux'
 import Upload from 'material-ui-upload/Upload'
 import UploadSuccessPage from './upload-success'
@@ -39,9 +45,15 @@ function mapDispatchToProps(dispatch) {
         dispatch(selectServiceProvider(providerType))
       }
     },
+    handlePrev: () => {
+      dispatch(resetServiceProvider())
+      dispatch(pickFile(''))
+    },
     pickFile: (files) => {
-      console.log('dispatching pick file!')
-      dispatch(pickFile())
+      dispatch(pickFile(files[0].name))
+    },
+    resetFile: () => {
+      dispatch(pickFile(''))
     },
     saveUploadResponse: (uploadResponse) => {
       dispatch(saveUploadResponse(JSON.parse(uploadResponse)))
@@ -97,6 +109,12 @@ const styles = {
 }
 
 class UploadPage extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      fileNotificationOpen: false
+    }
+  }
   options() {
     return {
       baseUrl: 'api/upload/upload_file',
@@ -115,6 +133,7 @@ class UploadPage extends React.Component {
   }
   componentWillUnmount() {
     this.props.resetUploadResponse()
+    this.props.resetFile()
   }
   renderServiceProviderButtons() {
     const renderProviderButton = (provider) => {
@@ -132,24 +151,42 @@ class UploadPage extends React.Component {
   }
   renderForm() {
     const selectedServiceProvider = this.props.selectedServiceProvider.name
+    const stepIndex = this.props.selectedServiceProvider.slug === '' ? 0 : 1
     return (
       <div style={styles.section}>
         <h2>Upload</h2>
-        <div style={styles.step}><h4>1. What type of data do you want to upload?</h4>
-          {this.renderServiceProviderButtons()}
-          </div>
-          <div style={styles.step}><h4>2. Pick a {selectedServiceProvider} file</h4></div>
-        <ReactUploadFile
-          options={this.options()}
-          chooseFileButton={<RaisedButton style={styles.button} label="Browse for File" />}
-          uploadFileButton={<div style={styles.step}><h4>3. Upload</h4> <RaisedButton style={this.props.filePicked ? styles.button : styles.disabledButton} label="Upload" /></div>}
-        />
-        <br />
-        <h4>Not sure how to format {this.props.selectedServiceProvider.name} file?</h4>
-        <RaisedButton
-          style={styles.button}
-          label="View Input File Schema"
-        />
+        <Stepper orientation="vertical" activeStep={stepIndex}>
+          <Step>
+            <StepLabel>Choose Data Type</StepLabel>
+            <StepContent>
+              <div style={styles.step}><h4>What type of data do you want to upload?</h4>
+                {this.renderServiceProviderButtons()}
+              </div>
+            </StepContent>
+          </Step>
+          <Step>
+            <StepLabel>Upload File</StepLabel>
+            <StepContent>
+              <h4>Pick {this.props.selectedServiceProvider.name} file</h4>
+              <ReactUploadFile
+                options={this.options()}
+                chooseFileButton={<RaisedButton style={styles.button} label="Browse for File" />}
+                uploadFileButton={<RaisedButton
+                  disabled={this.props.filePicked === ''}
+                  primary={this.props.filePicked !== ''}
+                  style={styles.button}
+                  label={"Upload " + this.props.filePicked}
+                />}
+              />
+              <br />
+              <RaisedButton
+                label="Back"
+                onClick={this.props.handlePrev}
+                style={styles.button}
+              />
+            </StepContent>
+          </Step>
+        </Stepper>
       </div>
     )
   }
