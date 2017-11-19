@@ -25,7 +25,7 @@ class Done extends React.Component {
   render() {
     return (
       <div style={styles.step}>
-        Your upload has been confirmed. We found {this.props.totalUniqueRows} total unique rows in the upload file, and {this.props.newUniqueRows} that hadn't been uploaded before. Your data is now being sent to our matching service, and may take several hours to process. The matched results, when complete, will be available at the results page.
+        <p>Your upload has been confirmed. We found {this.props.totalUniqueRows} total unique rows in the upload file, and {this.props.newUniqueRows} that hadn't been uploaded before. Your data is now being sent to our matching service, and may take several hours to process. The matched results, when complete, will be available at the results page.</p>
         <Link to="/"><RaisedButton label="Back to Home" /></Link>
       </div>
     )

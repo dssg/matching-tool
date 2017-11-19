@@ -37,22 +37,30 @@ const styles = {
 }
 
 class ConfirmData extends React.Component {
-  render() {
+  renderButtons() {
     return (
-      <div style={styles.step}>
-        <h2>Upload Confirmation</h2>
-        <p>Your {this.props.selectedServiceProvider.name} file was successfully validated. {this.props.numRows} valid rows were found.</p>
-        <p>Verify that the first ten rows shown below uploaded in the way you expect. If you are satisfied then click 'Confirm Upload' below, or else click 'Cancel Upload' to try again.</p>
-        <Reactable.Table
-          className="table"
-          data={this.props.exampleRows}
-          columns={this.props.fieldOrder} />
+      <div>
         <RaisedButton onMouseUp={this.props.confirm(this.props.uploadId)} style={styles.button} label="Confirm Upload" />
         <RaisedButton
           label="Cancel Upload"
           onClick={this.props.resetToStep0}
           style={styles.button}
         />
+      </div>
+    )
+  }
+  render() {
+    return (
+      <div style={styles.step}>
+        <h2>Upload Confirmation</h2>
+        <p>Your {this.props.selectedServiceProvider.name} file was successfully validated. {this.props.numRows} valid rows were found.</p>
+        <p>Verify that the first ten rows shown below uploaded in the way you expect. If you are satisfied then click 'Confirm Upload' below, or else click 'Cancel Upload' to try again.</p>
+        {this.renderButtons()}
+        <Reactable.Table
+          className="table"
+          data={this.props.exampleRows}
+          columns={this.props.fieldOrder} />
+        {this.renderButtons()}
       </div>
     )
   }
