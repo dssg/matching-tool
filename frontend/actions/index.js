@@ -6,6 +6,7 @@ import {
   CHANGE_UPLOAD_STATE,
   SAVE_AVAILABLE_ROLES,
   SAVE_UPLOAD_RESPONSE,
+  RESET_UPLOAD_RESPONSE,
   SAVE_MERGE_RESULTS,
   SET_ERROR_MESSAGE,
   MATCHING_RESULTS,
@@ -82,8 +83,7 @@ export function saveUploadResponse(response) {
 
 export function resetUploadResponse() {
   return {
-    type: SAVE_UPLOAD_RESPONSE,
-    payload: {}
+    type: RESET_UPLOAD_RESPONSE
   }
 }
 

@@ -1,5 +1,5 @@
 import React from 'react'
-import { changeUploadState } from '../actions'
+import { resetUploadResponse, pickFile } from '../actions'
 import { Link } from 'react-router-dom'
 import RaisedButton from 'material-ui/RaisedButton'
 import Divider from 'material-ui/Divider'
@@ -22,7 +22,8 @@ function mapDispatchToProps(dispatch) {
   return {
     retryUpload: () => {
       return () => {
-        dispatch(changeUploadState(''))
+        dispatch(resetUploadResponse())
+        dispatch(pickFile(''))
       }
     },
   }
@@ -33,40 +34,6 @@ const styles = {
   button: { margin: 12 }
 }
 
-const invalidRows = [
-  {
-    'Internal Person ID': "A023918475",
-    'Internal Event ID': "248457",
-    'Row #': 4,
-    'Birthdate': "1972-01-01",
-    'SSN': "123-45-6789",
-    'DMV Number': "S123-4567-7890",
-    'DMV State': "IL",
-    'Additional State or Federal ID': "C1293048",
-    'Name of Additional State or Federal ID': "Canadian Social Insurance Number",
-    'Race/Ethnicity': "B",
-    'Ethnicity': null,
-    'Sex/Gender': "F",
-    'Veteran Status': 0,
-    'Disabling Condition': 1,
-    'Project Start Date': "2015-01-25",
-    'Project Exit Date': "2015-01-26",
-    'Program Name': "Safe Haven Shelter",
-    'Program Type': "Emergency Shelter",
-    'Federal Program': "RHSP",
-    'Destination': 8,
-    'Household ID': 243859,
-    'Relationship to Head of Household': 1,
-    'Housing Move-in Date': "2015-02-01",
-    'Living Situation: Type of Residence': 12,
-    'Living Situation: Length of Stay': 34,
-    'Living Situation: Date Homelessness Started': "2014-12-01",
-    'Living Situation: Number of Times on Street': 1,
-    'Living Situation: Number of Months Homeless': 1
-  },
-]
-
-const header = keys(invalidRows[0])
 
 const renderRowColumn = (value, index) => {
   return (<TableRowColumn key={index}>{value}</TableRowColumn>)
@@ -100,13 +67,6 @@ const renderBadRow = (badRow) => {
 }
 
 class UploadInvalidPage extends React.Component {
-  renderHeaderColumn(column) {
-    return (<TableHeaderColumn key={column}>{column}</TableHeaderColumn>)
-  }
-
-  renderHeader() {
-    return map(this.renderHeaderColumn, header)
-  }
 
 
   render() {

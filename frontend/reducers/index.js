@@ -7,6 +7,7 @@ import {
   PICK_FILE,
   SAVE_AVAILABLE_ROLES,
   SAVE_UPLOAD_RESPONSE,
+  RESET_UPLOAD_RESPONSE,
   SAVE_MERGE_RESULTS,
   SET_ERROR_MESSAGE,
   MATCHING_RESULTS,
@@ -93,6 +94,11 @@ const app = createReducer(initialState, {
       uploadResponse: payload
     })
     return newState
+  },
+  [RESET_UPLOAD_RESPONSE]: (state) => {
+    return update(state, {
+      uploadResponse: {$set: initialState.app.uploadResponse}
+    })
   },
   [MATCHING_RESULTS]: (state, payload) => {
     return Object.assign({}, state, {
