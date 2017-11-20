@@ -2,10 +2,11 @@ from flask import Flask, render_template
 from flask_security import Security, login_required, \
      SQLAlchemySessionUserDatastore
 from webapp.database import db_session
-from webapp.models import User, Role, Upload, MergeLog
+from webapp.models import User, Role
 import yaml
 from webapp.apis.upload import upload_api
 from webapp.apis.chart import chart_api
+
 
 # Create app
 app = Flask(__name__)
@@ -29,4 +30,4 @@ def home(path):
     return render_template('index.html')
 
 if __name__ == "__main__":
-	app.run()
+    app.run()

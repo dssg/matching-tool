@@ -49,7 +49,7 @@ def makeNamedTemporaryCSV(content, separator='|'):
 
 
 def load_schema_file(service_provider):
-    with open('{}-schema.json'.format(service_provider)) as f:
+    with open('{}-schema.json'.format(service_provider.replace('_', '-'))) as f:
         return json.load(f)
 
 
@@ -59,6 +59,8 @@ def column_list_from_goodtables_schema(goodtables_schema):
     def type_map(gt_type):
         if gt_type == 'string':
             return 'varchar'
+        if gt_type == 'datetime':
+            return 'timestamp'
         else:
             return gt_type
 

@@ -89,7 +89,7 @@ const styles = {
 class UploadPage extends React.Component {
   options() {
     return {
-      baseUrl: 'upload_file',
+      baseUrl: 'api/upload/upload_file',
       withCredentials: true,
       didChoose: didChoose,
       beforeUpload: beforeUpload,

@@ -1,9 +1,11 @@
 flask-security
 flask-sqlalchemy
-goodtables
+goodtables>=1.5
+tableschema
 alembic
 pyyaml
 psycopg2
 bcrypt
 smart_open
-sqlalchemy>=1.2
+sqlalchemy
+pandas
