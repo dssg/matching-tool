@@ -1,14 +1,47 @@
 import React from 'react'
 import d3 from 'd3'
 import * as venn from 'venn.js'
+import { updateTableData, getMatchingResults } from '../actions'
+import { connect } from 'react-redux'
 
-export default class Venn extends React.Component {
+function mapStateToProps(state) {
+  return {
+    matchingResults: state.app.matchingResults,
+    tableData: state.app.matchingResults.filteredData.tableData,
+  }
+}
+
+
+function mapDispatchToProps(dispatch) {
+  return {
+    getUpdateTableData: (data, section) => {
+      dispatch(updateTableData(data, section))
+    },
+    updateMatchingResults: (d) => {
+      dispatch(getMatchingResults(d))
+    },
+  }
+}
+
+class Venn extends React.Component {
 	constructor(props) {
 		super(props)
+    this.state = {
+      allTableData: props.matchingResults.filteredData.tableData,
+    }
 	}
 
   componentDidMount() {
+    this.props.updateMatchingResults("1")
+    // console.log(this.props.matchingResults.filteredData.tableData)
     this.createVenn()
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (this.props.matchingResults.filters.startDate != nextProps.matchingResults.filters.startDate) {
+      // console.log(nextProps.matchingResults.filteredData.tableData)
+      this.setState({ allTableData: nextProps.matchingResults.filteredData.tableData})
+    }
   }
 
   componentDidUpdate() {
@@ -16,13 +49,16 @@ export default class Venn extends React.Component {
   }
 
   createVenn() {
+    // console.log(this.state.allTableData)
+    // console.log(this.props.tableData)
+    const self = this
     const chart = venn.VennDiagram().width(320).height(270)
     const node = this.node
     const div = d3.select(node)
     var tooltip = d3.select(node).append("span").attr("class", "venntooltip")
-    div.datum(this.props.data).call(chart)
-    d3.selectAll(".venn-circle path").style("fill-opacity", .5)
-    d3.selectAll(".venn-area path").style("fill-opacity", .5)
+    div.datum(self.props.data).call(chart)
+    d3.selectAll(".venn-circle path").style("fill-opacity", .65)
+    d3.selectAll(".venn-area path").style("fill-opacity", .65)
     d3.selectAll(".label").style("fill", "white")
                         .style("font-weight", "100")
                         .style("font-size", "14px")
@@ -40,10 +76,17 @@ export default class Venn extends React.Component {
       })
       .on("mouseout", function(d, i) {
         const node = d3.select(this)
-        node.select("path").style("fill-opacity", .5)
+        node.select("path").style("fill-opacity", .65)
         node.select("text").style("font-weight", "100")
                            .style("font-size", "18px")
         tooltip.style("opacity", 0)
+      })
+
+    d3.selectAll(".venn-area")
+      .on("click", function(d, i){
+        self.props.getUpdateTableData(self.state.allTableData, d['sets'])
+        tooltip.style("opacity", 0)
+
       })
   }
 
@@ -53,3 +96,5 @@ export default class Venn extends React.Component {
   	)
   }
 }
+
+export default connect(mapStateToProps, mapDispatchToProps)(Venn)
