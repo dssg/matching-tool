@@ -27,12 +27,27 @@ export default class DurationBarChart extends React.Component {
             margin={{ left: 100, right: 20, top: 20 }}
             xType="ordinal"
             stackBy="y"
-            width={300}
-            height={270}>
+            width={400}
+            height={350}>
             <HorizontalGridLines />
-            <YAxis tickFormat={v => `${v}%`} />
-            <YAxis hideLine hideTicks left={-60} title={'Percent of Population'} top={85} />
-            <XAxis />
+            <YAxis
+              tickFormat={v => `${v}%`}
+              style={{
+                text: {fontSize: 16}
+              }} />
+            <YAxis
+              hideLine
+              hideTicks
+              left={-80}
+              title={'Percent of Population'}
+              style={{
+                text: {"fontSize": 16}
+              }}
+              top={85} />
+            <XAxis
+              style={{
+                text: {fontSize: 16}
+              }} />
             {this.props.data.map((entry, idx) => (
               <VerticalBarSeries
                 data={entry}
@@ -46,6 +61,9 @@ export default class DurationBarChart extends React.Component {
           <DiscreteColorLegend
             margin={{ left: 5, right: 1 }}
             orientation="vertical"
+            style={{
+              fontSize: 16
+              }}
             onItemClick={(Object, number) => {console.log(Object)}}
             items={["0 day", "1 day", "2-9 days", "10-89 days", "90+ days"]} />
         </div>

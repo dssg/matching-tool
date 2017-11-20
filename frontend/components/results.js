@@ -57,7 +57,7 @@ const styles = {
     marginRight: 7
   },
   bar_chart_jail: {
-    width: '50%',
+    width: '65%',
     marginLeft: 60,
   },
   bar_chart_homeless: {
@@ -234,6 +234,7 @@ class Results extends React.Component {
                 <Venn
                   data={this.props.matchingResults.vennDiagramData}
                   local_table_data={this.props.matchingResults.filteredData.tableData}/>
+                <p> * Left circle is always larger or equal</p>
               </Card>
             </div>
             <a href={ this.state.barFlag ? "/api/chart/download/chart" : "/api/chart/download/list" }>
