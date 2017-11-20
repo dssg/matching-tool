@@ -76,7 +76,7 @@ def get_sample(saved_filename):
                 sample_rows.append(next(reader))
             except StopIteration:
                 break
-        return sample_rows
+        return sample_rows, reader.fieldnames
 
 
 def validate_file(request_file, service_provider_slug):
@@ -154,7 +154,7 @@ def upload_file():
         validation_report = validate_file(full_filename, service_provider)
         if validation_report['valid']:
             upload_id = unique_upload_id()
-            row_count = validation_report['tables'][0]['row-count']
+            row_count = validation_report['tables'][0]['row-count'] - 1
             upload_path = s3_upload_path(jurisdiction, service_provider, upload_id)
             try:
                 upload_to_s3(upload_path, full_filename)
@@ -181,11 +181,12 @@ def upload_file():
                 s3_upload_path=upload_path,
             )
 
-            sample_rows = get_sample(full_filename)
+            sample_rows, field_names = get_sample(full_filename)
             return jsonify(
                 status='valid',
                 rowCount=row_count,
                 exampleRows=sample_rows,
+                fieldOrder=field_names,
                 uploadId=upload_id
             )
         else:

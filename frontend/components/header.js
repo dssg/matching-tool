@@ -7,8 +7,6 @@ import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider'
 import React from 'react'
 import Results from './results'
 import Upload from './upload'
-import UploadInvalid from './upload-invalid'
-import UploadSuccess from './upload-success'
 import { Link } from 'react-router-dom'
 import { Switch, Route } from 'react-router-dom'
 

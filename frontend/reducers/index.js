@@ -1,10 +1,13 @@
 import { createReducer } from '../utils/redux'
 import {
   CHANGE_UPLOAD_STATE,
+  RESET_SERVICE_PROVIDER,
   SELECT_SERVICE_PROVIDER,
   SELECT_JURISDICTION,
+  PICK_FILE,
   SAVE_AVAILABLE_ROLES,
   SAVE_UPLOAD_RESPONSE,
+  RESET_UPLOAD_RESPONSE,
   SAVE_MERGE_RESULTS,
   SET_ERROR_MESSAGE,
   MATCHING_RESULTS,
@@ -21,9 +24,11 @@ const initialState = {
       name: '',
       slug: ''
     },
+    filePicked: '',
     uploadResponse: {
       status: '',
       exampleRows: [],
+      fieldOrder: [],
       rowCount: '',
       uploadId: ''
     },
@@ -58,10 +63,21 @@ const app = createReducer(initialState, {
       selectedServiceProvider: payload
     })
   },
+  [RESET_SERVICE_PROVIDER]: (state) => {
+    return Object.assign({}, state, {
+      selectedServiceProvider: {
+        name: '',
+        slug: '',
+      }
+    })
+  },
   [SELECT_JURISDICTION]: (state, payload) => {
     return Object.assign({}, state, {
       selectedJurisdiction: payload
     })
+  },
+  [PICK_FILE]: (state, payload) => {
+    return update(state, { filePicked: { $set: payload } })
   },
   [CHANGE_UPLOAD_STATE]: (state, payload) => {
     return Object.assign({}, state, {
@@ -78,6 +94,11 @@ const app = createReducer(initialState, {
       uploadResponse: payload
     })
     return newState
+  },
+  [RESET_UPLOAD_RESPONSE]: (state) => {
+    return update(state, {
+      uploadResponse: {$set: initialState.app.uploadResponse}
+    })
   },
   [MATCHING_RESULTS]: (state, payload) => {
     return Object.assign({}, state, {

@@ -1,9 +1,12 @@
 import {
   SELECT_SERVICE_PROVIDER,
+  RESET_SERVICE_PROVIDER,
   SELECT_JURISDICTION,
+  PICK_FILE,
   CHANGE_UPLOAD_STATE,
   SAVE_AVAILABLE_ROLES,
   SAVE_UPLOAD_RESPONSE,
+  RESET_UPLOAD_RESPONSE,
   SAVE_MERGE_RESULTS,
   SET_ERROR_MESSAGE,
   MATCHING_RESULTS,
@@ -20,10 +23,23 @@ export function selectServiceProvider(serviceProvider) {
   }
 }
 
+export function resetServiceProvider(serviceProvider) {
+  return {
+    type: RESET_SERVICE_PROVIDER
+  }
+}
+
 export function selectJurisdiction(jurisdiction) {
   return {
     type: SELECT_JURISDICTION,
     payload: jurisdiction
+  }
+}
+
+export function pickFile(filename) {
+  return {
+    type: PICK_FILE,
+    payload: filename
   }
 }
 
@@ -62,6 +78,12 @@ export function saveUploadResponse(response) {
   return {
     type: SAVE_UPLOAD_RESPONSE,
     payload: response
+  }
+}
+
+export function resetUploadResponse() {
+  return {
+    type: RESET_UPLOAD_RESPONSE
   }
 }
 
