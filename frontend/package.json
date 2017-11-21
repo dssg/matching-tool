@@ -30,6 +30,7 @@
     "material-ui-upload": "^1.1.5",
     "ramda": "^0.23.0",
     "react": "15.6.1",
+    "react-csv": "^1.0.8",
     "react-dom": "15.6.1",
     "react-flexbox-grid": "^1.1.4",
     "react-material-responsive-grid": "^1.2.0",
