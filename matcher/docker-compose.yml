@@ -5,7 +5,7 @@ services:
     container_name: matcher
     build: .
     volumes:
-      - '.:/csh'
+      - '.:/csh' # HOST:CONTAINER
     ports:
       - 5001:5000 # HOST:CONTAINER
     environment:
