@@ -54,7 +54,7 @@ def version(df:pd.DataFrame) -> pd.DataFrame:
     """
     Adds the code version (git head hash) to the passed DataFrame.
     """
-    head_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD']).rstrip()
-    df['code_version'] = head_hash
+    # head_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD']).rstrip()
+    df['code_version'] = '0.1' #head_hash
     
     return df
