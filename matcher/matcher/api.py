@@ -51,7 +51,7 @@ def setup_logging():
 def index():
     return jsonify({
         'status': 'success',
-        'message': 'Zzzzzzz'
+        'message': 'I am here, hi!'
     })
 
 
@@ -69,7 +69,11 @@ def match(jurisdiction):
 
     app.logger.info(f"Reading data from {S3_BUCKET}/{jurisdiction}")
 
-    df = pd.DataFrame()
+    df = pd.DataFrame({"id":[1,2,3,4],
+                       "first_name":['a', 'b', 'c', 'd'],
+                       "last_name":['a']*2+['c']*2,
+                       "age":range(10,14),
+    })
     #df = load_data_from_s3(S3_BUCKET, jurisdiction, event_type="hmis")
     
     indexer_func = getattr(indexer, INDEXER)
@@ -77,7 +81,7 @@ def match(jurisdiction):
 
     app.logger.info(f"Running matcher({KEYS},{INDEXER},{CONTRASTER})")
     app.logger.debug("Beeep...booop")    
-    #df = matcher.run(df, KEYS, indexer, contraster)
+    df = matcher.run(df, KEYS, indexer_func, contraster_func)
 
     app.logger.debug("Matcher process done")
 
