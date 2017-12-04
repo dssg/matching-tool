@@ -57,6 +57,7 @@ def index():
 
 @app.route('/poke', methods=['GET'])
 def poke():
+    app.logger.info("I'm being poked!")
     return jsonify({
         'status': 'success',
         'message': 'Stop poking me!'
@@ -69,13 +70,9 @@ def match(jurisdiction):
 
     app.logger.info(f"Reading data from {S3_BUCKET}/{jurisdiction}")
 
-    df = pd.DataFrame({"id":[1,2,3,4],
-                       "first_name":['a', 'b', 'c', 'd'],
-                       "last_name":['a']*2+['c']*2,
-                       "age":range(10,14),
-    })
-    #df = load_data_from_s3(S3_BUCKET, jurisdiction, event_type="hmis")
-    
+    df = load_data_from_s3(S3_BUCKET, jurisdiction, event_type="hmis")
+    # df = pd.read_csv('hmis-fake-0.csv')
+
     indexer_func = getattr(indexer, INDEXER)
     contraster_func = getattr(contraster, CONTRASTER)
 
@@ -92,7 +89,7 @@ def match(jurisdiction):
 
 @app.route('/list/<jurisdiction>', methods=['POST'])
 def get_list(jurisdiction):
-    app.logger.debug(f"Retriving the list for the county {county}")
+    app.logger.debug(f"Retrieving the list for the county {county}")
     if request.method == 'POST':
         try:
             data = request.get_json()

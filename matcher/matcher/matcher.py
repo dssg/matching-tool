@@ -15,7 +15,7 @@ from . import indexer
 from . import contraster
 
 
-def select_columns(df:pd.DataFrame, keys: List) -> pd.DataFrame:
+def select_columns(df:pd.DataFrame, keys:List) -> pd.DataFrame:
     """ 
     Reduces the dataframe to the columns selected for matching.
 
@@ -26,7 +26,8 @@ def select_columns(df:pd.DataFrame, keys: List) -> pd.DataFrame:
     if keys:
         columns_to_select = columns_to_select + keys
     
-    return  df.loc[:,columns_to_select]
+    return df.loc[:,columns_to_select]
+
 
 def indexing(df:pd.DataFrame, indexer:Callable[[pd.DataFrame], pd.DataFrame]) -> pd.DataFrame:
     """
