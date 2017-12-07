@@ -91,6 +91,7 @@ function mapStateToProps(state) {
     bothCount: state.app.matchingResults.vennDiagramData[2]["size"],
     totalCount: state.app.matchingResults.vennDiagramData[0]["size"]
       + state.app.matchingResults.vennDiagramData[1]["size"] - state.app.matchingResults.vennDiagramData[2]["size"],
+    setStatus: state.app.matchingResults.filters.setStatus,
   }
 }
 
@@ -138,6 +139,16 @@ class Results extends React.Component {
     this.setState({barFlag: !this.state.barFlag})
   }
 
+  intersectionPercentage = () => {
+    var h = Math.floor((this.props.bothCount / this.props.homelessCount)*100)
+    var j = Math.floor((this.props.bothCount / this.props.jailCount)*100)
+    return (
+      <span>
+        <strong>{h}%</strong> of HMIS, <strong>{j}%</strong> of Jail
+      </span>
+    )
+  }
+
   componentDidMount() {
     this.props.updateMatchingResults("1")
   }
@@ -174,7 +185,6 @@ class Results extends React.Component {
   }
 
   render() {
-    console.log(this.props.matchingResults.filteredData.tableData)
     const contentStyle = {  transition: 'margin-left 300ms cubic-bezier(0.23, 1, 0.32, 1)' }
     if (this.state.open) {
       contentStyle.marginLeft = '25%'
@@ -247,12 +257,12 @@ class Results extends React.Component {
         </div>
         <div style={contentStyle}>
           <div>
-            <h4 style={styles.h4}>Results - {this.props.startDate} through {this.props.endDate}</h4>
+            <h4 style={styles.h4}>Results - {this.props.startDate} through {this.props.endDate} - {this.props.setStatus}</h4>
             <h5 style={styles.h5}>
                 Total: <strong>{this.props.totalCount}</strong>&nbsp;
                 Jail: <strong>{this.props.jailCount}</strong>&nbsp;
                 Homeless: <strong>{this.props.homelessCount}</strong>&nbsp;
-                Intersection: <strong>{this.props.bothCount}</strong>&nbsp;
+                Intersection: <strong>{this.props.bothCount}</strong> ({this.intersectionPercentage()})&nbsp;
             </h5>
             <hr style={styles.hr}/>
           </div>

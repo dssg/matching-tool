@@ -8,7 +8,8 @@
         "flag_homeless_in_jail":true,
         "flag_veteran":false,
         "flag_disability":false,
-        "flag_mental_illness":false
+        "flag_mental_illness":false,
+        "setStatus": "All"
     },
     "vennDiagramData":[
         {
