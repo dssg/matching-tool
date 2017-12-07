@@ -269,6 +269,16 @@ class Results extends React.Component {
                 <p> * Left circle is always larger or equal</p>
               </Card>
             </div>
+            <div className="container">
+              <RaisedButton
+                label="Download Source HMIS"
+                secondary={true}
+                style={styles.button} />
+              <RaisedButton
+                label="Download Source Jail"
+                secondary={true}
+                style={styles.button} />
+            </div>
             <a href={ this.state.barFlag ? "/api/chart/download/chart" : "/api/chart/download/list" }>
               <div className="container">
                 <RaisedButton
@@ -277,16 +287,6 @@ class Results extends React.Component {
                   style={styles.button} />
               </div>
             </a>
-              <div className="container">
-                <RaisedButton
-                  label="Download Source HMIS"
-                  secondary={true}
-                  style={styles.button} />
-                <RaisedButton
-                  label="Download Source Jail"
-                  secondary={true}
-                  style={styles.button} />
-              </div>
           </Drawer>
         </div>
         <div style={contentStyle}>
