@@ -252,6 +252,10 @@ class Results extends React.Component {
                 label={ this.state.barFlag ? "Download Charts" : "Download List" }
                 secondary={true}
                 style={styles.button} />
+              <RaisedButton
+                label="Download Source Data"
+                secondary={true}
+                style={styles.button} />
             </a>
           </Drawer>
         </div>
