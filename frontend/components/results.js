@@ -21,23 +21,23 @@ const styles = {
     margin: 0
   },
   h4: {
-    "text-align": "left",
+    "textAlign": "left",
     float:"left",
-    "margin-top": 6,
+    "marginTop": 6,
     marginLeft: 60,
   },
   h5: {
-    "text-align": "right",
+    "textAlign": "right",
     float:"right",
     marginRight: 7
   },
   page: {
     margin: '5px',
-    'font-family': 'Roboto, sans-serif',
+    'fontFamily': 'Roboto, sans-serif',
   },
   container: {
     display: 'flex',
-    'justify-content': 'space-between',
+    'justifyContent': 'space-between',
   },
   datepicker: {
     marginLeft: 15,
@@ -56,16 +56,12 @@ const styles = {
     marginLeft: 60,
     marginRight: 7
   },
-  bar_chart_jail: {
+  bar_chart: {
     width: '65%',
     marginLeft: 60,
   },
-  bar_chart_homeless: {
-    width: '50%',
-    marginRight: 7
-  },
   button: {
-    margin: '12',
+    margin: 12,
   },
   floatingActionButtonAdd: {
     position: 'absolute',
@@ -115,7 +111,7 @@ class Results extends React.Component {
     this.state = {
       open: true,
       barFlag: false,
-      showHomelessDurationChart: false,
+      flagJailBar: true,
     }
   }
 
@@ -165,23 +161,50 @@ class Results extends React.Component {
 
   renderHomelessBarChart() {
     return (
-      <Card style={styles.bar_chart_homeless}>
-        <CardTitle title="Homeless Duration Bar Chart" titleStyle={{'font-size': 20}} />
+      <Card style={styles.bar_chart}>
+        <CardTitle title="Homeless Duration Bar Chart" titleStyle={{'fontSize': 20}} />
           <DurationBarChart data={this.props.matchingResults.filteredData.homelessBarData} />
       </Card>
     )
   }
 
-  renderBarChart() {
+  renderJailBarChart() {
     return (
-      <div style={styles.container}>
-        <Card style={styles.bar_chart_jail}>
-          <CardTitle title="Jail Duration Bar Chart" titleStyle={{'font-size': 20}} />
-            <DurationBarChart data={this.props.matchingResults.filteredData.jailBarData} />
-        </Card>
-        { this.state.showHomelessDurationChart ? renderHomelessBarChart() : null}
-      </div>
+      <Card style={styles.bar_chart}>
+        <CardTitle title="Jail Duration Bar Chart" titleStyle={{'fontSize': 20}} />
+          <DurationBarChart data={this.props.matchingResults.filteredData.jailBarData} />
+      </Card>
     )
+  }
+
+  renderBarChart() {
+    if (this.props.setStatus == "Jail" | this.props.setStatus == "All") {
+      return (
+        <div style={styles.container}>
+          {this.renderJailBarChart()}
+        </div>
+      )
+    } else if (this.props.setStatus == "HMIS") {
+      return (
+        <div style={styles.container}>
+          {this.renderHomelessBarChart()}
+        </div>
+      )
+    } else {
+      if (this.state.flagJailBar) {
+        return (
+          <div style={styles.container}>
+            {this.renderJailBarChart()}
+          </div>
+        )
+      } else {
+        return (
+          <div style={styles.container}>
+            {this.renderHomelessBarChart()}
+          </div>
+        )
+      }
+    }
   }
 
   render() {
@@ -207,7 +230,7 @@ class Results extends React.Component {
             onRequestChange={(open) => this.setState({open})} >
             <div style={styles.container}>
               <Card style={styles.panel}>
-                <CardTitle title="Control Panel" titleStyle={{'font-size': 20}} />
+                <CardTitle title="Control Panel" titleStyle={{'fontSize': 20}} />
                 <FloatingActionButton
                   onClick={this.handleClose}
                   mini={true}
@@ -219,7 +242,6 @@ class Results extends React.Component {
                   <h5>End Date:
                     <DatePicker
                       hintText="Pick the data to go back"
-                      value={this.props.controlledDate}
                       onChange={this.props.handleControlledDate} />
                   </h5>
                   <h5>Duration:</h5>
@@ -248,15 +270,23 @@ class Results extends React.Component {
               </Card>
             </div>
             <a href={ this.state.barFlag ? "/api/chart/download/chart" : "/api/chart/download/list" }>
-              <RaisedButton
-                label={ this.state.barFlag ? "Download Charts" : "Download List" }
-                secondary={true}
-                style={styles.button} />
-              <RaisedButton
-                label="Download Source Data"
-                secondary={true}
-                style={styles.button} />
+              <div className="container">
+                <RaisedButton
+                  label={ this.state.barFlag ? "Download Charts" : "Download List" }
+                  secondary={true}
+                  style={styles.button} />
+              </div>
             </a>
+              <div className="container">
+                <RaisedButton
+                  label="Download Source HMIS"
+                  secondary={true}
+                  style={styles.button} />
+                <RaisedButton
+                  label="Download Source Jail"
+                  secondary={true}
+                  style={styles.button} />
+              </div>
           </Drawer>
         </div>
         <div style={contentStyle}>
