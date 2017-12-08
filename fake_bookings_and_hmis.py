@@ -7,7 +7,6 @@ import csv
 from functools import partial
 from faker import Faker
 from datetime import datetime
-import pdb
 
 fake = Faker()
 
@@ -159,7 +158,6 @@ def fake_stay():
 
 
 def generate_rows(datasets, rows):
-    # pdb.set_trace()
     fake_datasets = []
     i = 0
     for dataset in datasets:
@@ -225,7 +223,7 @@ def apply_matches(fake_datasets, matches_within, matches_between):
                 first_index = match_field[type1]
                 second_index = match_field[type2]
                 row1[first_index] = row2[second_index]
-            # pdb.set_trace()
+
             # set the end date for the earlier row to be before the start date of the second row
             # THIS IS HIDEOUS
             if row1[DATE_FIELD_INDICES[type1]['start_date']] < row2[DATE_FIELD_INDICES[type2]['start_date']]:
