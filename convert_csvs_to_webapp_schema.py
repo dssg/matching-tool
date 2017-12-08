@@ -194,8 +194,8 @@ def get_schema(bookings, hmis, start_date, end_date, duration):
 
 
 def run():
-    bookings = pd.read_csv('../matched_bookings_data_20171207.csv')
-    hmis = pd.read_csv('../matched_hmis_data_20171207.csv')
+    bookings = pd.read_csv('matched_bookings_data_20171207.csv')
+    hmis = pd.read_csv('matched_hmis_data_20171207.csv')
     bookings['jail_entry_date'] = pd.to_datetime(bookings['jail_entry_date'])
     bookings['jail_exit_date'] = pd.to_datetime(bookings['jail_exit_date'])
     hmis['client_location_start_date'] = pd.to_datetime(hmis['client_location_start_date'])
