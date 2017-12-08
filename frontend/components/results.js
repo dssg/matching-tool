@@ -13,7 +13,7 @@ import TableList from './table'
 import Venn from './venn'
 import { connect } from 'react-redux'
 import { getMatchingResults, updateControlledDate, updateDuration } from '../actions'
-import {Card, CardActions, CardHeader, CardMedia, CardTitle, CardText} from 'material-ui/Card'
+import { Card, CardTitle } from 'material-ui/Card'
 
 const styles = {
   hr: {
@@ -21,29 +21,29 @@ const styles = {
     margin: 0
   },
   h4: {
-    "text-align": "left",
+    "textAlign": "left",
     float:"left",
-    "margin-top": 6,
+    "marginTop": 6,
     marginLeft: 60,
   },
   h5: {
-    "text-align": "right",
+    "textAlign": "right",
     float:"right",
     marginRight: 7
   },
   page: {
     margin: '5px',
-    'font-family': 'Roboto, sans-serif',
+    'fontFamily': 'Roboto, sans-serif',
   },
   container: {
     display: 'flex',
-    'justify-content': 'space-between',
+    'justifyContent': 'spaceBetween',
   },
   datepicker: {
     marginLeft: 15,
   },
   panel: {
-    width: '100%',
+    width: '105%',
     marginLeft: 5
   },
   card: {
@@ -56,16 +56,12 @@ const styles = {
     marginLeft: 60,
     marginRight: 7
   },
-  bar_chart_jail: {
+  bar_chart: {
     width: '65%',
     marginLeft: 60,
   },
-  bar_chart_homeless: {
-    width: '50%',
-    marginRight: 7
-  },
   button: {
-    margin: '12',
+    margin: 10,
   },
   floatingActionButtonAdd: {
     position: 'absolute',
@@ -91,6 +87,7 @@ function mapStateToProps(state) {
     bothCount: state.app.matchingResults.vennDiagramData[2]["size"],
     totalCount: state.app.matchingResults.vennDiagramData[0]["size"]
       + state.app.matchingResults.vennDiagramData[1]["size"] - state.app.matchingResults.vennDiagramData[2]["size"],
+    setStatus: state.app.matchingResults.filters.setStatus,
   }
 }
 
@@ -114,7 +111,7 @@ class Results extends React.Component {
     this.state = {
       open: true,
       barFlag: false,
-      showHomelessDurationChart: false,
+      flagJailBar: true,
     }
   }
 
@@ -138,6 +135,16 @@ class Results extends React.Component {
     this.setState({barFlag: !this.state.barFlag})
   }
 
+  intersectionPercentage = () => {
+    var h = Math.floor((this.props.bothCount / this.props.homelessCount)*100)
+    var j = Math.floor((this.props.bothCount / this.props.jailCount)*100)
+    return (
+      <span>
+        <strong>{h}%</strong> of HMIS, <strong>{j}%</strong> of Jail
+      </span>
+    )
+  }
+
   componentDidMount() {
     this.props.updateMatchingResults("1")
   }
@@ -154,27 +161,53 @@ class Results extends React.Component {
 
   renderHomelessBarChart() {
     return (
-      <Card style={styles.bar_chart_homeless}>
-        <CardTitle title="Homeless Duration Bar Chart" titleStyle={{'font-size': 20}} />
+      <Card style={styles.bar_chart}>
+        <CardTitle title="Homeless Duration Bar Chart" titleStyle={{'fontSize': 20}} />
           <DurationBarChart data={this.props.matchingResults.filteredData.homelessBarData} />
       </Card>
     )
   }
 
-  renderBarChart() {
+  renderJailBarChart() {
     return (
-      <div style={styles.container}>
-        <Card style={styles.bar_chart_jail}>
-          <CardTitle title="Jail Duration Bar Chart" titleStyle={{'font-size': 20}} />
-            <DurationBarChart data={this.props.matchingResults.filteredData.jailBarData} />
-        </Card>
-        { this.state.showHomelessDurationChart ? renderHomelessBarChart() : null}
-      </div>
+      <Card style={styles.bar_chart}>
+        <CardTitle title="Jail Duration Bar Chart" titleStyle={{'fontSize': 20}} />
+          <DurationBarChart data={this.props.matchingResults.filteredData.jailBarData} />
+      </Card>
     )
   }
 
+  renderBarChart() {
+    if (this.props.setStatus == "Jail" | this.props.setStatus == "All") {
+      return (
+        <div style={styles.container}>
+          {this.renderJailBarChart()}
+        </div>
+      )
+    } else if (this.props.setStatus == "HMIS") {
+      return (
+        <div style={styles.container}>
+          {this.renderHomelessBarChart()}
+        </div>
+      )
+    } else {
+      if (this.state.flagJailBar) {
+        return (
+          <div style={styles.container}>
+            {this.renderJailBarChart()}
+          </div>
+        )
+      } else {
+        return (
+          <div style={styles.container}>
+            {this.renderHomelessBarChart()}
+          </div>
+        )
+      }
+    }
+  }
+
   render() {
-    console.log(this.props.matchingResults.filteredData.tableData)
     const contentStyle = {  transition: 'margin-left 300ms cubic-bezier(0.23, 1, 0.32, 1)' }
     if (this.state.open) {
       contentStyle.marginLeft = '25%'
@@ -197,7 +230,7 @@ class Results extends React.Component {
             onRequestChange={(open) => this.setState({open})} >
             <div style={styles.container}>
               <Card style={styles.panel}>
-                <CardTitle title="Control Panel" titleStyle={{'font-size': 20}} />
+                <CardTitle title="Control Panel" titleStyle={{'fontSize': 20}} />
                 <FloatingActionButton
                   onClick={this.handleClose}
                   mini={true}
@@ -209,7 +242,6 @@ class Results extends React.Component {
                   <h5>End Date:
                     <DatePicker
                       hintText="Pick the data to go back"
-                      value={this.props.controlledDate}
                       onChange={this.props.handleControlledDate} />
                   </h5>
                   <h5>Duration:</h5>
@@ -225,38 +257,56 @@ class Results extends React.Component {
                   </h5>
                   <RaisedButton
                     label="Search"
+                    labelStyle={{fontSize: '12px',}}
+                    style={styles.button}
                     onClick={this.handleSearch}/>
                   <RaisedButton
                     label={ this.state.barFlag ? "Show List of Results" : "Show Duration Chart"}
+                    labelStyle={{fontSize: '12px',}}
+                    style={styles.button}
                     primary={true}
                     onClick={this.handleClick} />
                 </div>
                 <Venn
                   data={this.props.matchingResults.vennDiagramData}
                   local_table_data={this.props.matchingResults.filteredData.tableData}/>
-                <p> * Left circle is always larger or equal</p>
               </Card>
             </div>
-            <a href={ this.state.barFlag ? "/api/chart/download/chart" : "/api/chart/download/list" }>
+            <div className="container">
               <RaisedButton
-                label={ this.state.barFlag ? "Download Charts" : "Download List" }
+                label="Download Source HMIS"
+                labelStyle={{fontSize: '12px',}}
                 secondary={true}
                 style={styles.button} />
+              <RaisedButton
+                label="Download Source Jail"
+                labelStyle={{fontSize: '12px',}}
+                secondary={true}
+                style={styles.button} />
+            </div>
+            <a href={ this.state.barFlag ? "/api/chart/download/chart" : "/api/chart/download/list" }>
+              <div className="container">
+                <RaisedButton
+                  label={ this.state.barFlag ? "Download Charts" : "Download List" }
+                  labelStyle={{fontSize: '12px',}}
+                  secondary={true}
+                  style={styles.button} />
+              </div>
             </a>
           </Drawer>
         </div>
         <div style={contentStyle}>
           <div>
-            <h4 style={styles.h4}>Results - {this.props.startDate} through {this.props.endDate}</h4>
+            <h4 style={styles.h4}>Results - {this.props.startDate} through {this.props.endDate} - {this.props.setStatus}</h4>
             <h5 style={styles.h5}>
                 Total: <strong>{this.props.totalCount}</strong>&nbsp;
                 Jail: <strong>{this.props.jailCount}</strong>&nbsp;
                 Homeless: <strong>{this.props.homelessCount}</strong>&nbsp;
-                Intersection: <strong>{this.props.bothCount}</strong>&nbsp;
+                Intersection: <strong>{this.props.bothCount}</strong> ({this.intersectionPercentage()})&nbsp;
             </h5>
             <hr style={styles.hr}/>
           </div>
-          { this.state.barFlag ? this.renderBarChart(): this.renderTable() }
+          { this.state.barFlag ? this.renderBarChart() : this.renderTable() }
         </div>
       </div>
     )

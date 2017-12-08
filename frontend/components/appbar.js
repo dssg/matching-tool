@@ -18,7 +18,7 @@ const styles = {
     width: '50%'
   },
   titleStyle: {
-    'font-size': 20,
+    'fontSize': 20,
   }
 }
 

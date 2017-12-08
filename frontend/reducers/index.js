@@ -13,7 +13,8 @@ import {
   MATCHING_RESULTS,
   UPDATE_CONTROLLED_DATE,
   UPDATE_DURATION,
-  UPDATE_TABLE_DATA
+  UPDATE_TABLE_DATA,
+  UPDATE_SET_STATUS
 } from '../constants/index'
 import { combineReducers } from 'redux'
 import { routerReducer } from 'react-router-redux'
@@ -48,7 +49,8 @@ const initialState = {
         duration: '1 month',
         startDate: '2016-11-18',
         endDate: '2017-11-18',
-        serviceProviders: ['jail', 'hmis', 'intersection']
+        serviceProviders: ['jail', 'hmis', 'intersection'],
+        setStatus: 'All'
       },
       vennDiagramData: [{sets: [''], size: null}, {sets: [''], size: null}, {sets: [''], size: null}],
       filteredData: {
@@ -147,6 +149,16 @@ const app = createReducer(initialState, {
     })
     return newState
   },
+  [UPDATE_SET_STATUS]: (state, payload) => {
+    const newState = update(state, {
+      matchingResults: {
+        filters: {
+          setStatus: {$set: payload}
+        }
+      }
+    })
+    return newState
+  }
 })
 const rootReducer = combineReducers({
   routing: routerReducer,
