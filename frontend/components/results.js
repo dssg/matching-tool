@@ -61,7 +61,7 @@ const styles = {
     marginLeft: 60,
   },
   button: {
-    margin: 10,
+    margin: 5,
   },
   floatingActionButtonAdd: {
     position: 'absolute',
@@ -257,12 +257,12 @@ class Results extends React.Component {
                   </h5>
                   <RaisedButton
                     label="Search"
-                    labelStyle={{fontSize: '12px',}}
+                    labelStyle={{fontSize: '10px',}}
                     style={styles.button}
                     onClick={this.handleSearch}/>
                   <RaisedButton
                     label={ this.state.barFlag ? "Show List of Results" : "Show Duration Chart"}
-                    labelStyle={{fontSize: '12px',}}
+                    labelStyle={{fontSize: '10px',}}
                     style={styles.button}
                     primary={true}
                     onClick={this.handleClick} />
@@ -272,23 +272,23 @@ class Results extends React.Component {
                   local_table_data={this.props.matchingResults.filteredData.tableData}/>
               </Card>
             </div>
-            <div className="container">
+            <div style={styles.datepicker}>
               <RaisedButton
                 label="Download Source HMIS"
-                labelStyle={{fontSize: '12px',}}
+                labelStyle={{fontSize: '10px',}}
                 secondary={true}
                 style={styles.button} />
               <RaisedButton
                 label="Download Source Jail"
-                labelStyle={{fontSize: '12px',}}
+                labelStyle={{fontSize: '10px',}}
                 secondary={true}
                 style={styles.button} />
             </div>
             <a href={ this.state.barFlag ? "/api/chart/download/chart" : "/api/chart/download/list" }>
-              <div className="container">
+              <div style={styles.datepicker}>
                 <RaisedButton
                   label={ this.state.barFlag ? "Download Charts" : "Download List" }
-                  labelStyle={{fontSize: '12px',}}
+                  labelStyle={{fontSize: '10px',}}
                   secondary={true}
                   style={styles.button} />
               </div>

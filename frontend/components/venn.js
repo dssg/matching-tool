@@ -111,9 +111,9 @@ class Venn extends React.Component {
         <p> * Left circle is always larger or equal</p>
         <RaisedButton
           label="Reset"
-          style={{margin: 12}}
+          style={{margin: 5}}
           onClick={this.handleReset}
-          labelStyle={{fontSize: '12px',}} />
+          labelStyle={{fontSize: '10px',}} />
       </div>
   	)
   }
