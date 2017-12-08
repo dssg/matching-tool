@@ -3,13 +3,28 @@ import RaisedButton from 'material-ui/RaisedButton'
 import {List, ListItem} from 'material-ui/List'
 import { resetUploadResponse, pickFile } from '../../actions'
 import { connect } from 'react-redux'
-import { map, mapObjIndexed, values } from 'ramda'
+import { clone, curry, flatten, map, mapObjIndexed, merge, values } from 'ramda'
+import {CSVLink} from 'react-csv'
 
+
+function formatWithSingleQuotes(error) {
+  const newError = clone(error)
+  newError.message = newError.message.replace(/"/g, "'")
+  return newError
+}
+
+export function flattenErrorRows(errorRows) {
+  const mergeErrorAndIdFields = (idFields, error) => merge(idFields, error)
+  const mapErrorsToIdFields = (errorRow) => map(curry(mergeErrorAndIdFields)(errorRow.idFields), errorRow.errors)
+  const mappedErrorRows = map(mapErrorsToIdFields, errorRows)
+  return map(formatWithSingleQuotes, flatten(mappedErrorRows))
+}
 
 function mapStateToProps(state) {
   return {
     serviceProvider: state.app.serviceProvider,
-    errorRows: state.app.uploadResponse.exampleRows
+    errorRows: state.app.uploadResponse.exampleRows,
+    errors: flattenErrorRows(state.app.uploadResponse.exampleRows)
   }
 }
 
@@ -49,8 +64,6 @@ const renderBadRow = (badRow) => {
 }
 
 class UploadInvalid extends React.Component {
-
-
   render() {
     return (
       <div style={styles.section}>
@@ -62,6 +75,9 @@ class UploadInvalid extends React.Component {
           label="Try Again" 
           onMouseUp={this.props.retryUpload()}
         />
+        <CSVLink filename="matchingToolErrorReport.csv" data={this.props.errors}>
+          <RaisedButton style={styles.button} label="Download full error report" />
+        </CSVLink>
         <List>
           {map(renderBadRow, this.props.errorRows)}
         </List>
