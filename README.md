@@ -81,6 +81,9 @@ The following will remove the user we created above from the role we created abo
 `FLASK_APP=webapp/app.py flask roles remove email@example.com boone_hmis`
 
 
+## Running All Tests
+Run `test_suite.sh` to run both Python and JS test suites. This is recommended before pushing commits. It expects that your virtual environment is activated and you are in the repository root.
+
 ## Dev Front-end Notes
 
 Matching Tool uses NodeJS and Webpack to organize and bundle frontend dependencies.

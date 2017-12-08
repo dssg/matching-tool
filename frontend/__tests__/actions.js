@@ -30,7 +30,7 @@ describe('syncRoleAction', () => {
   it('should create actions to fetch and save available roles from the server', () => {
     const mockReturnJSON = endpointJSON('hmis_only', 'jurisdictional_roles.json')
     fetchMock.getOnce(
-      'jurisdictional_roles.json',
+      '/api/upload/jurisdictional_roles.json',
       {
         body: mockReturnJSON,
         headers: { 'content-type': 'application/json' }
@@ -51,7 +51,7 @@ describe('syncRoleAction', () => {
 describe('confirmUpload', () => {
   it('should tell the server to merge the file and then save the results locally', () => {
     fetchMock.postOnce(
-      'merge_file?uploadId=123',
+      'api/upload/merge_file?uploadId=123',
       {
         body: { totalUniqueRows: 5, newUniqueRows: 4 } ,
         headers: { 'content-type': 'application/json' }

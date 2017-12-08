@@ -2,7 +2,7 @@ import moto
 import boto
 from webapp.database import Base
 from webapp.tasks import upload_to_s3, copy_raw_table_to_db, upsert_raw_table_to_master
-from webapp.utils import makeNamedTemporaryCSV, s3_upload_path
+from webapp.utils import makeNamedTemporaryCSV, s3_upload_path, generate_master_table_name
 from webapp.models import MergeLog
 from unittest.mock import patch
 from unittest import TestCase
@@ -84,8 +84,7 @@ class TestUpsertRawTableToMaster(TestCase):
     def populate_seed_data(self, db_session):
         raw_table_name = '123-456'
         create_and_populate_raw_table('123-456', MASTER_TABLE_SEED_DATA, db_session.bind)
-        master_table_name = upsert_raw_table_to_master(raw_table_name, self.jurisdiction, self.service_provider, raw_table_name, db_session)
-        return master_table_name
+        upsert_raw_table_to_master(raw_table_name, self.jurisdiction, self.service_provider, raw_table_name, db_session)
 
     def test_new_table(self):
         with testing.postgresql.Postgresql() as postgresql:
@@ -93,7 +92,8 @@ class TestUpsertRawTableToMaster(TestCase):
             Base.metadata.create_all(engine)
             db_session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
             # do initial insert, representing the first time data is uploaded
-            master_table_name = self.populate_seed_data(db_session)
+            self.populate_seed_data(db_session)
+            master_table_name = generate_master_table_name(self.jurisdiction, self.service_provider)
             result = self.get_event_ids_and_names(master_table_name, db_session)
             assert len(result) == 2
             assert result == [
@@ -119,7 +119,8 @@ class TestUpsertRawTableToMaster(TestCase):
                 [u'123459', u'456791', 'Jack R. Ripper', '1896-04-10', '345-45-6780'],
             ]
             create_and_populate_raw_table('234-567', new_data, db_session.bind)
-            master_table_name = upsert_raw_table_to_master(raw_table_name, self.jurisdiction, self.service_provider, raw_table_name, db_session)
+            upsert_raw_table_to_master(raw_table_name, self.jurisdiction, self.service_provider, '234-567', db_session)
+            master_table_name = generate_master_table_name(self.jurisdiction, self.service_provider)
             result = self.get_event_ids_and_names(master_table_name, db_session)
             assert len(result) == 4
             assert result == [
@@ -156,7 +157,8 @@ class TestUpsertRawTableToMaster(TestCase):
                 [u'123459', NEW, 'Jack R. Ripper', '1896-04-10', '345-45-6780'],
             ]
             create_and_populate_raw_table('234-567', new_data, db_session.bind)
-            master_table_name = upsert_raw_table_to_master(raw_table_name, self.jurisdiction, self.service_provider, raw_table_name, db_session)
+            upsert_raw_table_to_master(raw_table_name, self.jurisdiction, self.service_provider, '234-567', db_session)
+            master_table_name = generate_master_table_name(self.jurisdiction, self.service_provider)
             result = self.get_event_ids_and_names(master_table_name, db_session)
             assert len(result) == 3
             # the duplicated event id should only be present once

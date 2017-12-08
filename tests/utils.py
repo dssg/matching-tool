@@ -40,17 +40,17 @@ def logout(client, endpoint=None, **kwargs):
 
 
 def create_roles(ds):
-    for role in ('boone_hmis', 'boone_jail', 'clark_hmis', 'clark_jail'):
+    for role in ('boone_hmis_service_stays', 'boone_jail_bookings', 'clark_hmis_service_stays', 'clark_jail_bookings'):
         ds.create_role(name=role)
     ds.commit()
 
 
 def create_users(ds):
     users = [
-        ('boone_hmis@example.com', 'boone hmis', 'password', ['boone_hmis'], True),
-        ('boone_jail@example.com', 'boone jail', 'password', ['boone_jail'], True),
-        ('clark_hmis@example.com', 'clark hmis', 'password', ['clark_hmis'], True),
-        ('clark_jail@example.com', 'clark jail', 'password', ['clark_jail'], True),
+        ('boone_hmis@example.com', 'boone hmis', 'password', ['boone_hmis_service_stays'], True),
+        ('boone_jail@example.com', 'boone jail', 'password', ['boone_jail_bookings'], True),
+        ('clark_hmis@example.com', 'clark hmis', 'password', ['clark_hmis_service_stays'], True),
+        ('clark_jail@example.com', 'clark jail', 'password', ['clark_jail_bookings'], True),
     ]
     count = len(users)
 
