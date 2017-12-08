@@ -37,7 +37,7 @@ const styles = {
   },
   container: {
     display: 'flex',
-    'justifyContent': 'space-between',
+    'justifyContent': 'spaceBetween',
   },
   datepicker: {
     marginLeft: 15,

@@ -108,7 +108,7 @@ class Venn extends React.Component {
   render() {
   	return (
       <div>
-  		  <g transform="translate(10, 30)" ref={node => this.node = node} />
+        <g transform="translate(10, 30)" ref={node => this.node = node} />
         <RaisedButton label="Reset" onClick={this.handleReset} />
       </div>
   	)

@@ -168,28 +168,24 @@ export function updateTableData(data, section) {
   const isHmis = n => n['hmis_id'].length != 0;
   const isBooking = n => n['booking_id'].length != 0;
   if (section.length == 2) {
-    console.log("H&J")
     const newData = filter(isHmisAndBooking, data)
     return {
       type: UPDATE_TABLE_DATA,
       payload: newData
     }
   } else if (section[0] == "Jail") {
-    console.log("J")
     const newData = filter(isBooking, data)
     return {
       type: UPDATE_TABLE_DATA,
       payload: newData
     }
   } else if (section[0] == "Homeless") {
-    console.log("H")
     const newData = filter(isHmis, data)
     return {
       type: UPDATE_TABLE_DATA,
       payload: newData
     }
   } else {
-    console.log("ALl")
     return {
       type: UPDATE_TABLE_DATA,
       payload: data
@@ -198,7 +194,6 @@ export function updateTableData(data, section) {
 }
 
 export function updateSetStatus(status) {
-  console.log(status.length)
   if (status.length >= 2) {
     return {
       type: UPDATE_SET_STATUS,
