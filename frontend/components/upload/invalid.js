@@ -7,16 +7,17 @@ import { clone, curry, flatten, map, mapObjIndexed, merge, values } from 'ramda'
 import {CSVLink} from 'react-csv'
 
 
-function formatWithSingleQuotes(errors) {
-  const formatError = (error) => { const newError = clone(error); newError.message = newError.message.replace(/"/g, "'"); return newError }
-  return map(formatError, errors)
+function formatWithSingleQuotes(error) {
+  const newError = clone(error)
+  newError.message = newError.message.replace(/"/g, "'")
+  return newError
 }
 
 export function flattenErrorRows(errorRows) {
   const mergeErrorAndIdFields = (idFields, error) => merge(idFields, error)
   const mapErrorsToIdFields = (errorRow) => map(curry(mergeErrorAndIdFields)(errorRow.idFields), errorRow.errors)
-  const mappedErrorRows = map((errorRow) => mapErrorsToIdFields(errorRow), errorRows)
-  return formatWithSingleQuotes(flatten(mappedErrorRows))
+  const mappedErrorRows = map(mapErrorsToIdFields, errorRows)
+  return map(formatWithSingleQuotes, flatten(mappedErrorRows))
 }
 
 function mapStateToProps(state) {
