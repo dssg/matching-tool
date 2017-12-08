@@ -97,7 +97,6 @@ class Venn extends React.Component {
 
     d3.selectAll(".venn-area")
       .on("click", function(d, i){
-        console.log(d)
         const node = d3.select(this)
         self.props.handleUpdateTableData(self.state.allTableData, d['sets'])
         self.props.handleUpdateSetStatus(d['sets'])
@@ -107,9 +106,14 @@ class Venn extends React.Component {
 
   render() {
   	return (
-      <div>
+      <div style={{marginLeft: 15}}>
         <g transform="translate(10, 30)" ref={node => this.node = node} />
-        <RaisedButton label="Reset" onClick={this.handleReset} />
+        <p> * Left circle is always larger or equal</p>
+        <RaisedButton
+          label="Reset"
+          style={{margin: 12}}
+          onClick={this.handleReset}
+          labelStyle={{fontSize: '12px',}} />
       </div>
   	)
   }

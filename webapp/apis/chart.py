@@ -31,19 +31,19 @@ def get_venn_diagram_data():
 
 @chart_api.route('/get_full_json_for_view1', methods=['GET'])
 def get_full_json_for_view1():
-    data = OrderedDict(json.load(open('webapp_schema.json'), object_pairs_hook=OrderedDict))
+    data = OrderedDict(json.load(open('webapp_schema_1y.json'), object_pairs_hook=OrderedDict))
     print(data)
     return json.dumps({"result": data})
 
 @chart_api.route('/get_full_json_for_view2', methods=['GET'])
 def get_full_json_for_view2():
-    data = OrderedDict(json.load(open('webapp_schema2.json'), object_pairs_hook=OrderedDict))
+    data = OrderedDict(json.load(open('webapp_schema_1m.json'), object_pairs_hook=OrderedDict))
     print(data)
     return json.dumps({"result": data})
 
 @chart_api.route('/download/<string:to_be_downloaded>', methods=['GET'])
 def download_list(to_be_downloaded):
     if to_be_downloaded == "chart":
-        return send_file('static/files/chart_2017-10-01_to_2017-10-31.png', as_attachment=True)
+        return send_file('static/files/chart_2017-11-01_t0_2017-11-30.png', as_attachment=True)
     else:
-        return send_file('static/files/2017-10-01_to_2017-10-31.csv', as_attachment=True)
+        return send_file('static/files/2017-11-01_to_2017-11-30.csv', as_attachment=True)

@@ -13,7 +13,7 @@ import TableList from './table'
 import Venn from './venn'
 import { connect } from 'react-redux'
 import { getMatchingResults, updateControlledDate, updateDuration } from '../actions'
-import {Card, CardActions, CardHeader, CardMedia, CardTitle, CardText} from 'material-ui/Card'
+import { Card, CardTitle } from 'material-ui/Card'
 
 const styles = {
   hr: {
@@ -43,7 +43,7 @@ const styles = {
     marginLeft: 15,
   },
   panel: {
-    width: '100%',
+    width: '105%',
     marginLeft: 5
   },
   card: {
@@ -61,7 +61,7 @@ const styles = {
     marginLeft: 60,
   },
   button: {
-    margin: 12,
+    margin: 10,
   },
   floatingActionButtonAdd: {
     position: 'absolute',
@@ -257,25 +257,30 @@ class Results extends React.Component {
                   </h5>
                   <RaisedButton
                     label="Search"
+                    labelStyle={{fontSize: '12px',}}
+                    style={styles.button}
                     onClick={this.handleSearch}/>
                   <RaisedButton
                     label={ this.state.barFlag ? "Show List of Results" : "Show Duration Chart"}
+                    labelStyle={{fontSize: '12px',}}
+                    style={styles.button}
                     primary={true}
                     onClick={this.handleClick} />
                 </div>
                 <Venn
                   data={this.props.matchingResults.vennDiagramData}
                   local_table_data={this.props.matchingResults.filteredData.tableData}/>
-                <p> * Left circle is always larger or equal</p>
               </Card>
             </div>
             <div className="container">
               <RaisedButton
                 label="Download Source HMIS"
+                labelStyle={{fontSize: '12px',}}
                 secondary={true}
                 style={styles.button} />
               <RaisedButton
                 label="Download Source Jail"
+                labelStyle={{fontSize: '12px',}}
                 secondary={true}
                 style={styles.button} />
             </div>
@@ -283,6 +288,7 @@ class Results extends React.Component {
               <div className="container">
                 <RaisedButton
                   label={ this.state.barFlag ? "Download Charts" : "Download List" }
+                  labelStyle={{fontSize: '12px',}}
                   secondary={true}
                   style={styles.button} />
               </div>
@@ -300,7 +306,7 @@ class Results extends React.Component {
             </h5>
             <hr style={styles.hr}/>
           </div>
-          { this.state.barFlag ? this.renderBarChart(): this.renderTable() }
+          { this.state.barFlag ? this.renderBarChart() : this.renderTable() }
         </div>
       </div>
     )
