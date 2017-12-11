@@ -284,7 +284,7 @@ class Results extends React.Component {
                 secondary={true}
                 style={styles.button} />
             </div>
-            <a href={ this.state.barFlag ? "/api/chart/download/chart" : "/api/chart/download/list" }>
+            <a href={ this.state.barFlag ? "/api/chart/download/chart/"+this.props.setStatus : "/api/chart/download/list" }>
               <div style={styles.datepicker}>
                 <RaisedButton
                   label={ this.state.barFlag ? "Download Charts" : "Download List" }

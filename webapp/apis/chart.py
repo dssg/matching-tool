@@ -41,9 +41,13 @@ def get_full_json_for_view2():
     print(data)
     return json.dumps({"result": data})
 
-@chart_api.route('/download/<string:to_be_downloaded>', methods=['GET'])
-def download_list(to_be_downloaded):
-    if to_be_downloaded == "chart":
-        return send_file('static/files/chart_2017-11-01_t0_2017-11-30.png', as_attachment=True)
-    else:
-        return send_file('static/files/2017-11-01_to_2017-11-30.csv', as_attachment=True)
+@chart_api.route('/download/list', methods=['GET'])
+def download_list():
+    return send_file('static/files/2017-11-01_to_2017-11-30.csv', as_attachment=True)
+
+@chart_api.route('/download/chart/<string:to_be_downloaded>', methods=['GET'])
+def download_chart(to_be_downloaded):
+    if to_be_downloaded == "Jail":
+        return send_file('static/files/jail_chart_2017-11-01_to_2017-11-30.png', as_attachment=True)
+    elif to_be_downloaded == "HMIS":
+        return send_file('static/files/hmis_chart_2017-11-01_to_2017-11-30.png', as_attachment=True)
