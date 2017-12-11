@@ -1,10 +1,8 @@
 import pandas as pd
 import json
-import pdb
 
 
 def get_days_distribution(data):
-    # pdb.set_trace()
     return pd.cut(
         data.groupby('match_id').days.sum(),
         [0, 1, 2, 10, 90, 1000],
@@ -13,7 +11,6 @@ def get_days_distribution(data):
 
 
 def get_bar_chart_data(data, shared_ids, data_name):
-    print(data_name)
     intersection_data = data[data.match_id.isin(shared_ids)]
     days_distribution = get_days_distribution(data)
     days_distribution_intersection = get_days_distribution(intersection_data)
@@ -76,16 +73,16 @@ def get_table_data(filtered_bookings, filtered_hmis, unique_ids):
     table_data = []
     for unique_id in unique_ids:
         if unique_id in list(filtered_bookings.match_id):
-            last_jail_contact = filtered_bookings[filtered_bookings.match_id == unique_id].jail_entry_date.sort_values(ascending=False).iloc[0].strftime('%Y-%M-%d')
+            last_jail_contact = filtered_bookings[filtered_bookings.match_id == unique_id].jail_entry_date.sort_values(ascending=False).iloc[0].strftime('%Y-%m-%d')
             cumu_jail_days = filtered_bookings[filtered_bookings.match_id == unique_id].days.sum()
             first_name = filtered_bookings[filtered_bookings.match_id == unique_id].first_name.unique()[0]
             last_name = filtered_bookings[filtered_bookings.match_id == unique_id].last_name.unique()[0]
         else:
             last_jail_contact = None
             cumu_jail_days = 0
-        # pdb.set_trace()
+        
         if unique_id in list(filtered_hmis.match_id):
-            last_hmis_contact = filtered_hmis[filtered_hmis.match_id == unique_id].client_location_start_date.sort_values(ascending=False).iloc[0].strftime('%Y-%M-%d')
+            last_hmis_contact = filtered_hmis[filtered_hmis.match_id == unique_id].client_location_start_date.sort_values(ascending=False).iloc[0].strftime('%Y-%m-%d')
             cumu_homeless_days = filtered_hmis[filtered_hmis.match_id == unique_id].days.sum()
             first_name = filtered_hmis[filtered_hmis.match_id == unique_id].first_name.unique()[0]
             last_name = filtered_hmis[filtered_hmis.match_id == unique_id].last_name.unique()[0]
@@ -96,7 +93,6 @@ def get_table_data(filtered_bookings, filtered_hmis, unique_ids):
         jail_contact = len(filtered_bookings[filtered_bookings.match_id == unique_id])
         homeless_contact = len(filtered_bookings[filtered_bookings.match_id == unique_id])
 
-        # pdb.set_trace()
         person_data = {
             "matched_id": int(unique_id),
             "booking_id": ','.join(map(str,list(filtered_bookings[filtered_bookings.match_id == unique_id].internal_event_id))),
@@ -118,8 +114,8 @@ def get_schema(bookings, hmis, start_date, end_date, duration):
     filters = {
         "controlledDate": "2017-12-11",
         "duration": duration,
-        "startDate": start_date.isoformat(),
-        "endDate": end_date.isoformat(),
+        "startDate": start_date.strftime('%Y-%m-%d'),
+        "endDate": end_date.strftime('%Y-%m-%d'),
         "service": "jail_hmis",
         "flag_homeless_in_jail": True,
         "flag_veteran": False,
@@ -179,7 +175,6 @@ def get_schema(bookings, hmis, start_date, end_date, duration):
             "size": len(shared_ids)
         }
     ]
-    # pdb.set_trace()
     filtered_data = {
         "jailBarData": get_bar_chart_data(filtered_bookings, shared_ids, 'Jail'),
         "homelessBarData": get_bar_chart_data(filtered_hmis, shared_ids, 'Homeless'),
@@ -205,10 +200,10 @@ def run():
     month_data = get_schema(bookings, hmis, pd.datetime(2017,11,1), pd.datetime(2017,11,30,23,59,59), '1M')
 
     with open('webapp_schema_1y.json', 'w') as outfile:
-        json.dump(year_data, outfile)
+        json.dump(year_data, outfile, indent=4)
 
     with open('webapp_schema_1m.json', 'w') as outfile:
-        json.dump(month_data, outfile)
+        json.dump(month_data, outfile, indent=4)
 
 
 if __name__ == '__main__':
