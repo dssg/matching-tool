@@ -71,7 +71,6 @@ def match(jurisdiction):
     app.logger.info(f"Reading data from {S3_BUCKET}/{jurisdiction}")
 
     df = load_data_from_s3(S3_BUCKET, jurisdiction, event_type="hmis")
-    # df = pd.read_csv('hmis-fake-0.csv')
 
     indexer_func = getattr(indexer, INDEXER)
     contraster_func = getattr(contraster, CONTRASTER)
