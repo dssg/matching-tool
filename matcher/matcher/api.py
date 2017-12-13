@@ -3,7 +3,6 @@
 import os
 import json
 import ast
-import s3fs
 
 from flask import Flask, jsonify, request
 from flask import make_response
@@ -15,7 +14,6 @@ import pandas as pd
 import matcher.matcher as matcher
 import matcher.contraster as contraster
 import matcher.indexer as indexer
-from  matcher.utils import load_data_from_s3
 
 
 
