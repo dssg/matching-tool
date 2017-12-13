@@ -3,6 +3,7 @@
 import os
 import json
 import ast
+import s3fs
 
 from flask import Flask, jsonify, request
 from flask import make_response
@@ -64,13 +65,18 @@ def poke():
     })
 
 
-@app.route('/match/<jurisdiction>', methods=['GET'])
-def match(jurisdiction):
+@app.route('/match/<jurisdiction>/<event_type>', methods=['GET'])
+def match(jurisdiction, event_type):
+    # TODO
+    # for now, just matches within the passed event type, but eventually,
+    # it should follow that step by checking for a matched version of the other
+    # event type and then matching to that
     app.logger.debug("Someone wants to start a matching process!")
 
     app.logger.info(f"Reading data from {S3_BUCKET}/{jurisdiction}")
 
-    df = load_data_from_s3(S3_BUCKET, jurisdiction, event_type="hmis")
+    key = f'csh/matcher/{jurisdiction}/{event_type}/merged'
+    df = pd.read_csv(f's3://{S3_BUCKET}/{key}', sep='|')
 
     indexer_func = getattr(indexer, INDEXER)
     contraster_func = getattr(contraster, CONTRASTER)

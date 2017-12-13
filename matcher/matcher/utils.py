@@ -34,23 +34,6 @@ def cartesian(df1:pd.DataFrame, df2:pd.DataFrame=None) -> pd.DataFrame:
     return df
 
 
-def load_data_from_s3(
-    bucket:str,
-    jurisdiction:str,
-    event_type:str
-) -> pd.DataFrame:
-    """
-    Given a bucket, jurisdiction, & event type, download the merged data file from S3.
-    """
-    # setup
-    s3 = boto3.client('s3')
-    key = f'csh/matcher/{jurisdiction}/{event_type}/merged'
-    
-    # return the file as a dataframe
-    obj = s3.get_object(Bucket=bucket, Key=key)
-    return(pd.read_csv(io.BytesIO(obj['Body'].read()), sep='|'))
-
-
 def version(df:pd.DataFrame) -> pd.DataFrame:
     """
     Adds the code version (git head hash) to the passed DataFrame.
