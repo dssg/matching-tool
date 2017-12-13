@@ -15,17 +15,28 @@ flags.append('Y')
 
 # dictionaries of fields to match values on
 MATCH_FIELD_INDICES = [
-    {'bookings': 3, 'hmis': 2},   # full_name
-    {'bookings': 4, 'hmis': 3},   # prefix
-    {'bookings': 5, 'hmis': 4},   # first_name
-    {'bookings': 6, 'hmis': 5},   # middle_name
-    {'bookings': 7, 'hmis': 6},   # last_name
-    {'bookings': 8, 'hmis': 7},   # suffix
-    {'bookings': 9, 'hmis': 9},   # dob
-    {'bookings': 10, 'hmis': 10}, # ssn
-    {'bookings': 11, 'hmis': 11}, # ssn_hash
-    {'bookings': 12, 'hmis': 12}  # ssn_bigrams
+    {'bookings': 3, 'hmis': 2},    # full_name
+    {'bookings': 4, 'hmis': 3},    # prefix
+    {'bookings': 5, 'hmis': 4},    # first_name
+    {'bookings': 6, 'hmis': 5},    # middle_name
+    {'bookings': 7, 'hmis': 6},    # last_name
+    {'bookings': 8, 'hmis': 7},    # suffix
+    {'bookings': 9, 'hmis': 9},    # dob
+    {'bookings': 10, 'hmis': 10},  # ssn
+    {'bookings': 11, 'hmis': 11},  # ssn_hash
+    {'bookings': 12, 'hmis': 12},  # ssn_bigrams
 ]
+
+DATE_FIELD_INDICES = {
+    'bookings': {
+        'start_date': 33,
+        'end_date': 34
+    },
+    'hmis': {
+        'start_date': 43,
+        'end_date': 44
+    }
+}
 
 booking_fakers = [
     ('internal_person_id', lambda: str(random.randint(0, 10000000))),
@@ -150,12 +161,15 @@ def generate_rows(datasets, rows):
     fake_datasets = []
     i = 0
     for dataset in datasets:
+        # how many rows in this data set? loop through the list of lengths
         try:
             length = rows[i]
         except:
             i = 0
             length = rows[i]
         i = i + 1
+
+        # generate as many rows of the right type as the length
         if dataset == 'bookings':
             data = [fake_booking() for _ in range(0, length)]
         elif dataset == 'hmis':
@@ -163,7 +177,11 @@ def generate_rows(datasets, rows):
         else:
             raise ValueError(f'Unrecognized dataset type: {dataset}')
 
+        # sort the dataset by start date
+        data.sort(key=lambda x: x[DATE_FIELD_INDICES[dataset]['start_date']])
+
         fake_datasets.append({'data': data, 'type': dataset})
+
     return fake_datasets
 
 
@@ -172,7 +190,7 @@ def apply_matches(fake_datasets, matches_within, matches_between):
     For all pairs of datasets (including a dataset paired with itself), randomly
     select pairs of rows from each dataset and set the name, dob, and ssn of the
     row from the first dataset equal to those values in the second dataset.
-    
+
     For example, if we are making bookings-0, hmis-0, and bookings-1 datasets,
     we want to create matches for the following pairs:
         - bookings-0 with bookings-0 (creating matching rows within the dataset)
@@ -184,23 +202,34 @@ def apply_matches(fake_datasets, matches_within, matches_between):
     """
     # iterate through all pairs of datasets
     for dataset1, dataset2 in itertools.product(fake_datasets, repeat=2):
+        
+        type1 = dataset1['type']
+        type2 = dataset2['type']
+
         # the number of matches to apply depends on whether the rows are being
         # matched within the same dataset or between datasets
         if dataset1 == dataset2:
             num_matches = matches_within
         else:
             num_matches = matches_between
-           
+
         for _ in range(0, num_matches):
             # select a row from each dataset to match
             row1 = dataset1['data'][random.randint(0, (len(dataset1['data']) - 1))]
             row2 = dataset2['data'][random.randint(0, (len(dataset2['data']) - 1))]
-            
+
             # use the lookup dictionaries to match the name, dob, and ssn
             for match_field in MATCH_FIELD_INDICES:
-                first_index = match_field[dataset1['type']]
-                second_index = match_field[dataset2['type']]
+                first_index = match_field[type1]
+                second_index = match_field[type2]
                 row1[first_index] = row2[second_index]
+
+            # set the end date for the earlier row to be before the start date of the second row
+            # THIS IS HIDEOUS
+            if row1[DATE_FIELD_INDICES[type1]['start_date']] < row2[DATE_FIELD_INDICES[type2]['start_date']]:
+                row1[DATE_FIELD_INDICES[type1]['end_date']] = fake.date_time_between(start_date=row1[DATE_FIELD_INDICES[type1]['start_date']], end_date=row2[DATE_FIELD_INDICES[type2]['start_date']])
+            elif row2[DATE_FIELD_INDICES[type2]['start_date']] < row1[DATE_FIELD_INDICES[type1]['start_date']]:
+                row2[DATE_FIELD_INDICES[type2]['end_date']] = fake.date_time_between(start_date=row2[DATE_FIELD_INDICES[type2]['start_date']], end_date=row1[DATE_FIELD_INDICES[type1]['start_date']])
 
     return fake_datasets
 
@@ -232,7 +261,7 @@ def main(datasets, rows, matches_within, matches_between):
     fake_datasets = generate_rows(datasets, rows)
     apply_matches(fake_datasets, matches_within, matches_between)
     filenames = write_csvs(fake_datasets)
-    
+
     print(('Data faking complete! Congratulations! You are a totally cool ' 
            f'person! Your files are {filenames}'))
 
