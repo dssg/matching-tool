@@ -3,7 +3,7 @@ from unittest.mock import patch
 import json
 from moto import mock_s3_deprecated
 import boto
-from tests.utils import rig_test_client,\
+from webapp.tests.utils import rig_test_client,\
     authenticate,\
     create_and_populate_raw_table
 from datetime import date

@@ -7,7 +7,7 @@ from webapp.models import MergeLog
 from unittest.mock import patch
 from unittest import TestCase
 import testing.postgresql
-from tests.utils import create_and_populate_raw_table
+from webapp.tests.utils import create_and_populate_raw_table
 from smart_open import smart_open
 from datetime import date
 from sqlalchemy import create_engine
