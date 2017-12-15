@@ -82,7 +82,11 @@ The following will remove the user we created above from the role we created abo
 
 
 ## Running All Tests
-Run `test_suite.sh` to run both Python and JS test suites. This is recommended before pushing commits. It expects that your virtual environment is activated and you are in the repository root.
+This project uses [Tox](https://tox.readthedocs.io/en/latest/) to run both the Python and JS test suites. This is recommended before pushing commits. To run all tests,
+
+1. Install tox: `pip install tox`
+
+2. Run tox in the repository root: `tox`
 
 ## Dev Front-end Notes
 
