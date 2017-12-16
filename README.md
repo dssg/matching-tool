@@ -81,6 +81,13 @@ The following will remove the user we created above from the role we created abo
 `FLASK_APP=webapp/app.py flask roles remove email@example.com boone_hmis`
 
 
+## Running All Tests
+This project uses [Tox](https://tox.readthedocs.io/en/latest/) to run both the Python and JS test suites. This is recommended before pushing commits. To run all tests,
+
+1. Install tox: `pip install tox`
+
+2. Run tox in the repository root: `tox`
+
 ## Dev Front-end Notes
 
 Matching Tool uses NodeJS and Webpack to organize and bundle frontend dependencies.

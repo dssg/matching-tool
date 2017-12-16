@@ -3,7 +3,7 @@ from unittest.mock import patch
 import json
 from moto import mock_s3_deprecated
 import boto
-from tests.utils import rig_test_client,\
+from webapp.tests.utils import rig_test_client,\
     authenticate,\
     create_and_populate_raw_table
 from datetime import date
@@ -12,6 +12,8 @@ from webapp.database import db_session
 from webapp.models import Upload, MergeLog
 import unicodecsv as csv
 
+
+GOOD_HMIS_FILE = 'hmis-fake-0.csv'
 
 class UploadFileTestCase(unittest.TestCase):
     def test_good_file(self):
@@ -25,18 +27,18 @@ class UploadFileTestCase(unittest.TestCase):
                     s3_conn = boto.connect_s3()
                     s3_conn.create_bucket('test-bucket')
                     response = app.post(
-                        '/upload_file?jurisdiction=boone&serviceProvider=hmis',
+                        '/api/upload/upload_file?jurisdiction=boone&serviceProvider=hmis_service_stays',
                         content_type='multipart/form-data',
-                        data={'file_field': (open('hmis-good.csv', 'rb'), 'myfile.csv')}
+                        data={'file_field': (open(GOOD_HMIS_FILE, 'rb'), 'myfile.csv')}
                     )
                     response_data = json.loads(response.get_data().decode('utf-8'))
                     assert response_data['status'] == 'valid'
                     assert 'exampleRows' in response_data
                     assert 'uploadId' in response_data
                     current_date = date.today().isoformat()
-                    expected_s3_path = 's3://test-bucket/boone/hmis/uploaded/{}/{}'.format(current_date, response_data['uploadId'])
+                    expected_s3_path = 's3://test-bucket/boone/hmis_service_stays/uploaded/{}/{}'.format(current_date, response_data['uploadId'])
                     with smart_open(expected_s3_path) as expected_s3_file:
-                        with smart_open('hmis-good.csv') as source_file:
+                        with smart_open(GOOD_HMIS_FILE) as source_file:
                             assert expected_s3_file.read() == source_file.read()
 
                     assert db_session.query(Upload).filter(Upload.id == response_data['uploadId']).one
@@ -59,9 +61,9 @@ class MergeFileTestCase(unittest.TestCase):
                     # use the upload file endpoint as a shortcut for setting
                     # this environment up quickly, though this is not ideal
                     response = app.post(
-                        '/upload_file?jurisdiction=boone&serviceProvider=hmis',
+                        '/api/upload/upload_file?jurisdiction=boone&serviceProvider=hmis_service_stays',
                         content_type='multipart/form-data',
-                        data={'file_field': (open('hmis-good.csv', 'rb'), 'myfile.csv')}
+                        data={'file_field': (open(GOOD_HMIS_FILE, 'rb'), 'myfile.csv')}
                     )
                     # parse and assert the response just in case something
                     # breaks before the merge stage it will show itself here
@@ -72,14 +74,14 @@ class MergeFileTestCase(unittest.TestCase):
 
                     # okay, here's what we really want to test.
                     # call the merge endpoint
-                    response = app.post('/merge_file?uploadId={}'.format(upload_id))
+                    response = app.post('/api/upload/merge_file?uploadId={}'.format(upload_id))
                     response_data = json.loads(response.get_data().decode('utf-8'))
                     assert response_data['status'] == 'valid'
                     # make sure that there is a new merged file on s3
-                    expected_s3_path = 's3://test-bucket/boone/hmis/merged'
+                    expected_s3_path = 's3://test-bucket/boone/hmis_service_stays/merged'
                     with smart_open(expected_s3_path, 'rb') as expected_s3_file:
                         reader = csv.reader(expected_s3_file)
-                        assert len([row for row in reader]) == 2
+                        assert len([row for row in reader]) == 11
 
                     # and make sure that the merge log has a record of this
                     assert db_session.query(MergeLog).filter(MergeLog.upload_id == '123-456').one

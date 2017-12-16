@@ -6,6 +6,6 @@ alembic
 pyyaml
 psycopg2
 bcrypt
-smart_open
+smart_open==1.5.3
 sqlalchemy
 pandas

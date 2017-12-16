@@ -4,7 +4,7 @@ import csv
 import json
 import tempfile
 from datetime import date
-from config import config as path_config
+from webapp.config import config as path_config
 
 from contextlib import contextmanager
 
