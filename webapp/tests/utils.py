@@ -87,4 +87,4 @@ def create_and_populate_raw_table(raw_table, data, db_engine):
     db_engine.execute(create)
     for row in data:
         db_engine.execute('insert into "{}" values (%s, %s, %s, %s, %s)'.format(raw_table), *row)
-    db_engine.execute('insert into upload_log (id, jurisdiction_slug, service_provider_slug) values (%s, %s, %s)', raw_table, 'test', 'test')
+    db_engine.execute('insert into upload_log (id, jurisdiction_slug, event_type_slug) values (%s, %s, %s)', raw_table, 'test', 'test')

@@ -1,15 +1,15 @@
 import React from 'react'
 import RaisedButton from 'material-ui/RaisedButton'
-import { selectServiceProvider } from '../../actions'
+import { selectEventType } from '../../actions'
 import { connect } from 'react-redux'
-import { validServiceProviders } from '../../utils/service-providers'
+import { validEventTypes } from '../../utils/event-types'
 import { map } from 'ramda'
 
 
 function mapStateToProps(state) {
   return {
-    selectedServiceProvider: state.app.selectedServiceProvider,
-    availableServiceProviders: validServiceProviders(
+    selectedEventType: state.app.selectedEventType,
+    availableeventTypes: validEventTypes(
       state.app.availableJurisdictionalRoles,
       state.app.selectedJurisdiction
     )
@@ -18,9 +18,9 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
   return {
-    selectServiceProvider: (providerType) => {
+    selectEventType: (providerType) => {
       return () => {
-        dispatch(selectServiceProvider(providerType))
+        dispatch(selectEventType(providerType))
       }
     },
   }
@@ -33,24 +33,24 @@ const styles = {
 }
 
 class PickDataType extends React.Component {
-  renderServiceProviderButtons() {
+  renderEventTypeButtons() {
     const renderProviderButton = (provider) => {
       return (
         <RaisedButton
           style={styles.button}
           label={provider.name}
-          primary={this.props.selectedServiceProvider.slug === provider.slug}
-          onMouseUp={this.props.selectServiceProvider(provider)}
+          primary={this.props.selectedEventType.slug === provider.slug}
+          onMouseUp={this.props.selectEventType(provider)}
           key={provider.slug}
         />
       )
     }
-    return map(renderProviderButton, this.props.availableServiceProviders)
+    return map(renderProviderButton, this.props.availableeventTypes)
   }
   render() {
     return (
       <div style={styles.step}><h4>What type of data do you want to upload?</h4>
-        {this.renderServiceProviderButtons()}
+        {this.renderEventTypeButtons()}
       </div>
     )
   }

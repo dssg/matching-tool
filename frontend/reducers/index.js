@@ -22,7 +22,7 @@ import update from 'immutability-helper'
 
 const initialState = {
   app: {
-    selectedServiceProvider: {
+    selectedEventType: {
       name: '',
       slug: ''
     },
@@ -49,7 +49,7 @@ const initialState = {
         duration: '1 month',
         startDate: '2016-11-18',
         endDate: '2017-11-18',
-        serviceProviders: ['jail', 'hmis', 'intersection'],
+        eventTypes: ['jail', 'hmis', 'intersection'],
         setStatus: 'All'
       },
       vennDiagramData: [{sets: [''], size: null}, {sets: [''], size: null}, {sets: [''], size: null}],
@@ -65,12 +65,12 @@ const initialState = {
 const app = createReducer(initialState, {
   [SELECT_SERVICE_PROVIDER]: (state, payload) => {
     return Object.assign({}, state, {
-      selectedServiceProvider: payload
+      selectedEventType: payload
     })
   },
   [RESET_SERVICE_PROVIDER]: (state) => {
     return Object.assign({}, state, {
-      selectedServiceProvider: {
+      selectedEventType: {
         name: '',
         slug: '',
       }

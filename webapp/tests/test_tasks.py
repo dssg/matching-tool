@@ -27,7 +27,7 @@ def test_upload_to_s3():
             [u'v\xedl2_1', u'val2_2'],
         ]) as filename:
             sample_config = {
-                'raw_uploads_path': 's3://test-bucket/{jurisdiction}/{service_provider}/uploaded/{date}/{upload_id}'
+                'raw_uploads_path': 's3://test-bucket/{jurisdiction}/{event_type}/uploaded/{date}/{upload_id}'
             }
             with patch.dict('webapp.utils.path_config', sample_config):
                 upload_path = s3_upload_path('boone', 'hmis', '123-567-abc')
@@ -42,7 +42,7 @@ def test_upload_to_s3():
 
 def test_copy_raw_table_to_db():
     # start with an s3 upload path that we assume to exist
-    # and given the service provider and jurisdiction
+    # and given the event type and jurisdiction
     # we expect the raw table to be copied into a new table with proper schema and return the table name
     with testing.postgresql.Postgresql() as postgresql:
         engine = create_engine(postgresql.url())
@@ -59,8 +59,8 @@ def test_copy_raw_table_to_db():
                 ]:
                     writer.writerow(row)
             jurisdiction = 'test'
-            service_provider = 'test'
-            written_raw_table = copy_raw_table_to_db(full_s3_path, service_provider, '123-456', engine)
+            event_type = 'test'
+            written_raw_table = copy_raw_table_to_db(full_s3_path, event_type, '123-456', engine)
             assert sum(1 for _ in engine.execute('select * from "{}"'.format(written_raw_table))) == 2
 
 
@@ -71,7 +71,7 @@ MASTER_TABLE_SEED_DATA = [
 
 class TestUpsertRawTableToMaster(TestCase):
     jurisdiction = 'test'
-    service_provider = 'test'
+    event_type = 'test'
 
     def get_event_ids_and_names(self, master_table_name, db_engine):
         return [
@@ -84,7 +84,7 @@ class TestUpsertRawTableToMaster(TestCase):
     def populate_seed_data(self, db_session):
         raw_table_name = '123-456'
         create_and_populate_raw_table('123-456', MASTER_TABLE_SEED_DATA, db_session.bind)
-        upsert_raw_table_to_master(raw_table_name, self.jurisdiction, self.service_provider, raw_table_name, db_session)
+        upsert_raw_table_to_master(raw_table_name, self.jurisdiction, self.event_type, raw_table_name, db_session)
 
     def test_new_table(self):
         with testing.postgresql.Postgresql() as postgresql:
@@ -93,7 +93,7 @@ class TestUpsertRawTableToMaster(TestCase):
             db_session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
             # do initial insert, representing the first time data is uploaded
             self.populate_seed_data(db_session)
-            master_table_name = generate_master_table_name(self.jurisdiction, self.service_provider)
+            master_table_name = generate_master_table_name(self.jurisdiction, self.event_type)
             result = self.get_event_ids_and_names(master_table_name, db_session)
             assert len(result) == 2
             assert result == [
@@ -119,8 +119,8 @@ class TestUpsertRawTableToMaster(TestCase):
                 [u'123459', u'456791', 'Jack R. Ripper', '1896-04-10', '345-45-6780'],
             ]
             create_and_populate_raw_table('234-567', new_data, db_session.bind)
-            upsert_raw_table_to_master(raw_table_name, self.jurisdiction, self.service_provider, '234-567', db_session)
-            master_table_name = generate_master_table_name(self.jurisdiction, self.service_provider)
+            upsert_raw_table_to_master(raw_table_name, self.jurisdiction, self.event_type, '234-567', db_session)
+            master_table_name = generate_master_table_name(self.jurisdiction, self.event_type)
             result = self.get_event_ids_and_names(master_table_name, db_session)
             assert len(result) == 4
             assert result == [
@@ -157,8 +157,8 @@ class TestUpsertRawTableToMaster(TestCase):
                 [u'123459', NEW, 'Jack R. Ripper', '1896-04-10', '345-45-6780'],
             ]
             create_and_populate_raw_table('234-567', new_data, db_session.bind)
-            upsert_raw_table_to_master(raw_table_name, self.jurisdiction, self.service_provider, '234-567', db_session)
-            master_table_name = generate_master_table_name(self.jurisdiction, self.service_provider)
+            upsert_raw_table_to_master(raw_table_name, self.jurisdiction, self.event_type, '234-567', db_session)
+            master_table_name = generate_master_table_name(self.jurisdiction, self.event_type)
             result = self.get_event_ids_and_names(master_table_name, db_session)
             assert len(result) == 3
             # the duplicated event id should only be present once

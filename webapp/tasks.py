@@ -20,7 +20,7 @@ def upload_to_s3(full_s3_path, local_filename):
 
 def sync_upload_metadata(
     upload_id,
-    service_provider,
+    event_type,
     jurisdiction,
     user,
     given_filename,
@@ -37,7 +37,7 @@ def sync_upload_metadata(
         db_object = Upload(
             id=upload_id,
             jurisdiction_slug=jurisdiction,
-            service_provider_slug=service_provider,
+            event_type_slug=event_type,
             user_id=user.id,
             given_filename=given_filename,
             upload_timestamp=datetime.today(),
@@ -52,11 +52,11 @@ def sync_upload_metadata(
 
 def copy_raw_table_to_db(
     full_s3_path,
-    service_provider,
+    event_type,
     upload_id,
     db_engine
 ):
-    goodtables_schema = load_schema_file(service_provider)
+    goodtables_schema = load_schema_file(event_type)
     logging.info('Loaded schema: %s', goodtables_schema)
     table_name = 'raw_{}'.format(upload_id)
     create_statement = create_statement_from_goodtables_schema(
@@ -77,12 +77,12 @@ def copy_raw_table_to_db(
 def upsert_raw_table_to_master(
     raw_table_name,
     jurisdiction,
-    service_provider,
+    event_type,
     upload_id,
     db_session
 ):
-    master_table_name = generate_master_table_name(jurisdiction, service_provider)
-    goodtables_schema = load_schema_file(service_provider)
+    master_table_name = generate_master_table_name(jurisdiction, event_type)
+    goodtables_schema = load_schema_file(event_type)
     base_column_list = column_list_from_goodtables_schema(goodtables_schema)
     # mutate column list
     full_column_list = base_column_list + [('inserted_ts', 'timestamp'), ('updated_ts', 'timestamp')]
@@ -140,9 +140,9 @@ def total_unique_rows(raw_table_name, primary_key, db_engine):
     )][0]
 
 
-def sync_merged_file_to_s3(jurisdiction, service_provider, db_engine):
-    full_s3_path = merged_file_path(jurisdiction, service_provider)
-    table_name = generate_master_table_name(jurisdiction, service_provider)
+def sync_merged_file_to_s3(jurisdiction, event_type, db_engine):
+    full_s3_path = merged_file_path(jurisdiction, event_type)
+    table_name = generate_master_table_name(jurisdiction, event_type)
     with smart_open(full_s3_path, 'w') as outfile:
         cursor = db_engine.raw_connection().cursor()
         copy_stmt = 'copy "{}" to stdout with csv header delimiter as \'|\''.format(table_name)

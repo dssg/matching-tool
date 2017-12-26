@@ -46,23 +46,23 @@ def get_jurisdiction_roles():
         if len(parts) != 2:
             logging.warning(
                 "User role %s does not have two parts,"
-                "cannot process into jurisdiction and service provider",
+                "cannot process into jurisdiction and event type",
                 role.name
             )
             continue
-        jurisdiction, service_provider = parts
+        jurisdiction, event_type = parts
         jurisdiction_roles.append({
             'jurisdictionSlug': jurisdiction,
             'jurisdiction': PRETTY_JURISDICTION_MAP.get(jurisdiction, jurisdiction),
-            'serviceProviderSlug': service_provider,
-            'serviceProvider': PRETTY_PROVIDER_MAP.get(service_provider, service_provider)
+            'eventTypeSlug': event_type,
+            'eventType': PRETTY_PROVIDER_MAP.get(event_type, event_type)
         })
     return jurisdiction_roles
 
 
-def can_upload_file(file_jurisdiction, file_service_provider):
+def can_upload_file(file_jurisdiction, file_event_type):
     return any(
-        role['jurisdictionSlug'] == file_jurisdiction and role['serviceProviderSlug'] == file_service_provider
+        role['jurisdictionSlug'] == file_jurisdiction and role['eventTypeSlug'] == file_event_type
         for role in get_jurisdiction_roles()
     )
 
@@ -79,8 +79,8 @@ def get_sample(saved_filename):
         return sample_rows, reader.fieldnames
 
 
-def validate_file(request_file, service_provider_slug):
-    return validate(request_file, schema=schema_filename(service_provider_slug), format='csv')
+def validate_file(request_file, event_type_slug):
+    return validate(request_file, schema=schema_filename(event_type_slug), format='csv')
 
 
 def can_access_file(upload_id):
@@ -91,12 +91,12 @@ def can_access_file(upload_id):
             upload_id
         )
     logging.info(
-        'Found jurisdiction %s and service provider %s for upload id %s',
+        'Found jurisdiction %s and event type %s for upload id %s',
         upload.jurisdiction_slug,
-        upload.service_provider_slug,
+        upload.event_type_slug,
         upload_id
     )
-    return can_upload_file(upload.jurisdiction_slug, upload.service_provider_slug)
+    return can_upload_file(upload.jurisdiction_slug, upload.event_type_slug)
 
 
 IDENTIFIER_COLUMNS = {
@@ -105,7 +105,7 @@ IDENTIFIER_COLUMNS = {
 }
 
 
-def format_error_report(report, service_provider_slug):
+def format_error_report(report, event_type_slug):
     new_errors = {}
     headers = report['tables'][0]['headers']
     for error in report['tables'][0]['errors']:
@@ -115,7 +115,7 @@ def format_error_report(report, service_provider_slug):
             },
             'errors': [],
         }
-        for identifier_column in IDENTIFIER_COLUMNS[service_provider_slug]:
+        for identifier_column in IDENTIFIER_COLUMNS[event_type_slug]:
             identifier_index = headers.index(identifier_column)
             formatted_error['idFields'][identifier_column] = error['row'][identifier_index]
         if error['row-number'] not in new_errors:
@@ -138,26 +138,26 @@ def jurisdiction_roles():
 @login_required
 def upload_file():
     jurisdiction = request.args.get('jurisdiction')
-    service_provider = request.args.get('serviceProvider')
-    if can_upload_file(jurisdiction, service_provider):
+    event_type = request.args.get('eventType')
+    if can_upload_file(jurisdiction, event_type):
         filenames = [key for key in request.files.keys()]
         assert len(filenames) == 1
         uploaded_file = request.files[filenames[0]]
         filename = secure_filename(uploaded_file.filename)
         full_filename = os.path.join('/tmp', filename)
         uploaded_file.save(full_filename)
-        validation_report = validate_file(full_filename, service_provider)
+        validation_report = validate_file(full_filename, event_type)
         if validation_report['valid']:
             upload_id = unique_upload_id()
             row_count = validation_report['tables'][0]['row-count'] - 1
-            upload_path = s3_upload_path(jurisdiction, service_provider, upload_id)
+            upload_path = s3_upload_path(jurisdiction, event_type, upload_id)
             try:
                 upload_to_s3(upload_path, full_filename)
             except boto.exception.S3ResponseError as e:
                 logging.error(
                     'Upload id %s failed to upload to s3: %s/%s/%s',
                     upload_id,
-                    service_provider,
+                    event_type,
                     jurisdiction,
                     uploaded_file.filename
                 )
@@ -167,7 +167,7 @@ def upload_file():
 
             sync_upload_metadata(
                 upload_id=upload_id,
-                service_provider=service_provider,
+                event_type=event_type,
                 jurisdiction=jurisdiction,
                 user=current_user,
                 given_filename=uploaded_file.filename,
@@ -187,7 +187,7 @@ def upload_file():
         else:
             return jsonify(
                 status='invalid',
-                exampleRows=format_error_report(validation_report, service_provider)
+                exampleRows=format_error_report(validation_report, event_type)
             )
     else:
         return jsonify(
@@ -209,7 +209,7 @@ def merge_file():
             upload_log = db_session.query(Upload).get(upload_id)
             raw_table_name = copy_raw_table_to_db(
                 upload_log.s3_upload_path,
-                upload_log.service_provider_slug,
+                upload_log.event_type_slug,
                 upload_id,
                 db_session.get_bind()
             )
@@ -217,13 +217,13 @@ def merge_file():
             merge_id = upsert_raw_table_to_master(
                 raw_table_name,
                 upload_log.jurisdiction_slug,
-                upload_log.service_provider_slug,
+                upload_log.event_type_slug,
                 upload_id,
                 db_session
             )
             sync_merged_file_to_s3(
                 upload_log.jurisdiction_slug,
-                upload_log.service_provider_slug,
+                upload_log.event_type_slug,
                 db_session.get_bind()
             )
             merge_log = db_session.query(MergeLog).get(merge_id)

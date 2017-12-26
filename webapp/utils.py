@@ -14,12 +14,12 @@ def unique_upload_id():
     return str(uuid4())
 
 
-def s3_upload_path(jurisdiction, service_provider, upload_id):
+def s3_upload_path(jurisdiction, event_type, upload_id):
     datestring = date.today().isoformat()
     path_template = path_config['raw_uploads_path']
 
     full_s3_path = path_template.format(
-        service_provider=service_provider,
+        event_type=event_type,
         jurisdiction=jurisdiction,
         date=datestring,
         upload_id=upload_id
@@ -27,10 +27,10 @@ def s3_upload_path(jurisdiction, service_provider, upload_id):
     return full_s3_path
 
 
-def merged_file_path(jurisdiction, service_provider):
+def merged_file_path(jurisdiction, event_type):
     path_template = path_config['merged_uploads_path']
     full_s3_path = path_template.format(
-        service_provider=service_provider,
+        event_type=event_type,
         jurisdiction=jurisdiction
     )
     return full_s3_path
@@ -49,15 +49,15 @@ def makeNamedTemporaryCSV(content, separator='|'):
     tf.close()
 
 
-def schema_filename(service_provider):
+def schema_filename(event_type):
     return'{}/{}.json'.format(
         SCHEMA_DIRECTORY,
-        service_provider.replace('_', '-')
+        event_type.replace('_', '-')
     )
 
 
-def load_schema_file(service_provider):
-    with open(schema_filename(service_provider)) as f:
+def load_schema_file(event_type):
+    with open(schema_filename(event_type)) as f:
         return json.load(f)
 
 
@@ -93,5 +93,5 @@ def create_statement_from_goodtables_schema(goodtables_schema, table_name):
     return create_statement_from_column_list(column_list, table_name, primary_key)
 
 
-def generate_master_table_name(jurisdiction, service_provider):
-    return '{jurisdiction}_{service_provider}_master'.format(**locals())
+def generate_master_table_name(jurisdiction, event_type):
+    return '{jurisdiction}_{event_type}_master'.format(**locals())

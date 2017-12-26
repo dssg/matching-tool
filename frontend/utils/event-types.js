@@ -1,7 +1,7 @@
 import {filter, map, uniq} from 'ramda'
 
-export function validServiceProviders(jurisdictionRoles, currentJurisdiction) {
-  console.log('in valid service providers')
+export function validEventTypes(jurisdictionRoles, currentJurisdiction) {
+  console.log('in valid event types')
   console.log(jurisdictionRoles)
   console.log(currentJurisdiction)
   const isCurrentJurisdiction = (role) => role.jurisdictionSlug === currentJurisdiction.slug
@@ -10,8 +10,8 @@ export function validServiceProviders(jurisdictionRoles, currentJurisdiction) {
   const matchingRoles = filter(isCurrentJurisdiction, jurisdictionRoles)
   const extractProvider = (jurisdictionRole) => {
     return {
-      slug: jurisdictionRole.serviceProviderSlug,
-      name: jurisdictionRole.serviceProvider
+      slug: jurisdictionRole.eventTypeSlug,
+      name: jurisdictionRole.eventType
     }
   }
   const rows = uniq(map(extractProvider, matchingRoles))
