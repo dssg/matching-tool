@@ -1,0 +1,1025 @@
+{
+    "vennDiagramData": [
+        {
+            "size": 43,
+            "sets": [
+                "Jail"
+            ]
+        },
+        {
+            "size": 32,
+            "sets": [
+                "Homeless"
+            ]
+        },
+        {
+            "size": 12,
+            "sets": [
+                "Jail",
+                "Homeless"
+            ]
+        }
+    ],
+    "filters": {
+        "flag_mental_illness": false,
+        "flag_homeless_in_jail": true,
+        "flag_veteran": false,
+        "duration": "1M",
+        "setStatus": "All",
+        "service": "jail_hmis",
+        "startDate": "2017-11-01",
+        "flag_disability": false,
+        "endDate": "2017-11-30",
+        "controlledDate": "2017-12-11"
+    },
+    "filteredData": {
+        "tableData": [
+            {
+                "first_name": "Mark",
+                "last_hmis_contact": "2017-03-26",
+                "homeless_contact": 0,
+                "hmis_id": "4107082",
+                "last_jail_contact": null,
+                "matched_id": 129,
+                "last_name": "Elliott",
+                "jail_contact": 0,
+                "cumu_jail_days": 0,
+                "cumu_homeless_days": 231,
+                "total_contact": 0,
+                "booking_id": ""
+            },
+            {
+                "first_name": "Michael",
+                "last_hmis_contact": "2016-12-14",
+                "homeless_contact": 0,
+                "hmis_id": "4245732",
+                "last_jail_contact": null,
+                "matched_id": 131,
+                "last_name": "Hood",
+                "jail_contact": 0,
+                "cumu_jail_days": 0,
+                "cumu_homeless_days": 350,
+                "total_contact": 0,
+                "booking_id": ""
+            },
+            {
+                "first_name": "Patricia",
+                "last_hmis_contact": "2017-02-09",
+                "homeless_contact": 0,
+                "hmis_id": "8815632",
+                "last_jail_contact": null,
+                "matched_id": 133,
+                "last_name": "Guerra",
+                "jail_contact": 0,
+                "cumu_jail_days": 0,
+                "cumu_homeless_days": 271,
+                "total_contact": 0,
+                "booking_id": ""
+            },
+            {
+                "first_name": "Rachel",
+                "last_hmis_contact": "2017-02-06",
+                "homeless_contact": 0,
+                "hmis_id": "241445",
+                "last_jail_contact": null,
+                "matched_id": 134,
+                "last_name": "Chavez",
+                "jail_contact": 0,
+                "cumu_jail_days": 0,
+                "cumu_homeless_days": 298,
+                "total_contact": 0,
+                "booking_id": ""
+            },
+            {
+                "first_name": "Randy",
+                "last_hmis_contact": "2016-12-17",
+                "homeless_contact": 0,
+                "hmis_id": "5370457",
+                "last_jail_contact": null,
+                "matched_id": 135,
+                "last_name": "Foster",
+                "jail_contact": 0,
+                "cumu_jail_days": 0,
+                "cumu_homeless_days": 327,
+                "total_contact": 0,
+                "booking_id": ""
+            },
+            {
+                "first_name": "Arthur",
+                "last_hmis_contact": null,
+                "homeless_contact": 1,
+                "hmis_id": "",
+                "last_jail_contact": "2017-07-30",
+                "matched_id": 9,
+                "last_name": "Park",
+                "jail_contact": 1,
+                "cumu_jail_days": 107,
+                "cumu_homeless_days": 0,
+                "total_contact": 2,
+                "booking_id": "39622801"
+            },
+            {
+                "first_name": "Sandy",
+                "last_hmis_contact": "2017-07-04",
+                "homeless_contact": 0,
+                "hmis_id": "6736265",
+                "last_jail_contact": null,
+                "matched_id": 140,
+                "last_name": "Sloan",
+                "jail_contact": 0,
+                "cumu_jail_days": 0,
+                "cumu_homeless_days": 152,
+                "total_contact": 0,
+                "booking_id": ""
+            },
+            {
+                "first_name": "Brandi",
+                "last_hmis_contact": null,
+                "homeless_contact": 1,
+                "hmis_id": "",
+                "last_jail_contact": "2016-12-24",
+                "matched_id": 13,
+                "last_name": "Johnson",
+                "jail_contact": 1,
+                "cumu_jail_days": 333,
+                "cumu_homeless_days": 0,
+                "total_contact": 2,
+                "booking_id": "58061187"
+            },
+            {
+                "first_name": "Brenda",
+                "last_hmis_contact": null,
+                "homeless_contact": 1,
+                "hmis_id": "",
+                "last_jail_contact": "2017-08-30",
+                "matched_id": 16,
+                "last_name": "Levine",
+                "jail_contact": 1,
+                "cumu_jail_days": 89,
+                "cumu_homeless_days": 0,
+                "total_contact": 2,
+                "booking_id": "63817706"
+            },
+            {
+                "first_name": "Brian",
+                "last_hmis_contact": null,
+                "homeless_contact": 1,
+                "hmis_id": "",
+                "last_jail_contact": "2017-06-20",
+                "matched_id": 18,
+                "last_name": "Marshall",
+                "jail_contact": 1,
+                "cumu_jail_days": 167,
+                "cumu_homeless_days": 0,
+                "total_contact": 2,
+                "booking_id": "11724592"
+            },
+            {
+                "first_name": "Brianna",
+                "last_hmis_contact": null,
+                "homeless_contact": 1,
+                "hmis_id": "",
+                "last_jail_contact": "2017-03-09",
+                "matched_id": 19,
+                "last_name": "Le",
+                "jail_contact": 1,
+                "cumu_jail_days": 241,
+                "cumu_homeless_days": 0,
+                "total_contact": 2,
+                "booking_id": "73591031"
+            },
+            {
+                "first_name": "Brittany",
+                "last_hmis_contact": null,
+                "homeless_contact": 1,
+                "hmis_id": "",
+                "last_jail_contact": "2017-08-23",
+                "matched_id": 20,
+                "last_name": "Parker",
+                "jail_contact": 1,
+                "cumu_jail_days": 86,
+                "cumu_homeless_days": 0,
+                "total_contact": 2,
+                "booking_id": "27943235"
+            },
+            {
+                "first_name": "Carlos",
+                "last_hmis_contact": null,
+                "homeless_contact": 1,
+                "hmis_id": "",
+                "last_jail_contact": "2017-11-05",
+                "matched_id": 21,
+                "last_name": "Watson",
+                "jail_contact": 1,
+                "cumu_jail_days": 3,
+                "cumu_homeless_days": 0,
+                "total_contact": 2,
+                "booking_id": "3591968"
+            },
+            {
+                "first_name": "Charles",
+                "last_hmis_contact": null,
+                "homeless_contact": 1,
+                "hmis_id": "",
+                "last_jail_contact": "2017-11-02",
+                "matched_id": 22,
+                "last_name": "Drake",
+                "jail_contact": 1,
+                "cumu_jail_days": 1,
+                "cumu_homeless_days": 0,
+                "total_contact": 2,
+                "booking_id": "29510825"
+            },
+            {
+                "first_name": "Chris",
+                "last_hmis_contact": null,
+                "homeless_contact": 1,
+                "hmis_id": "",
+                "last_jail_contact": "2016-12-30",
+                "matched_id": 23,
+                "last_name": "Martinez",
+                "jail_contact": 1,
+                "cumu_jail_days": 332,
+                "cumu_homeless_days": 0,
+                "total_contact": 2,
+                "booking_id": "71790382"
+            },
+            {
+                "first_name": "Christina",
+                "last_hmis_contact": null,
+                "homeless_contact": 1,
+                "hmis_id": "",
+                "last_jail_contact": "2017-05-21",
+                "matched_id": 24,
+                "last_name": "Benjamin",
+                "jail_contact": 1,
+                "cumu_jail_days": 182,
+                "cumu_homeless_days": 0,
+                "total_contact": 2,
+                "booking_id": "48100058"
+            },
+            {
+                "first_name": "Christine",
+                "last_hmis_contact": null,
+                "homeless_contact": 1,
+                "hmis_id": "",
+                "last_jail_contact": "2017-11-11",
+                "matched_id": 25,
+                "last_name": "Moses",
+                "jail_contact": 1,
+                "cumu_jail_days": 4,
+                "cumu_homeless_days": 0,
+                "total_contact": 2,
+                "booking_id": "91918946"
+            },
+            {
+                "first_name": "Colleen",
+                "last_hmis_contact": null,
+                "homeless_contact": 1,
+                "hmis_id": "",
+                "last_jail_contact": "2017-05-25",
+                "matched_id": 26,
+                "last_name": "Friedman",
+                "jail_contact": 1,
+                "cumu_jail_days": 190,
+                "cumu_homeless_days": 0,
+                "total_contact": 2,
+                "booking_id": "98063634"
+            },
+            {
+                "first_name": "William",
+                "last_hmis_contact": "2017-04-19",
+                "homeless_contact": 0,
+                "hmis_id": "4704965",
+                "last_jail_contact": null,
+                "matched_id": 153,
+                "last_name": "Hawkins",
+                "jail_contact": 0,
+                "cumu_jail_days": 0,
+                "cumu_homeless_days": 216,
+                "total_contact": 0,
+                "booking_id": ""
+            },
+            {
+                "first_name": "Trevor",
+                "last_hmis_contact": "2017-05-07",
+                "homeless_contact": 0,
+                "hmis_id": "2639374",
+                "last_jail_contact": null,
+                "matched_id": 151,
+                "last_name": "Cole",
+                "jail_contact": 0,
+                "cumu_jail_days": 0,
+                "cumu_homeless_days": 184,
+                "total_contact": 0,
+                "booking_id": ""
+            },
+            {
+                "first_name": "Daniel",
+                "last_hmis_contact": null,
+                "homeless_contact": 1,
+                "hmis_id": "",
+                "last_jail_contact": "2017-05-13",
+                "matched_id": 29,
+                "last_name": "Bell",
+                "jail_contact": 1,
+                "cumu_jail_days": 200,
+                "cumu_homeless_days": 0,
+                "total_contact": 2,
+                "booking_id": "87181611"
+            },
+            {
+                "first_name": "Tracy",
+                "last_hmis_contact": "2017-03-28",
+                "homeless_contact": 0,
+                "hmis_id": "1114775",
+                "last_jail_contact": null,
+                "matched_id": 150,
+                "last_name": "Larson",
+                "jail_contact": 0,
+                "cumu_jail_days": 0,
+                "cumu_homeless_days": 237,
+                "total_contact": 0,
+                "booking_id": ""
+            },
+            {
+                "first_name": "Denise",
+                "last_hmis_contact": null,
+                "homeless_contact": 1,
+                "hmis_id": "",
+                "last_jail_contact": "2017-04-15",
+                "matched_id": 31,
+                "last_name": "Jacobson",
+                "jail_contact": 1,
+                "cumu_jail_days": 232,
+                "cumu_homeless_days": 0,
+                "total_contact": 2,
+                "booking_id": "1361916"
+            },
+            {
+                "first_name": "Diamond",
+                "last_hmis_contact": null,
+                "homeless_contact": 1,
+                "hmis_id": "",
+                "last_jail_contact": "2017-01-20",
+                "matched_id": 33,
+                "last_name": "Chambers",
+                "jail_contact": 1,
+                "cumu_jail_days": 297,
+                "cumu_homeless_days": 0,
+                "total_contact": 2,
+                "booking_id": "68041353"
+            },
+            {
+                "first_name": "Jacob",
+                "last_hmis_contact": null,
+                "homeless_contact": 1,
+                "hmis_id": "",
+                "last_jail_contact": "2017-09-03",
+                "matched_id": 38,
+                "last_name": "Ortiz",
+                "jail_contact": 1,
+                "cumu_jail_days": 91,
+                "cumu_homeless_days": 0,
+                "total_contact": 2,
+                "booking_id": "62564366"
+            },
+            {
+                "first_name": "Jennifer",
+                "last_hmis_contact": null,
+                "homeless_contact": 1,
+                "hmis_id": "",
+                "last_jail_contact": "2017-01-24",
+                "matched_id": 42,
+                "last_name": "Rose",
+                "jail_contact": 1,
+                "cumu_jail_days": 307,
+                "cumu_homeless_days": 0,
+                "total_contact": 2,
+                "booking_id": "85188325"
+            },
+            {
+                "first_name": "Jennifer",
+                "last_hmis_contact": null,
+                "homeless_contact": 1,
+                "hmis_id": "",
+                "last_jail_contact": "2017-08-14",
+                "matched_id": 43,
+                "last_name": "Tucker",
+                "jail_contact": 1,
+                "cumu_jail_days": 97,
+                "cumu_homeless_days": 0,
+                "total_contact": 2,
+                "booking_id": "27032257"
+            },
+            {
+                "first_name": "John",
+                "last_hmis_contact": "2017-07-07",
+                "homeless_contact": 1,
+                "hmis_id": "3375348",
+                "last_jail_contact": "2017-07-17",
+                "matched_id": 45,
+                "last_name": "Thompson",
+                "jail_contact": 1,
+                "cumu_jail_days": 116,
+                "cumu_homeless_days": 124,
+                "total_contact": 2,
+                "booking_id": "77600754"
+            },
+            {
+                "first_name": "Julia",
+                "last_hmis_contact": null,
+                "homeless_contact": 1,
+                "hmis_id": "",
+                "last_jail_contact": "2017-04-19",
+                "matched_id": 49,
+                "last_name": "Howard",
+                "jail_contact": 1,
+                "cumu_jail_days": 222,
+                "cumu_homeless_days": 0,
+                "total_contact": 2,
+                "booking_id": "99041462"
+            },
+            {
+                "first_name": "Krystal",
+                "last_hmis_contact": "2017-11-17",
+                "homeless_contact": 1,
+                "hmis_id": "9616066",
+                "last_jail_contact": "2017-04-20",
+                "matched_id": 52,
+                "last_name": "Pugh",
+                "jail_contact": 1,
+                "cumu_jail_days": 213,
+                "cumu_homeless_days": 0,
+                "total_contact": 2,
+                "booking_id": "41285137"
+            },
+            {
+                "first_name": "Mark",
+                "last_hmis_contact": null,
+                "homeless_contact": 1,
+                "hmis_id": "",
+                "last_jail_contact": "2017-07-23",
+                "matched_id": 59,
+                "last_name": "Hughes",
+                "jail_contact": 1,
+                "cumu_jail_days": 123,
+                "cumu_homeless_days": 0,
+                "total_contact": 2,
+                "booking_id": "89738179"
+            },
+            {
+                "first_name": "Matthew",
+                "last_hmis_contact": null,
+                "homeless_contact": 1,
+                "hmis_id": "",
+                "last_jail_contact": "2017-06-06",
+                "matched_id": 61,
+                "last_name": "Kline",
+                "jail_contact": 1,
+                "cumu_jail_days": 178,
+                "cumu_homeless_days": 0,
+                "total_contact": 2,
+                "booking_id": "44736191"
+            },
+            {
+                "first_name": "Megan",
+                "last_hmis_contact": "2017-11-13",
+                "homeless_contact": 1,
+                "hmis_id": "8297108,4276363",
+                "last_jail_contact": "2017-04-29",
+                "matched_id": 62,
+                "last_name": "Melendez",
+                "jail_contact": 1,
+                "cumu_jail_days": 215,
+                "cumu_homeless_days": 16,
+                "total_contact": 2,
+                "booking_id": "39766906"
+            },
+            {
+                "first_name": "Melinda",
+                "last_hmis_contact": "2017-07-26",
+                "homeless_contact": 1,
+                "hmis_id": "7453039",
+                "last_jail_contact": "2017-02-19",
+                "matched_id": 63,
+                "last_name": "Walker",
+                "jail_contact": 1,
+                "cumu_jail_days": 260,
+                "cumu_homeless_days": 103,
+                "total_contact": 2,
+                "booking_id": "69449003"
+            },
+            {
+                "first_name": "Monica",
+                "last_hmis_contact": "2017-11-10",
+                "homeless_contact": 1,
+                "hmis_id": "8218771",
+                "last_jail_contact": "2017-11-18",
+                "matched_id": 65,
+                "last_name": "Lucas",
+                "jail_contact": 1,
+                "cumu_jail_days": 3,
+                "cumu_homeless_days": 1,
+                "total_contact": 2,
+                "booking_id": "35427556"
+            },
+            {
+                "first_name": "Nicole",
+                "last_hmis_contact": "2017-11-06",
+                "homeless_contact": 1,
+                "hmis_id": "9842853",
+                "last_jail_contact": "2017-11-24",
+                "matched_id": 66,
+                "last_name": "Andrews",
+                "jail_contact": 1,
+                "cumu_jail_days": 0,
+                "cumu_homeless_days": 3,
+                "total_contact": 2,
+                "booking_id": "69625574"
+            },
+            {
+                "first_name": "Paul",
+                "last_hmis_contact": "2016-11-22",
+                "homeless_contact": 1,
+                "hmis_id": "5628696",
+                "last_jail_contact": "2017-11-27",
+                "matched_id": 68,
+                "last_name": "Price",
+                "jail_contact": 1,
+                "cumu_jail_days": 0,
+                "cumu_homeless_days": 368,
+                "total_contact": 2,
+                "booking_id": "4066006"
+            },
+            {
+                "first_name": "Paul",
+                "last_hmis_contact": null,
+                "homeless_contact": 1,
+                "hmis_id": "",
+                "last_jail_contact": "2017-06-13",
+                "matched_id": 69,
+                "last_name": "Johnson",
+                "jail_contact": 1,
+                "cumu_jail_days": 153,
+                "cumu_homeless_days": 0,
+                "total_contact": 2,
+                "booking_id": "54581810"
+            },
+            {
+                "first_name": "Phillip",
+                "last_hmis_contact": "2017-01-15",
+                "homeless_contact": 2,
+                "hmis_id": "6689066",
+                "last_jail_contact": "2017-06-16",
+                "matched_id": 70,
+                "last_name": "Delgado",
+                "jail_contact": 2,
+                "cumu_jail_days": 397,
+                "cumu_homeless_days": 305,
+                "total_contact": 4,
+                "booking_id": "72738815,89219254"
+            },
+            {
+                "first_name": "Ricardo",
+                "last_hmis_contact": null,
+                "homeless_contact": 1,
+                "hmis_id": "",
+                "last_jail_contact": "2017-09-05",
+                "matched_id": 71,
+                "last_name": "Garrett",
+                "jail_contact": 1,
+                "cumu_jail_days": 74,
+                "cumu_homeless_days": 0,
+                "total_contact": 2,
+                "booking_id": "93076248"
+            },
+            {
+                "first_name": "Roger",
+                "last_hmis_contact": "2017-11-01",
+                "homeless_contact": 1,
+                "hmis_id": "5319422",
+                "last_jail_contact": "2017-11-05",
+                "matched_id": 72,
+                "last_name": "Lopez",
+                "jail_contact": 1,
+                "cumu_jail_days": 11,
+                "cumu_homeless_days": 11,
+                "total_contact": 2,
+                "booking_id": "21045787"
+            },
+            {
+                "first_name": "Scott",
+                "last_hmis_contact": null,
+                "homeless_contact": 1,
+                "hmis_id": "",
+                "last_jail_contact": "2017-07-01",
+                "matched_id": 73,
+                "last_name": "Schmidt",
+                "jail_contact": 1,
+                "cumu_jail_days": 144,
+                "cumu_homeless_days": 0,
+                "total_contact": 2,
+                "booking_id": "39846104"
+            },
+            {
+                "first_name": "Sean",
+                "last_hmis_contact": null,
+                "homeless_contact": 1,
+                "hmis_id": "",
+                "last_jail_contact": "2017-05-10",
+                "matched_id": 74,
+                "last_name": "Reeves",
+                "jail_contact": 1,
+                "cumu_jail_days": 191,
+                "cumu_homeless_days": 0,
+                "total_contact": 2,
+                "booking_id": "50489565"
+            },
+            {
+                "first_name": "Stephanie",
+                "last_hmis_contact": null,
+                "homeless_contact": 1,
+                "hmis_id": "",
+                "last_jail_contact": "2017-04-04",
+                "matched_id": 76,
+                "last_name": "Oliver",
+                "jail_contact": 1,
+                "cumu_jail_days": 227,
+                "cumu_homeless_days": 0,
+                "total_contact": 2,
+                "booking_id": "416445"
+            },
+            {
+                "first_name": "Stephanie",
+                "last_hmis_contact": null,
+                "homeless_contact": 1,
+                "hmis_id": "",
+                "last_jail_contact": "2017-05-19",
+                "matched_id": 77,
+                "last_name": "Holt",
+                "jail_contact": 1,
+                "cumu_jail_days": 195,
+                "cumu_homeless_days": 0,
+                "total_contact": 2,
+                "booking_id": "41879399"
+            },
+            {
+                "first_name": "Tammy",
+                "last_hmis_contact": null,
+                "homeless_contact": 1,
+                "hmis_id": "",
+                "last_jail_contact": "2016-12-26",
+                "matched_id": 79,
+                "last_name": "Soto",
+                "jail_contact": 1,
+                "cumu_jail_days": 339,
+                "cumu_homeless_days": 0,
+                "total_contact": 2,
+                "booking_id": "12756831"
+            },
+            {
+                "first_name": "Terri",
+                "last_hmis_contact": "2017-11-01",
+                "homeless_contact": 1,
+                "hmis_id": "5737383",
+                "last_jail_contact": "2017-11-01",
+                "matched_id": 80,
+                "last_name": "White",
+                "jail_contact": 1,
+                "cumu_jail_days": 13,
+                "cumu_homeless_days": 3,
+                "total_contact": 2,
+                "booking_id": "90851384"
+            },
+            {
+                "first_name": "Theresa",
+                "last_hmis_contact": "2017-11-26",
+                "homeless_contact": 2,
+                "hmis_id": "2500507",
+                "last_jail_contact": "2017-11-17",
+                "matched_id": 82,
+                "last_name": "Cruz",
+                "jail_contact": 2,
+                "cumu_jail_days": 369,
+                "cumu_homeless_days": 1,
+                "total_contact": 4,
+                "booking_id": "88218401,43666385"
+            },
+            {
+                "first_name": "Theresa",
+                "last_hmis_contact": null,
+                "homeless_contact": 1,
+                "hmis_id": "",
+                "last_jail_contact": "2017-11-10",
+                "matched_id": 83,
+                "last_name": "James",
+                "jail_contact": 1,
+                "cumu_jail_days": 1,
+                "cumu_homeless_days": 0,
+                "total_contact": 2,
+                "booking_id": "6308629"
+            },
+            {
+                "first_name": "Timothy",
+                "last_hmis_contact": "2017-11-29",
+                "homeless_contact": 1,
+                "hmis_id": "7631339,5611067",
+                "last_jail_contact": "2017-11-18",
+                "matched_id": 84,
+                "last_name": "Ramsey",
+                "jail_contact": 1,
+                "cumu_jail_days": 0,
+                "cumu_homeless_days": 0,
+                "total_contact": 2,
+                "booking_id": "13986480"
+            },
+            {
+                "first_name": "Tina",
+                "last_hmis_contact": null,
+                "homeless_contact": 1,
+                "hmis_id": "",
+                "last_jail_contact": "2017-04-10",
+                "matched_id": 85,
+                "last_name": "Moore",
+                "jail_contact": 1,
+                "cumu_jail_days": 224,
+                "cumu_homeless_days": 0,
+                "total_contact": 2,
+                "booking_id": "82367084"
+            },
+            {
+                "first_name": "Todd",
+                "last_hmis_contact": null,
+                "homeless_contact": 1,
+                "hmis_id": "",
+                "last_jail_contact": "2017-08-15",
+                "matched_id": 86,
+                "last_name": "Henderson",
+                "jail_contact": 1,
+                "cumu_jail_days": 99,
+                "cumu_homeless_days": 0,
+                "total_contact": 2,
+                "booking_id": "68645553"
+            },
+            {
+                "first_name": "Sydney",
+                "last_hmis_contact": "2017-04-23",
+                "homeless_contact": 0,
+                "hmis_id": "386013",
+                "last_jail_contact": null,
+                "matched_id": 146,
+                "last_name": "King",
+                "jail_contact": 0,
+                "cumu_jail_days": 0,
+                "cumu_homeless_days": 212,
+                "total_contact": 0,
+                "booking_id": ""
+            },
+            {
+                "first_name": "Brenda",
+                "last_hmis_contact": "2017-08-10",
+                "homeless_contact": 0,
+                "hmis_id": "631719",
+                "last_jail_contact": null,
+                "matched_id": 96,
+                "last_name": "Kim",
+                "jail_contact": 0,
+                "cumu_jail_days": 0,
+                "cumu_homeless_days": 103,
+                "total_contact": 0,
+                "booking_id": ""
+            },
+            {
+                "first_name": "Cody",
+                "last_hmis_contact": "2017-08-04",
+                "homeless_contact": 0,
+                "hmis_id": "1338235",
+                "last_jail_contact": null,
+                "matched_id": 101,
+                "last_name": "Clements",
+                "jail_contact": 0,
+                "cumu_jail_days": 0,
+                "cumu_homeless_days": 90,
+                "total_contact": 0,
+                "booking_id": ""
+            },
+            {
+                "first_name": "Douglas",
+                "last_hmis_contact": "2017-05-12",
+                "homeless_contact": 0,
+                "hmis_id": "7360459",
+                "last_jail_contact": null,
+                "matched_id": 108,
+                "last_name": "Benitez",
+                "jail_contact": 0,
+                "cumu_jail_days": 0,
+                "cumu_homeless_days": 200,
+                "total_contact": 0,
+                "booking_id": ""
+            },
+            {
+                "first_name": "Tina",
+                "last_hmis_contact": "2017-04-09",
+                "homeless_contact": 0,
+                "hmis_id": "61970",
+                "last_jail_contact": null,
+                "matched_id": 149,
+                "last_name": "Fisher",
+                "jail_contact": 0,
+                "cumu_jail_days": 0,
+                "cumu_homeless_days": 239,
+                "total_contact": 0,
+                "booking_id": ""
+            },
+            {
+                "first_name": "Jason",
+                "last_hmis_contact": "2017-01-23",
+                "homeless_contact": 0,
+                "hmis_id": "7774716",
+                "last_jail_contact": null,
+                "matched_id": 116,
+                "last_name": "Hamilton",
+                "jail_contact": 0,
+                "cumu_jail_days": 0,
+                "cumu_homeless_days": 311,
+                "total_contact": 0,
+                "booking_id": ""
+            },
+            {
+                "first_name": "Jessica",
+                "last_hmis_contact": "2017-07-05",
+                "homeless_contact": 0,
+                "hmis_id": "2513841",
+                "last_jail_contact": null,
+                "matched_id": 119,
+                "last_name": "Valdez",
+                "jail_contact": 0,
+                "cumu_jail_days": 0,
+                "cumu_homeless_days": 138,
+                "total_contact": 0,
+                "booking_id": ""
+            },
+            {
+                "first_name": "Jonathan",
+                "last_hmis_contact": "2017-05-08",
+                "homeless_contact": 0,
+                "hmis_id": "21384",
+                "last_jail_contact": null,
+                "matched_id": 121,
+                "last_name": "Wright",
+                "jail_contact": 0,
+                "cumu_jail_days": 0,
+                "cumu_homeless_days": 202,
+                "total_contact": 0,
+                "booking_id": ""
+            },
+            {
+                "first_name": "Joseph",
+                "last_hmis_contact": "2017-08-04",
+                "homeless_contact": 0,
+                "hmis_id": "1354042",
+                "last_jail_contact": null,
+                "matched_id": 122,
+                "last_name": "Ortiz",
+                "jail_contact": 0,
+                "cumu_jail_days": 0,
+                "cumu_homeless_days": 113,
+                "total_contact": 0,
+                "booking_id": ""
+            },
+            {
+                "first_name": "Kara",
+                "last_hmis_contact": "2017-08-07",
+                "homeless_contact": 0,
+                "hmis_id": "2977430",
+                "last_jail_contact": null,
+                "matched_id": 123,
+                "last_name": "Duran",
+                "jail_contact": 0,
+                "cumu_jail_days": 0,
+                "cumu_homeless_days": 99,
+                "total_contact": 0,
+                "booking_id": ""
+            },
+            {
+                "first_name": "Kimberly",
+                "last_hmis_contact": "2017-04-27",
+                "homeless_contact": 0,
+                "hmis_id": "8501903",
+                "last_jail_contact": null,
+                "matched_id": 125,
+                "last_name": "Henderson",
+                "jail_contact": 0,
+                "cumu_jail_days": 0,
+                "cumu_homeless_days": 213,
+                "total_contact": 0,
+                "booking_id": ""
+            }
+        ],
+        "homelessBarData": [
+            [
+                {
+                    "x": "Homeless",
+                    "y": 6.25
+                },
+                {
+                    "x": "Jail & Homeless",
+                    "y": 16.666666666666664
+                }
+            ],
+            [
+                {
+                    "x": "Homeless",
+                    "y": 6.25
+                },
+                {
+                    "x": "Jail & Homeless",
+                    "y": 16.666666666666664
+                }
+            ],
+            [
+                {
+                    "x": "Homeless",
+                    "y": 6.25
+                },
+                {
+                    "x": "Jail & Homeless",
+                    "y": 16.666666666666664
+                }
+            ],
+            [
+                {
+                    "x": "Homeless",
+                    "y": 6.25
+                },
+                {
+                    "x": "Jail & Homeless",
+                    "y": 16.666666666666664
+                }
+            ],
+            [
+                {
+                    "x": "Homeless",
+                    "y": 75.0
+                },
+                {
+                    "x": "Jail & Homeless",
+                    "y": 33.33333333333333
+                }
+            ]
+        ],
+        "jailBarData": [
+            [
+                {
+                    "x": "Jail",
+                    "y": 4.651162790697675
+                },
+                {
+                    "x": "Jail & Homeless",
+                    "y": 0.0
+                }
+            ],
+            [
+                {
+                    "x": "Jail",
+                    "y": 6.976744186046512
+                },
+                {
+                    "x": "Jail & Homeless",
+                    "y": 8.333333333333332
+                }
+            ],
+            [
+                {
+                    "x": "Jail",
+                    "y": 6.976744186046512
+                },
+                {
+                    "x": "Jail & Homeless",
+                    "y": 16.666666666666664
+                }
+            ],
+            [
+                {
+                    "x": "Jail",
+                    "y": 11.627906976744185
+                },
+                {
+                    "x": "Jail & Homeless",
+                    "y": 25.0
+                }
+            ],
+            [
+                {
+                    "x": "Jail",
+                    "y": 69.76744186046511
+                },
+                {
+                    "x": "Jail & Homeless",
+                    "y": 50.0
+                }
+            ]
+        ]
+    }
+}

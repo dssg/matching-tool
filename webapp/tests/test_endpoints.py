@@ -13,7 +13,7 @@ from webapp.models import Upload, MergeLog
 import unicodecsv as csv
 
 
-GOOD_HMIS_FILE = 'hmis-fake-0.csv'
+GOOD_HMIS_FILE = 'sample_data/uploader_input/hmis-fake-0.csv'
 
 class UploadFileTestCase(unittest.TestCase):
     def test_good_file(self):

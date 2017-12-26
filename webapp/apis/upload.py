@@ -10,7 +10,7 @@ from webapp.tasks import \
     copy_raw_table_to_db,\
     upsert_raw_table_to_master,\
     sync_merged_file_to_s3
-from webapp.utils import unique_upload_id, s3_upload_path
+from webapp.utils import unique_upload_id, s3_upload_path, schema_filename
 from goodtables import validate
 from werkzeug.utils import secure_filename
 import yaml
@@ -80,12 +80,7 @@ def get_sample(saved_filename):
 
 
 def validate_file(request_file, service_provider_slug):
-    report = validate(
-        request_file,
-        schema='{}-schema.json'.format(service_provider_slug.replace('_', '-')),
-        format='csv'
-    )
-    return report
+    return validate(request_file, schema=schema_filename(service_provider_slug), format='csv')
 
 
 def can_access_file(upload_id):

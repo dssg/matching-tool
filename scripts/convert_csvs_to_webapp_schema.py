@@ -189,8 +189,8 @@ def get_schema(bookings, hmis, start_date, end_date, duration):
 
 
 def run():
-    bookings = pd.read_csv('matched_bookings_data_20171207.csv')
-    hmis = pd.read_csv('matched_hmis_data_20171207.csv')
+    bookings = pd.read_csv('sample_data/matched/matched_bookings_data_20171207.csv')
+    hmis = pd.read_csv('sample_data/matched/matched_hmis_data_20171207.csv')
     bookings['jail_entry_date'] = pd.to_datetime(bookings['jail_entry_date'])
     bookings['jail_exit_date'] = pd.to_datetime(bookings['jail_exit_date'])
     hmis['client_location_start_date'] = pd.to_datetime(hmis['client_location_start_date'])
@@ -199,10 +199,10 @@ def run():
     year_data = get_schema(bookings, hmis, pd.datetime(2016,12,11), pd.datetime(2017,12,11), '1Y')
     month_data = get_schema(bookings, hmis, pd.datetime(2017,11,1), pd.datetime(2017,11,30,23,59,59), '1M')
 
-    with open('webapp_schema_1y.json', 'w') as outfile:
+    with open('sample_data/results_input/webapp_schema_1y.json', 'w') as outfile:
         json.dump(year_data, outfile, indent=4)
 
-    with open('webapp_schema_1m.json', 'w') as outfile:
+    with open('sample_data/results_input/webapp_schema_1m.json', 'w') as outfile:
         json.dump(month_data, outfile, indent=4)
 
 

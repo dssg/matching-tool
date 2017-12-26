@@ -5,6 +5,7 @@ import json
 import tempfile
 from datetime import date
 from webapp.config import config as path_config
+from webapp import SCHEMA_DIRECTORY
 
 from contextlib import contextmanager
 
@@ -48,8 +49,15 @@ def makeNamedTemporaryCSV(content, separator='|'):
     tf.close()
 
 
+def schema_filename(service_provider):
+    return'{}/{}.json'.format(
+        SCHEMA_DIRECTORY,
+        service_provider.replace('_', '-')
+    )
+
+
 def load_schema_file(service_provider):
-    with open('{}-schema.json'.format(service_provider.replace('_', '-'))) as f:
+    with open(schema_filename(service_provider)) as f:
         return json.load(f)
 
 
