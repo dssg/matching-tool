@@ -22,7 +22,7 @@ const middlewares = [thunk]
 const mockStore = configureMockStore(middlewares)
 
 function endpointJSON(user, endpoint) {
-  var fname = '../endpoint_examples/' + user + '/' + endpoint
+  var fname = '../sample_data/user_endpoints/' + user + '/' + endpoint
   return JSON.parse(fs.readFileSync(fname))
 }
 

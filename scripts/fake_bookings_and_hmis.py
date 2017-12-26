@@ -241,7 +241,7 @@ def write_csvs(fake_datasets):
     for fake_dataset in fake_datasets:
         event_type = fake_dataset['type']
         counter = counters[event_type]
-        filename = f'{event_type}-fake-{counter}.csv'
+        filename = f'sample_data/uploader_input/{event_type}-fake-{counter}.csv'
         with open(filename, 'w') as f:
             writer = csv.writer(f, quoting=csv.QUOTE_MINIMAL)
             if event_type == 'bookings':
