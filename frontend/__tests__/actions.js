@@ -7,13 +7,13 @@ import fs from 'fs'
 
 
 describe('actions', () => {
-  it('should create an action to select a service provider', () => {
+  it('should create an action to select a event type', () => {
     const payload = 'hmis'
     const expectedAction = {
       type: constants.SELECT_SERVICE_PROVIDER,
       payload
     }
-    expect(actions.selectServiceProvider(payload)).toEqual(expectedAction)
+    expect(actions.selectEventType(payload)).toEqual(expectedAction)
   })
 })
 

@@ -18,14 +18,14 @@ import {
 import { length, filter } from 'ramda'
 import { validJurisdictions } from '../utils/jurisdictions'
 
-export function selectServiceProvider(serviceProvider) {
+export function selectEventType(eventType) {
   return {
     type: SELECT_SERVICE_PROVIDER,
-    payload: serviceProvider
+    payload: eventType
   }
 }
 
-export function resetServiceProvider(serviceProvider) {
+export function resetEventType(eventType) {
   return {
     type: RESET_SERVICE_PROVIDER
   }

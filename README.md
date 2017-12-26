@@ -62,7 +62,7 @@ The generic Flask-Security command for adding a role looks like this:
 
 `FLASK_APP=webapp/app.py flask roles create <rolename>`
 
-This application, however, has a special format for roles. A role is split into a jurisdiction and a service provider, such as `boone_hmis` or `clark_jail`. Example:
+This application, however, has a special format for roles. A role is split into a jurisdiction and a event type, such as `boone_hmis` or `clark_jail`. Example:
 
 `FLASK_APP=webapp/app.py flask roles create boone_hmis`
 

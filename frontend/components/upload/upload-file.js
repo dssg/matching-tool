@@ -1,14 +1,14 @@
 import React from 'react'
 import RaisedButton from 'material-ui/RaisedButton'
 import ReactUploadFile from 'react-upload-file'
-import { pickFile, resetServiceProvider, resetUploadResponse, saveUploadResponse } from '../../actions'
+import { pickFile, resetEventType, resetUploadResponse, saveUploadResponse } from '../../actions'
 import UploadInvalid from './invalid'
 import { connect } from 'react-redux'
 
 
 function mapStateToProps(state) {
   return {
-    selectedServiceProvider: state.app.selectedServiceProvider,
+    selectedEventType: state.app.selectedEventType,
     selectedJurisdiction: state.app.selectedJurisdiction,
     uploadFailed: state.app.uploadResponse.status === 'invalid',
     uploadError: state.app.uploadResponse.status === 'error',
@@ -20,7 +20,7 @@ function mapDispatchToProps(dispatch) {
   return {
     resetToStep0: () => {
       dispatch(resetUploadResponse())
-      dispatch(resetServiceProvider())
+      dispatch(resetEventType())
       dispatch(pickFile(''))
     },
     pickFile: (files) => {
@@ -54,7 +54,7 @@ class UploadFile extends React.Component {
       query: () => {
         return {
           jurisdiction: this.props.selectedJurisdiction.slug,
-          serviceProvider: this.props.selectedServiceProvider.slug
+          eventType: this.props.selectedEventType.slug
         }
       }
     }
@@ -67,7 +67,7 @@ class UploadFile extends React.Component {
     } else {
       return (
         <div style={styles.step}>
-          <h4>Pick {this.props.selectedServiceProvider.name} file</h4>
+          <h4>Pick {this.props.selectedEventType.name} file</h4>
           <ReactUploadFile
             options={this.options()}
             chooseFileButton={<RaisedButton style={styles.button} label="Browse for File" />}

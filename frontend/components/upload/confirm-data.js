@@ -1,13 +1,13 @@
 import React from 'react'
 import RaisedButton from 'material-ui/RaisedButton'
 import Reactable from 'reactable'
-import { pickFile, resetServiceProvider, resetUploadResponse, confirmUpload } from '../../actions'
+import { pickFile, resetEventType, resetUploadResponse, confirmUpload } from '../../actions'
 import { connect } from 'react-redux'
 
 
 function mapStateToProps(state) {
   return {
-    selectedServiceProvider: state.app.selectedServiceProvider,
+    selectedEventType: state.app.selectedEventType,
     exampleRows: state.app.uploadResponse.exampleRows,
     fieldOrder: state.app.uploadResponse.fieldOrder,
     numRows: state.app.uploadResponse.rowCount,
@@ -19,7 +19,7 @@ function mapDispatchToProps(dispatch) {
   return {
     resetToStep0: () => {
       dispatch(resetUploadResponse())
-      dispatch(resetServiceProvider())
+      dispatch(resetEventType())
       dispatch(pickFile(''))
     },
     confirm: (uploadId) => {
@@ -53,7 +53,7 @@ class ConfirmData extends React.Component {
     return (
       <div style={styles.step}>
         <h2>Upload Confirmation</h2>
-        <p>Your {this.props.selectedServiceProvider.name} file was successfully validated. {this.props.numRows} valid rows were found.</p>
+        <p>Your {this.props.selectedEventType.name} file was successfully validated. {this.props.numRows} valid rows were found.</p>
         <p>Verify that the first ten rows shown below uploaded in the way you expect. If you are satisfied then click 'Confirm Upload' below, or else click 'Cancel Upload' to try again.</p>
         {this.renderButtons()}
         <Reactable.Table

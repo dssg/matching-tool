@@ -18,7 +18,7 @@ GOOD_HMIS_FILE = 'sample_data/uploader_input/hmis-fake-0.csv'
 class UploadFileTestCase(unittest.TestCase):
     def test_good_file(self):
         sample_config = {
-            'raw_uploads_path': 's3://test-bucket/{jurisdiction}/{service_provider}/uploaded/{date}/{upload_id}'
+            'raw_uploads_path': 's3://test-bucket/{jurisdiction}/{event_type}/uploaded/{date}/{upload_id}'
         }
         with patch.dict('webapp.utils.path_config', sample_config):
             with rig_test_client() as app:
@@ -27,7 +27,7 @@ class UploadFileTestCase(unittest.TestCase):
                     s3_conn = boto.connect_s3()
                     s3_conn.create_bucket('test-bucket')
                     response = app.post(
-                        '/api/upload/upload_file?jurisdiction=boone&serviceProvider=hmis_service_stays',
+                        '/api/upload/upload_file?jurisdiction=boone&eventType=hmis_service_stays',
                         content_type='multipart/form-data',
                         data={'file_field': (open(GOOD_HMIS_FILE, 'rb'), 'myfile.csv')}
                     )
@@ -47,8 +47,8 @@ class UploadFileTestCase(unittest.TestCase):
 class MergeFileTestCase(unittest.TestCase):
     def test_good_file(self):
         sample_config = {
-            'raw_uploads_path': 's3://test-bucket/{jurisdiction}/{service_provider}/uploaded/{date}/{upload_id}',
-            'merged_uploads_path': 's3://test-bucket/{jurisdiction}/{service_provider}/merged'
+            'raw_uploads_path': 's3://test-bucket/{jurisdiction}/{event_type}/uploaded/{date}/{upload_id}',
+            'merged_uploads_path': 's3://test-bucket/{jurisdiction}/{event_type}/merged'
         }
         with patch.dict('webapp.utils.path_config', sample_config):
             with rig_test_client() as app:
@@ -61,7 +61,7 @@ class MergeFileTestCase(unittest.TestCase):
                     # use the upload file endpoint as a shortcut for setting
                     # this environment up quickly, though this is not ideal
                     response = app.post(
-                        '/api/upload/upload_file?jurisdiction=boone&serviceProvider=hmis_service_stays',
+                        '/api/upload/upload_file?jurisdiction=boone&eventType=hmis_service_stays',
                         content_type='multipart/form-data',
                         data={'file_field': (open(GOOD_HMIS_FILE, 'rb'), 'myfile.csv')}
                     )

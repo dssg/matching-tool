@@ -12,7 +12,7 @@ import Header from './header'
 
 
 function mapStateToStep(state) {
-  if(state.app.selectedServiceProvider.slug === '') {
+  if(state.app.selectedEventType.slug === '') {
     return 0
   } else if (state.app.uploadResponse.status === '' || state.app.uploadResponse.status === 'invalid' || state.app.uploadResponse.status === 'error') {
     return 1

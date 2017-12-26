@@ -40,7 +40,7 @@ class Upload(Base):
     __tablename__ = 'upload_log'
     id = Column(String(255), primary_key=True)
     jurisdiction_slug = Column(String(255))
-    service_provider_slug = Column(String(255))
+    event_type_slug = Column(String(255))
     user_id = Column(Integer, ForeignKey('user.id'))
     given_filename = Column(String(255))
     upload_timestamp = Column(DateTime())
