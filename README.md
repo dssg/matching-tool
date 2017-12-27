@@ -13,8 +13,9 @@ Integrating HMIS and criminal-justice data
 3. `cp example_flask_config.yaml flask_config.yaml` and modify to match your tastes (in production, change the SECRET and SECURITY_PASSWORD_SALT!)
 4. `cp example_config.yaml config.yaml` and modify to match the resources (for instance, s3 buckets) available to you.
 5. `alembic upgrade head` to upgrade the Postgres database
-6. Install NodeJS (https://nodejs.org/en/)
-7. `cd frontend && npm install` to install dependencies (the initial install will take a few minutes, go have a snack!)
+6. `sh scripts/create_test_users.sh` to create some test app users
+7. Install NodeJS (https://nodejs.org/en/)
+8. `cd frontend && npm install` to install dependencies (the initial install will take a few minutes, go have a snack!)
 
 ## Run the app
 1. `cd frontend && npm run start` to watch JS files and recompile
@@ -52,6 +53,9 @@ conn.create_bucket('your-bucket')
 ## User Management
 The Flask-Security library is utilized, and it comes with CLI scripts for user and role management. 
 
+### Example Users
+Basic test users can be added by running [scripts/create_test_users.sh](scripts/create_test_users.sh) from the repository root directory with your virtual environment activated. This will allow basic usage of the app without manually creating any users or roles. However, instructions for such manual operations are below if you would like to add more users or event types.
+
 ### Adding Users
 Adding a user to the database:
 
@@ -82,11 +86,26 @@ The following will remove the user we created above from the role we created abo
 
 
 ## Running All Tests
-This project uses [Tox](https://tox.readthedocs.io/en/latest/) to run both the Python and JS test suites. This is recommended before pushing commits. To run all tests,
+This project uses [Tox](https://tox.readthedocs.io/en/latest/) to run both the Python and JS test suites. This is recommended before pushing commits. To run all tests (besides acceptance tests, due to the extra setup steps needed),
 
 1. Install tox: `pip install tox`
 
 2. Run tox in the repository root: `tox`
+
+## Acceptance Testing
+
+This repository has acceptance tests written using Nightwatch, which comes bundled in our JS developer dependencies so you don't need to install it separately. However, requires a locally running Selenium server and the Chrome driver. Later we will add other browsers to this setup.
+
+- [Download the Selenium standalone server](http://www.seleniumhq.org/download/)
+- [Download the ChromeDriver](https://sites.google.com/a/chromium.org/chromedriver/downloads)
+
+To make the ChromeDriver executable work with our nightwatch config, it needs to be available in your PATH.
+
+The Selenium server is packaged as a JAR file, so you can run it as any other JAR file: `java -jar <path/to/selenium/jar/file>`
+
+The acceptance tests rely on some test users and jurisdictions in the webapp's database. This is covered in the setup at the top of this README, so make sure that is completed before trying to run these tests.
+
+You can run the tests with `npm run acceptance`. If all goes well, you should see many instances of Chrome pop up, a bunch of text entry, clicking and page loading, and all tests passing in your console.
 
 ## Dev Front-end Notes
 

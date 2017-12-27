@@ -254,7 +254,7 @@
             "format": "any"
         }
     ],
-    "trueValues": [ "true" ],
-    "falseValues": [ "false" ],
+    "trueValues": [ "Y", "true" ],
+    "falseValues": [ "N", "false" ],
 	"primaryKey": "internal_event_id"
 }
