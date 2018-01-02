@@ -14,6 +14,7 @@ import pandas as pd
 import matcher.matcher as matcher
 import matcher.contraster as contraster
 import matcher.indexer as indexer
+from  matcher.utils import load_data_from_s3
 
 
 
@@ -56,26 +57,25 @@ def index():
 
 @app.route('/poke', methods=['GET'])
 def poke():
-    app.logger.info("I'm being poked!")
     return jsonify({
         'status': 'success',
         'message': 'Stop poking me!'
     })
 
 
-@app.route('/match/<jurisdiction>/<event_type>', methods=['GET'])
-def match(jurisdiction, event_type):
-    # TODO
-    # for now, just matches within the passed event type, but eventually,
-    # it should follow that step by checking for a matched version of the other
-    # event type and then matching to that
+@app.route('/match/<jurisdiction>', methods=['GET'])
+def match(jurisdiction):
     app.logger.debug("Someone wants to start a matching process!")
 
     app.logger.info(f"Reading data from {S3_BUCKET}/{jurisdiction}")
 
-    key = f'csh/matcher/{jurisdiction}/{event_type}/merged'
-    df = pd.read_csv(f's3://{S3_BUCKET}/{key}', sep='|')
-
+    df = pd.DataFrame({"id":[1,2,3,4],
+                       "first_name":['a', 'b', 'c', 'd'],
+                       "last_name":['a']*2+['c']*2,
+                       "age":range(10,14),
+    })
+    #df = load_data_from_s3(S3_BUCKET, jurisdiction, event_type="hmis")
+    
     indexer_func = getattr(indexer, INDEXER)
     contraster_func = getattr(contraster, CONTRASTER)
 
@@ -92,7 +92,7 @@ def match(jurisdiction, event_type):
 
 @app.route('/list/<jurisdiction>', methods=['POST'])
 def get_list(jurisdiction):
-    app.logger.debug(f"Retrieving the list for the county {county}")
+    app.logger.debug(f"Retriving the list for the county {county}")
     if request.method == 'POST':
         try:
             data = request.get_json()
