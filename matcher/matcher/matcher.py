@@ -15,19 +15,18 @@ from . import indexer
 from . import contraster
 
 
-def select_columns(df:pd.DataFrame, keys:list) -> pd.DataFrame:
+def select_columns(df:pd.DataFrame, keys: List) -> pd.DataFrame:
     """ 
     Reduces the dataframe to the columns selected for matching.
-    
+
     We always expect at least two columns: source and source_id
     """
-    
+
     columns_to_select = ['source', 'source_id']
     if keys:
         columns_to_select = columns_to_select + keys
     
-    return df.loc[:,columns_to_select]
-
+    return  df.loc[:,columns_to_select]
 
 def indexing(df:pd.DataFrame, indexer:Callable[[pd.DataFrame], pd.DataFrame]) -> pd.DataFrame:
     """
