@@ -13,6 +13,11 @@ services:
       - INDEXER=identity
       - KEYS=["first_name","last_name"]
       - CONTRASTER=exact
+      - EPS=0.5
+      - MIN_SAMPLES=1
+      - ALGORITHM=auto
+      - LEAF_SIZE=30
+      - N_JOBS=1
 
   db:
     container_name: csh_db

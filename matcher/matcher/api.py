@@ -28,6 +28,13 @@ S3_BUCKET = os.getenv('S3_BUCKET')
 KEYS = ast.literal_eval(os.getenv('KEYS'))
 INDEXER = os.getenv('INDEXER')
 CONTRASTER = os.getenv('CONTRASTER')
+CLUSTERING_PARAMS = {
+    'eps': float(os.getenv('EPS')),
+    'min_samples': int(os.getenv('MIN_SAMPLES')),
+    'algorithm': os.getenv('ALGORITHM'),
+    'leaf_size': int(os.getenv('LEAF_SIZE')),
+    'n_jobs': int(os.getenv('N_JOBS')),
+}
 
 # Initialize the app
 app = Flask(__name__)
@@ -80,8 +87,8 @@ def match(jurisdiction, event_type):
     contraster_func = getattr(contraster, CONTRASTER)
 
     app.logger.info(f"Running matcher({KEYS},{INDEXER},{CONTRASTER})")
-    app.logger.debug("Beeep...booop")    
-    df = matcher.run(df, KEYS, indexer_func, contraster_func)
+    app.logger.debug("Beeep...booop")
+    df = matcher.run(df, KEYS, indexer_func, contraster_func, CLUSTERING_PARAMS)
 
     app.logger.debug("Matcher process done")
 

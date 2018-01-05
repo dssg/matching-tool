@@ -8,7 +8,7 @@ logger = logging.getLogger('matcher')
 import pandas as pd
 
 from typing import List, Callable
-
+from sklearn.cluster import DBSCAN
 
 from . import utils ## Any idea about how to improve this?
 from . import indexer
@@ -60,8 +60,45 @@ def match(df:pd.DataFrame, contraster:Callable[[pd.DataFrame], pd.DataFrame], ke
     return df
 
 
-def run(df:pd.DataFrame, keys:List, indexer:Callable[[pd.DataFrame], pd.DataFrame], contraster:Callable[[pd.DataFrame], pd.DataFrame]) -> pd.DataFrame:
-    return  utils.version(
+def cluster(
+    df:pd.DataFrame,
+    eps=0.5,
+    min_samples=1,
+    algorithm='auto',
+    leaf_size=30,
+    n_jobs=1
+) -> pd.DataFrame:
+    logging.warning(eps)
+    logging.warning(type(eps))
+    logging.info('Beginning clustering.')
+    df = 1 - df
+    clusterer = DBSCAN(
+        eps=eps,
+        min_samples=min_samples,
+        metric='precomputed',
+        metric_params=None,
+        algorithm=algorithm,
+        leaf_size=leaf_size,
+        p=None,
+        n_jobs=n_jobs
+    )
+    clusterer.fit(X=df)
+    logging.info('Clustering done!')
+    return pd.DataFrame({
+        'source_id': clusterer.core_sample_indices_,
+        'matched_id': clusterer.labels_
+    })
+
+
+def run(
+    df:pd.DataFrame,
+    keys:List,
+    indexer:Callable[[pd.DataFrame],
+    pd.DataFrame],
+    contraster:Callable[[pd.DataFrame],pd.DataFrame],
+    clustering_params:dict
+) -> pd.DataFrame:
+    df =  utils.version(
         match(
             df=indexing(
                 select_columns(df, keys),
@@ -71,6 +108,13 @@ def run(df:pd.DataFrame, keys:List, indexer:Callable[[pd.DataFrame], pd.DataFram
             keys=keys
         )
     )
+
+    ids = cluster(
+        df.pivot(index='source_id_left', columns='source_id_right', values='matches'),
+        **clustering_params
+    )
+
+    return (ids)
 
 
 if __name__ == "main":
