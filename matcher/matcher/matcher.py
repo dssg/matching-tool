@@ -6,6 +6,7 @@ import logging
 logger = logging.getLogger('matcher')
 
 import pandas as pd
+import numpy as np
 
 from typing import List, Callable
 from sklearn.cluster import DBSCAN
@@ -22,7 +23,7 @@ def select_columns(df:pd.DataFrame, keys:list) -> pd.DataFrame:
     We always expect at least two columns: source and source_id
     """
     
-    columns_to_select = ['source', 'source_id']
+    columns_to_select = ['source', 'source_id', 'row_id']
     if keys:
         columns_to_select = columns_to_select + keys
     
@@ -48,12 +49,12 @@ def indexing(df:pd.DataFrame, indexer:Callable[[pd.DataFrame], pd.DataFrame]) ->
     return df
 
 
-def match(df:pd.DataFrame, contraster:Callable[[pd.DataFrame], pd.DataFrame], keys: List) -> pd.DataFrame:
+def match(df1:pd.DataFrame, df2:pd.DataFrame, contraster:Callable[[pd.DataFrame], pd.DataFrame], keys: List) -> pd.DataFrame:
     """
     """
     logger.info(f"Starting matching process using the strategy {contraster.__name__}")
 
-    df = contraster(df, keys)
+    df = contraster(df1, df2, keys)
 
     logger.info(f"Matching {contraster.__name__} done")
 
@@ -62,15 +63,13 @@ def match(df:pd.DataFrame, contraster:Callable[[pd.DataFrame], pd.DataFrame], ke
 
 def cluster(
     df:pd.DataFrame,
-    eps=0.5,
-    min_samples=1,
-    algorithm='auto',
-    leaf_size=30,
-    n_jobs=1
+    eps:float=0.5,
+    min_samples:int=1,
+    algorithm:str='auto',
+    leaf_size:int=30,
+    n_jobs:int=1
 ) -> pd.DataFrame:
-    logging.warning(eps)
-    logging.warning(type(eps))
-    logging.info('Beginning clustering.')
+    logger.info('Beginning clustering.')
     df = 1 - df
     clusterer = DBSCAN(
         eps=eps,
@@ -82,26 +81,90 @@ def cluster(
         p=None,
         n_jobs=n_jobs
     )
+    logger.warning(df)
     clusterer.fit(X=df)
-    logging.info('Clustering done!')
-    return pd.DataFrame({
-        'source_id': clusterer.core_sample_indices_,
-        'matched_id': clusterer.labels_
-    })
+    logger.info('Clustering done!')
+    logger.warning(clusterer.core_sample_indices_)
+    logger.warning(clusterer.labels_)
+    return pd.Series(
+        index=df.index,
+        data=clusterer.labels_
+    )
+
+
+def square_distances(upper_right, df1, df2):
+    upper_left = match(
+        df1,
+        df1.copy(),
+        contraster.exact,
+        ['source_id']
+    ).pivot(index='row_id_left', columns='row_id_right', values='matches')
+    lower_right = match(
+        df2,
+        df2.copy(),
+        contraster.exact,
+        ['source_id']
+    ).pivot(index='row_id_left', columns='row_id_right', values='matches')
+    left = pd.concat([upper_left, upper_right.T])
+    right = pd.concat([upper_right, lower_right])
+    return pd.concat([left, right], axis=1)
+
+
+def generate_matched_ids(
+    distances:pd.DataFrame,
+    df1:pd.DataFrame,
+    df2:pd.DataFrame,
+    clustering_params:dict,
+    self_match
+) -> tuple:
+    logger.info('Generating matched ids.')
+    n = len(df1)
+    m = len(df2)
+
+    if not self_match:    
+        distances = square_distances(distances, df1, df2)
+
+    ids = cluster(
+        distances, **clustering_params
+    )
+    logging.warning(ids)
+    logging.warning(ids.head(n))
+    logging.warning(ids.tail(m))
+    df1['matched_id'] = ids.head(n)
+    df2['matched_id'] = ids.tail(m)
+    logger.info('Matched ids generated')
+
+    return (df1, df2)
 
 
 def run(
-    df:pd.DataFrame,
+    df1:pd.DataFrame,
     keys:List,
     indexer:Callable[[pd.DataFrame],
     pd.DataFrame],
     contraster:Callable[[pd.DataFrame],pd.DataFrame],
-    clustering_params:dict
+    clustering_params:dict,
+    df2:pd.DataFrame=None
 ) -> pd.DataFrame:
-    df =  utils.version(
+    
+    df1 = utils.generate_row_ids(df1)
+    df1['source_id'] = utils.get_source_id(df1)
+    if df2 is None:
+        df2 = df1.copy()
+        self_match = True
+    else:
+        df2 = utils.generate_row_ids(df2)
+        df2['source_id'] = utils.get_source_id(df2)
+        self_match = False
+
+    distances =  utils.version(
         match(
-            df=indexing(
-                select_columns(df, keys),
+            df1=indexing(
+                select_columns(df1, keys),
+                indexer=indexer
+            ),
+            df2=indexing(
+                select_columns(df2, keys),
                 indexer=indexer
             ),
             contraster=contraster,
@@ -109,12 +172,15 @@ def run(
         )
     )
 
-    ids = cluster(
-        df.pivot(index='source_id_left', columns='source_id_right', values='matches'),
-        **clustering_params
+    df1, df2 = generate_matched_ids(
+        distances=distances.pivot(index='row_id_left', columns='row_id_right', values='matches'),
+        df1=df1,
+        df2=df2,
+        clustering_params=clustering_params,
+        self_match=self_match
     )
 
-    return (ids)
+    return (df1.drop('row_id', axis=1), df2.drop('row_id', axis=1))
 
 
 if __name__ == "main":

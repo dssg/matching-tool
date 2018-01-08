@@ -14,13 +14,13 @@ from . import rules
 
 from typing import List, Callable
 
-def exact(df:pd.DataFrame, keys:List) -> pd.DataFrame:
+def exact(df1:pd.DataFrame, df2:pd.DataFrame, keys:List) -> pd.DataFrame:
     """
     Applies the *exact* rule. The distance used is an exact match too.
     """
     return rules.exact(
         distances.exact(
-            utils.cartesian(df),
+            utils.cartesian(df1, df2),
             keys
         )
     )

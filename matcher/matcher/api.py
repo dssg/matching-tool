@@ -14,8 +14,7 @@ import pandas as pd
 import matcher.matcher as matcher
 import matcher.contraster as contraster
 import matcher.indexer as indexer
-
-
+import matcher.utils as utils
 
 
 # load dotenv
@@ -80,19 +79,35 @@ def match(jurisdiction, event_type):
 
     app.logger.info(f"Reading data from {S3_BUCKET}/{jurisdiction}")
 
-    key = f'csh/matcher/{jurisdiction}/{event_type}/merged'
-    df = pd.read_csv(f's3://{S3_BUCKET}/{key}', sep='|')
+    merged_key = f'csh/matcher/{jurisdiction}/{event_type}/merged'
+    df1 = pd.read_csv(f's3://{S3_BUCKET}/{merged_key}', sep='|')
 
     indexer_func = getattr(indexer, INDEXER)
     contraster_func = getattr(contraster, CONTRASTER)
 
     app.logger.info(f"Running matcher({KEYS},{INDEXER},{CONTRASTER})")
     app.logger.debug("Beeep...booop")
-    df = matcher.run(df, KEYS, indexer_func, contraster_func, CLUSTERING_PARAMS)
+    df1, df2 = matcher.run(df1, KEYS, indexer_func, contraster_func, CLUSTERING_PARAMS)
+    matched_key_1 = f'csh/matcher/{jurisdiction}/{event_type}/matched'
+    utils.write_to_s3(df1, S3_BUCKET, matched_key_1)
 
-    app.logger.debug("Matcher process done")
+    app.logger.debug("Internal matching done. Trying to match to other data source.")
 
-    response = make_response(df.to_json(orient='records'))
+    if event_type == 'hmis':
+        event_type_2 = 'bookings'
+    elif event_type == 'bookings':
+        event_type_2 = 'hmis'
+    matched_key_2 = f'csh/matcher/{jurisdiction}/{event_type_2}/matched'
+    try:
+        df2 = pd.read_csv(f's3://{S3_BUCKET}/{matched_key_2}', sep='|')
+        df1, df2 = matcher.run(df1, KEYS, indexer_func, contraster_func, CLUSTERING_PARAMS, df2)
+        utils.write_to_s3(df1, S3_BUCKET, matched_key_1)
+        utils.write_to_s3(df2, S3_BUCKET, matched_key_2)
+        app.logger.debug("Matching to other data scource done.")
+    except FileNotFoundError:
+        app.logger.debug("Matched data not available for other data source.")
+
+    response = make_response(df2.to_json(orient='records'))
     response.headers["Content-Type"] = "text/json"
     return response
     
