@@ -9,10 +9,24 @@ services:
     ports:
       - 5001:5000 # HOST:CONTAINER
     environment:
+      # File storage configuration
       - S3_BUCKET=dsapp-criminal-justice
+      # Matcher distance calculation configuration
       - INDEXER=identity
       - KEYS=["first_name","last_name"]
       - CONTRASTER=exact
+      # Matcher clustering configuration
+      - EPS=0.5
+      - MIN_SAMPLES=1
+      - ALGORITHM=auto
+      - LEAF_SIZE=30
+      - N_JOBS=1
+      # Database connection configuration
+      - PGHOST=csh_db
+      - PGPORT=5432
+      - PGUSER=csh
+      - PGDATABASE=csh
+      - PGPASSWORD=csh
 
   db:
     container_name: csh_db
