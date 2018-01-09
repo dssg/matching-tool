@@ -40,10 +40,21 @@ class Upload(Base):
     __tablename__ = 'upload_log'
     id = Column(String(255), primary_key=True)
     jurisdiction_slug = Column(String(255))
-    service_provider_slug = Column(String(255))
+    event_type_slug = Column(String(255))
     user_id = Column(Integer, ForeignKey('user.id'))
     given_filename = Column(String(255))
     upload_timestamp = Column(DateTime())
     num_rows = Column(Integer)
     file_size = Column(BigInteger)
     file_hash = Column(String(255))
+    s3_upload_path = Column(String(255))
+
+
+class MergeLog(Base):
+    __tablename__ = 'merge_log'
+    id = Column(Integer, primary_key=True)
+    upload_id = Column(String(255), ForeignKey('upload_log.id'))
+    new_unique_rows = Column(Integer)
+    total_unique_rows = Column(Integer)
+    merge_start_timestamp = Column(DateTime())
+    merge_complete_timestamp = Column(DateTime())

@@ -7,8 +7,8 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "node_modules/.bin/jest",
-    "test:watch": "node_modules/.bin/jest --watch",
+    "test": "node_modules/.bin/jest --coverage",
+    "test:watch": "node_modules/.bin/jest --watch --coverage",
     "start": "node_modules/.bin/webpack --progress --colors --watch",
     "build": "node_modules/.bin/webpack --progress --colors"
   },
@@ -24,11 +24,13 @@
   "dependencies": {
     "d3": "3.5.17",
     "d3-sankey-align": "^0.1.0",
+    "immutability-helper": "^2.4.0",
     "jquery": "1.11.3",
     "material-ui": "^0.18.7",
     "material-ui-upload": "^1.1.5",
     "ramda": "^0.23.0",
     "react": "15.6.1",
+    "react-csv": "^1.0.8",
     "react-dom": "15.6.1",
     "react-flexbox-grid": "^1.1.4",
     "react-material-responsive-grid": "^1.2.0",
@@ -37,7 +39,7 @@
     "react-router-redux": "^4.0.8",
     "react-tap-event-plugin": "^2.0.1",
     "react-upload-file": "^2.0.0-beta.6",
-    "react-vis": "^1.7.9",
+    "react-vis": "^1.8.0",
     "reactable": "~0.14.1",
     "redux": "^3.7.2",
     "redux-logger": "^3.0.6",

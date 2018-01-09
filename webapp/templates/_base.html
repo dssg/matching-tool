@@ -12,18 +12,18 @@
   <title>Matching Tool</title>
   <link rel="shortcut icon" href="{{ url_for('static',filename='favicon.ico') }}">
   <!-- stylesheets -->
-  <link href="{{ url_for('static', filename='main.css') }}" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/react-vis/dist/style.css">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet">
   <link href="//maxcdn.bootstrapcdn.com/bootswatch/3.3.7/yeti/bootstrap.min.css" rel="stylesheet" media="screen">
+  <link href="{{ url_for('static', filename='main.css') }}" rel="stylesheet">
 </head>
 
 <body>
 
   <!-- Scripts -->
   <script type="text/javascript" src="https://unpkg.com/react-vis/dist/dist.min.js"></script>
-    <div class="container-fluid center-container nopadding">
+    <div class="center-container nopadding">
       <!-- messages -->
       {% for category, message in get_flashed_messages(with_categories=true) %}
         <div class="alert alert-{{ category }} alert-dismissible" role="alert">

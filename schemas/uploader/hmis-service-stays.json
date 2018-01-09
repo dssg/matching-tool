@@ -1,28 +1,49 @@
 {
     "fields": [
         {
-            "name": "Internal Person ID",
+            "name": "internal_person_id",
             "type": "string",
             "constraints": {
                 "required": true
             }
         },
         {
-            "name": "Internal Event ID",
+            "name": "internal_event_id",
             "type": "string",
             "constraints": {
                 "required": true
             }
         },
         {
-            "name": "Full Name",
-            "type": "string",
-            "constraints": {
-                "required": true
-            }
+            "name": "full_name",
+            "type": "string"
         },
         {
-            "name": "Birthdate",
+            "name": "prefix",
+            "type": "string"
+        },
+        {
+            "name": "first_name",
+            "type": "string"
+        },
+        {
+            "name": "middle_name",
+            "type": "string"
+        },
+        {
+            "name": "last_name",
+            "type": "string"
+        },
+        {
+            "name": "suffix",
+            "type": "string"
+        },
+        {
+            "name": "name_data_quality",
+            "type": "string"
+        },
+        {
+            "name": "dob",
             "type": "date",
             "format": "any",
             "constraints": {
@@ -30,68 +51,104 @@
             }
         },
 		{
-			"name": "SSN",
+			"name": "ssn",
 			"type": "string",
 			"constraints": {
 				"required": true
 			}
 		},
+		{
+			"name": "ssn_hash",
+			"type": "string"
+		},
+		{
+			"name": "ssn_bigrams",
+			"type": "string"
+		},
         {
-            "name": "DMV Number",
+            "name": "dmv_number",
             "type": "string",
             "constraints": {
                 "required": true
             }
         },
         {
-            "name": "DMV State",
+            "name": "dmv_state",
             "type": "string",
             "constraints": {
                 "required": true
             }
         },
         {
-            "name": "Additional State or Federal ID",
+            "name": "additional_id_number",
             "type": "string"
         },
         {
-            "name": "Name of Additional State or Federal ID",
+            "name": "additional_id_name",
             "type": "string"
         },
         {
-            "name": "Race/Ethnicity",
+            "name": "race",
             "type": "string",
             "constraints": {
                 "required": true
             }
         },
         {
-            "name": "Ethnicity",
+            "name": "ethnicity",
             "type": "string"
         },
 		{
-			"name": "Sex/Gender",
+			"name": "sex",
 			"type": "string",
             "constraints": {
                 "required": true
             }
 		},
 		{
-			"name": "Veteran Status",
-			"type": "boolean",
+			"name": "street_address",
+			"type": "string"
+		},
+		{
+			"name": "city",
+			"type": "string"
+		},
+		{
+			"name": "state",
+			"type": "string"
+		},
+		{
+			"name": "postal_code",
+			"type": "string"
+		},
+		{
+			"name": "county",
+			"type": "string"
+		},
+		{
+			"name": "country",
+			"type": "string"
+		},
+		{
+			"name": "address_data_quality",
+			"type": "string"
+		},
+		{
+			"name": "veteran_status",
+			"type": "string",
             "constraints": {
                 "required": true
             }
 		},
 		{
-			"name": "Disabling Condition",
-			"type": "boolean",
+			"name": "disabling_condition",
+			"type": "string",
             "constraints": {
                 "required": true
             }
 		},
         {
-            "name": "Project Start Date",
+            "name": "project_start_date",
             "type": "date",
             "format": "any",
             "constraints": {
@@ -99,7 +156,7 @@
             }
         },
         {
-            "name": "Project Exit Date",
+            "name": "project_exit_date",
             "type": "date",
             "format": "any",
             "constraints": {
@@ -107,49 +164,49 @@
             }
         },
 		{
-			"name": "Program Name",
+			"name": "program_name",
 			"type": "string",
             "constraints": {
                 "required": true
             }
 		},
 		{
-			"name": "Program Type",
+			"name": "program_type",
 			"type": "string",
             "constraints": {
                 "required": true
             }
 		},
 		{
-			"name": "Federal Program",
+			"name": "federal_program",
 			"type": "string",
             "constraints": {
                 "required": true
             }
 		},
 		{
-			"name": "Destination",
+			"name": "destination",
 			"type": "integer",
             "constraints": {
                 "required": true
             }
 		},
 		{
-			"name": "Household ID",
+			"name": "household_id",
 			"type": "string",
             "constraints": {
                 "required": true
             }
 		},
 		{
-			"name": "Relationship to Head of Household",
+			"name": "household_relationship",
 			"type": "integer",
             "constraints": {
                 "required": true
             }
 		},
 		{
-			"name": "Housing Move-in Date",
+			"name": "move_in_date",
             "type": "date",
             "format": "any",
             "constraints": {
@@ -157,21 +214,21 @@
             }
 		},
 		{
-			"name": "Living Situation: Type of Residence",
-			"type": "integer",
+			"name": "living_situation_type",
+			"type": "string",
             "constraints": {
                 "required": true
             }
 		},
 		{
-			"name": "Living Situation: Length of Stay",
-			"type": "integer",
+			"name": "living_situation_length",
+			"type": "string",
             "constraints": {
                 "required": true
             }
 		},
 		{
-			"name": "Living Situation: Date Homelessness Started",
+			"name": "living_situation_start_date",
 			"type": "date",
 			"format": "any",
             "constraints": {
@@ -179,20 +236,50 @@
             }
 		},
 		{
-			"name": "Living Situation: Number of Times on Street",
-			"type": "integer",
+			"name": "times_on_street",
+			"type": "string",
             "constraints": {
                 "required": true
             }
 		},
 		{
-			"name": "Living Situation: Number of Months Homeless",
-			"type": "integer",
+			"name": "months_homeless",
+			"type": "string",
             "constraints": {
                 "required": true
             }
+		},
+		{
+			"name": "client_location_start_date",
+			"type": "datetime",
+			"format": "%Y-%m-%d %H:%M:%S"
+		},
+		{
+			"name": "client_location_end_date",
+			"type": "datetime",
+			"format": "%Y-%m-%d %H:%M:%S"
+		},
+		{
+			"name": "client_location",
+			"type": "string"
+		},
+		{
+			"name": "source_name",
+			"type": "string"
+		},
+		{
+			"name": "created_date",
+			"type": "datetime",
+			"format": "%Y-%m-%d %H:%M:%S.%f"
+
+		},
+		{
+			"name": "updated_date",
+			"type": "datetime",
+			"format": "%Y-%m-%d %H:%M:%S.%f"
 		}
     ],
-    "trueValues": [ "true" ],
-    "falseValues": [ "false" ]
+    "trueValues": [ "true", "Y" ],
+    "falseValues": [ "false", "N" ],
+	"primaryKey": "internal_event_id"
 }

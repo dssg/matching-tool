@@ -1,55 +1,88 @@
 import { createReducer } from '../utils/redux'
 import {
   CHANGE_UPLOAD_STATE,
+  RESET_SERVICE_PROVIDER,
   SELECT_SERVICE_PROVIDER,
   SELECT_JURISDICTION,
+  PICK_FILE,
   SAVE_AVAILABLE_ROLES,
   SAVE_UPLOAD_RESPONSE,
+  RESET_UPLOAD_RESPONSE,
+  SAVE_MERGE_RESULTS,
   SET_ERROR_MESSAGE,
-  VENN_DIAGRAM_DATA,
-  TABLE_DATA,
-  JAIL_BAR_DATA,
-  HOMELESS_BAR_DATA
+  MATCHING_RESULTS,
+  UPDATE_CONTROLLED_DATE,
+  UPDATE_DURATION,
+  UPDATE_TABLE_DATA,
+  UPDATE_SET_STATUS
 } from '../constants/index'
 import { combineReducers } from 'redux'
 import { routerReducer } from 'react-router-redux'
+import update from 'immutability-helper'
 
 const initialState = {
   app: {
-    selectedServiceProvider: {
+    selectedEventType: {
       name: '',
       slug: ''
     },
+    filePicked: '',
     uploadResponse: {
       status: '',
       exampleRows: [],
+      fieldOrder: [],
       rowCount: '',
       uploadId: ''
+    },
+    mergeResults: {
+      totalUniqueRows: '',
+      newUniqueRows: '',
     },
     selectedJurisdiction: {
       name: '',
       slug: ''
     },
     availableJurisdictionalRoles: [],
-    vennDiagramData: [ {sets: [''], size: null}],
-    tableData: [],
-    jailBarData: [],
-    homelessBarData: [],
+    matchingResults: {
+      filters: {
+        controlledDate: '2017-10-31',
+        duration: '1 month',
+        startDate: '2016-11-18',
+        endDate: '2017-11-18',
+        eventTypes: ['jail', 'hmis', 'intersection'],
+        setStatus: 'All'
+      },
+      vennDiagramData: [{sets: [''], size: null}, {sets: [''], size: null}, {sets: [''], size: null}],
+      filteredData: {
+        tableData: [],
+        jailBarData: [],
+        homelessBarData: [],
+      }
+    }
   }
 }
 
 const app = createReducer(initialState, {
   [SELECT_SERVICE_PROVIDER]: (state, payload) => {
     return Object.assign({}, state, {
-      selectedServiceProvider: payload
+      selectedEventType: payload
+    })
+  },
+  [RESET_SERVICE_PROVIDER]: (state) => {
+    return Object.assign({}, state, {
+      selectedEventType: {
+        name: '',
+        slug: '',
+      }
     })
   },
   [SELECT_JURISDICTION]: (state, payload) => {
-    console.log('selecting jurisdiction')
-    console.log(payload)
     return Object.assign({}, state, {
       selectedJurisdiction: payload
     })
+  },
+  [PICK_FILE]: (state, payload) => {
+    return update(state, { filePicked: { $set: payload } })
   },
   [CHANGE_UPLOAD_STATE]: (state, payload) => {
     return Object.assign({}, state, {
@@ -67,25 +100,64 @@ const app = createReducer(initialState, {
     })
     return newState
   },
-  [VENN_DIAGRAM_DATA]: (state, payload) => {
-    return Object.assign({}, state, {
-      vennDiagramData: payload
+  [RESET_UPLOAD_RESPONSE]: (state) => {
+    return update(state, {
+      uploadResponse: {$set: initialState.app.uploadResponse}
     })
   },
-  [TABLE_DATA]: (state, payload) => {
+  [MATCHING_RESULTS]: (state, payload) => {
     return Object.assign({}, state, {
-      tableData: payload
+      matchingResults: payload
     })
   },
-  [JAIL_BAR_DATA]: (state, payload) => {
-    return Object.assign({}, state, {
-      jailBarData: payload
+  [UPDATE_CONTROLLED_DATE]: (state, payload) => {
+    const newState = update(state, {
+      matchingResults: {
+        filters: {
+          controlledDate: {$set: payload}
+        }
+      }
     })
+    return newState
   },
-  [HOMELESS_BAR_DATA]: (state, payload) => {
-    return Object.assign({}, state, {
-      homelessBarData: payload
+  [UPDATE_DURATION]: (state, payload) => {
+    const newState = update(state, {
+      matchingResults: {
+        filters: {
+          duration: {$set: payload}
+        }
+      }
     })
+    return newState
+  },
+  [SAVE_MERGE_RESULTS]: (state, payload) => {
+    const newState = Object.assign({}, state, {
+      mergeResults: {
+        newUniqueRows: payload.new_unique_rows,
+        totalUniqueRows: payload.total_unique_rows
+      }
+    })
+    return newState
+  },
+  [UPDATE_TABLE_DATA]: (state, payload) => {
+    const newState = update(state, {
+      matchingResults: {
+        filteredData: {
+          tableData: {$set: payload}
+        }
+      }
+    })
+    return newState
+  },
+  [UPDATE_SET_STATUS]: (state, payload) => {
+    const newState = update(state, {
+      matchingResults: {
+        filters: {
+          setStatus: {$set: payload}
+        }
+      }
+    })
+    return newState
   }
 })
 const rootReducer = combineReducers({

@@ -1,0 +1,54 @@
+{
+    "homeless_bar_data":[
+        [
+            {
+                "x":"Homeless",
+                "y":20
+            },
+            {
+                "x":"Jail & Homeless",
+                "y":30
+            }
+        ],
+        [
+            {
+                "x":"Homeless",
+                "y":15
+            },
+            {
+                "x":"Jail & Homeless",
+                "y":25
+            }
+        ],
+        [
+            {
+                "x":"Homeless",
+                "y":25
+            },
+            {
+                "x":"Jail & Homeless",
+                "y":20
+            }
+        ],
+        [
+            {
+                "x":"Homeless",
+                "y":30
+            },
+            {
+                "x":"Jail & Homeless",
+                "y":15
+            }
+        ],
+        [
+            {
+                "x":"Homeless",
+                "y":10
+            },
+            {
+                "x":"Jail & Homeless",
+                "y":10
+            }
+        ]
+    ]
+}

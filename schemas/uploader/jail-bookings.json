@@ -1,0 +1,260 @@
+{
+    "fields": [
+        {
+            "name": "internal_person_id",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "internal_event_id",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+		{
+			"name": "inmate_number",
+			"type": "string"
+		},
+        {
+            "name": "full_name",
+            "type": "string"
+        },
+        {
+            "name": "prefix",
+            "type": "string"
+        },
+        {
+            "name": "first_name",
+            "type": "string"
+        },
+        {
+            "name": "middle_name",
+            "type": "string"
+        },
+        {
+            "name": "last_name",
+            "type": "string"
+        },
+        {
+            "name": "suffix",
+            "type": "string"
+        },
+        {
+            "name": "dob",
+            "type": "date",
+            "format": "any",
+            "constraints": {
+                "required": true
+            }
+        },
+		{
+			"name": "ssn",
+			"type": "string"
+		},
+		{
+			"name": "ssn_hash",
+			"type": "string"
+		},
+		{
+			"name": "ssn_bigrams",
+			"type": "string"
+		},
+		{
+			"name": "fingerprint_id",
+			"type": "string"
+		},
+        {
+            "name": "dmv_number",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "dmv_state",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "additional_id_number",
+            "type": "string"
+        },
+        {
+            "name": "additional_id_name",
+            "type": "string"
+        },
+        {
+            "name": "race",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "ethnicity",
+            "type": "string"
+        },
+		{
+			"name": "sex",
+			"type": "string",
+            "constraints": {
+                "required": true
+            }
+		},
+		{
+			"name": "hair_color",
+			"type": "string"
+		},
+		{
+			"name": "eye_color",
+			"type": "string"
+		},
+		{
+			"name": "height",
+			"type": "integer"
+		},
+		{
+			"name": "weight",
+			"type": "integer"
+		},
+		{
+			"name": "street_address",
+			"type": "string"
+		},
+		{
+			"name": "city",
+			"type": "string"
+		},
+		{
+			"name": "state",
+			"type": "string"
+		},
+		{
+			"name": "postal_code",
+			"type": "string"
+		},
+		{
+			"name": "county",
+			"type": "string"
+		},
+		{
+			"name": "country",
+			"type": "string"
+		},
+		{
+			"name": "birth_place",
+			"type": "string"
+		},
+		{
+			"name": "booking_number",
+			"type": "string"
+		},
+        {
+            "name": "jail_entry_date",
+            "type": "date",
+            "format": "any",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "jail_exit_date",
+            "type": "date",
+            "format": "any",
+            "constraints": {
+                "required": true
+            }
+        },
+		{
+			"name": "homeless",
+			"type": "boolean"
+		},
+		{
+			"name": "mental_health",
+			"type": "boolean"
+		},
+		{
+			"name": "veteran",
+			"type": "boolean"
+		},
+		{
+			"name": "special_initiative",
+			"type": "string"
+		},
+		{
+			"name": "bond_amount",
+			"type": "integer"
+		},
+		{
+			"name": "arresting_agency",
+			"type": "string"
+		},
+		{
+			"name": "bed",
+			"type": "string"
+		},
+		{
+			"name": "cell",
+			"type": "string"
+		},
+		{
+			"name": "block",
+			"type": "string"
+		},
+		{
+			"name": "building",
+			"type": "string"
+		},
+		{
+			"name": "annex",
+			"type": "string"
+		},
+		{
+			"name": "floor",
+			"type": "string"
+		},
+		{
+			"name": "classification",
+			"type": "string"
+		},
+		{
+			"name": "detention",
+			"type": "string"
+		},
+		{
+			"name": "location_type",
+			"type": "string"
+		},
+        {
+            "name": "relocation_date",
+            "type": "date",
+            "format": "any"
+        },
+		{
+			"name": "case_number",
+			"type": "string"
+		},
+		{
+			"name": "source_name",
+			"type": "string"
+		},
+        {
+            "name": "created_date",
+            "type": "date",
+            "format": "any"
+        },
+        {
+            "name": "updated_date",
+            "type": "date",
+            "format": "any"
+        }
+    ],
+    "trueValues": [ "true" ],
+    "falseValues": [ "false" ],
+	"primaryKey": "internal_event_id"
+}
