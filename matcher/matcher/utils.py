@@ -153,7 +153,7 @@ def write_matched_data_to_postgres(bucket, key, table_name, pg_keys):
         CREATE SCHEMA IF NOT EXISTS matched;
         DROP TABLE IF EXISTS matched.{table_name};
         CREATE TABLE matched.{table_name} (
-            {fields}
+            {DATA_FIELDS[table_name]}
         );
     """
     logger.warning(create_table_query)
