@@ -23,6 +23,11 @@ user_datastore = SQLAlchemySessionUserDatastore(db_session,
 security = Security(app, user_datastore)
 
 
+@app.route('/test')
+def test():
+    return "success!"
+
+
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 @login_required
