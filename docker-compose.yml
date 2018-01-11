@@ -10,11 +10,13 @@ services:
             - POSTGRES_DB=csh
             - POSTGRES_USER=csh
             - POSTGRES_PASSWORD=csh
-    web-app:
-        container_name: web-app
+    webapp:
+        container_name: webapp
         build: ./webapp
+        depends_on:
+            - db
         volumes:
-            - '.:/usr/src/app'
+            - '.:/csh'
         ports:
             - 5000:5000
         environment:
