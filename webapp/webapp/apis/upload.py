@@ -13,6 +13,7 @@ from webapp.tasks import \
 from webapp.utils import unique_upload_id, s3_upload_path, schema_filename
 from goodtables import validate
 from werkzeug.utils import secure_filename
+import requests
 import yaml
 import logging
 import unicodecsv as csv
@@ -207,6 +208,7 @@ def merge_file():
         has_access = can_access_file(upload_id)
         if has_access:
             upload_log = db_session.query(Upload).get(upload_id)
+            logging.info('Retrieved upload log, now copying raw table')
             raw_table_name = copy_raw_table_to_db(
                 upload_log.s3_upload_path,
                 upload_log.event_type_slug,
@@ -214,6 +216,7 @@ def merge_file():
                 db_session.get_bind()
             )
             db_session.commit()
+            logging.info('Merging raw table to master')
             merge_id = upsert_raw_table_to_master(
                 raw_table_name,
                 upload_log.jurisdiction_slug,
@@ -221,12 +224,24 @@ def merge_file():
                 upload_id,
                 db_session
             )
+            logging.info('Syncing merged file to s3')
             sync_merged_file_to_s3(
                 upload_log.jurisdiction_slug,
                 upload_log.event_type_slug,
                 db_session.get_bind()
             )
             merge_log = db_session.query(MergeLog).get(merge_id)
+            try:
+                logging.info('Merge succeeded. Now querying matcher')
+                matcher_response = requests.get(
+                    'http://matcher:5000/match/{}/{}'.format(
+                        upload_log.jurisdiction_slug,
+                        upload_log.event_type_slug
+                    )
+                )
+            except Exception as e:
+                logging.error('Error matching: ', e)
+                return jsonify(status='match-failed')
             return jsonify(
                 status='valid',
                 new_unique_rows=merge_log.new_unique_rows,
@@ -235,4 +250,5 @@ def merge_file():
         else:
             return jsonify(status='not authorized')
     except ValueError as e:
-            return jsonify(status='invalid', reason=e.msg)
+        logging.error('Error merging: ', e)
+        return jsonify(status='invalid')
