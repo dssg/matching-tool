@@ -42,6 +42,12 @@ PG_CONNECTION = {
     'port': os.getenv('PGPORT')
 }
 
+# Lookups
+NEXT_EVENT_TYPES = {
+    'hmis_service_stays': 'jail_bookings',
+    'jail_bookings': 'hmis_service_stays'
+}
+
 # Initialize the app
 app = Flask(__name__)
 
@@ -104,10 +110,7 @@ def match(jurisdiction, event_type):
     # match the two sets.
     app.logger.debug("Self-matching stored. Trying to match to other data source.")
 
-    if event_type == 'hmis':
-        event_type_2 = 'bookings'
-    elif event_type == 'bookings':
-        event_type_2 = 'hmis'
+    event_type_2 = NEXT_EVENT_TYPES[event_type]
     matched_key_2 = f'csh/matcher/{jurisdiction}/{event_type_2}/matched'
     
     try:
