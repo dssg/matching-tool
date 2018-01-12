@@ -1,0 +1,48 @@
+#+TITLE: Matcher
+#+AUTHOR: Center of Data Science for Public Policy, The University of Chicago
+
+* Quick setup
+
+- Install `pyenv`, if you don't have it
+- Create a /virtual environment/ called `csh`
+
+#+BEGIN_SRC shell
+pyenv virtualenv 3.6.0 csh
+#+END_SRC
+
+- Activate the virtual environment that you just created
+
+#+BEGIN_SRC shell
+pyenv activate csh
+#+END_SRC
+
+
+- Install the needed libraries
+
+#+BEGIN_SRC shell
+pip install -r requirements.txt
+#+END_SRC
+
+- If you are coding, probably you will need to execute the following:
+
+#+BEGIN_SRC shell
+pip install -r requirements-dev.txt
+#+END_SRC
+
+* Run the API
+
+#+BEGIN_SRC shell
+docker-compose up -d
+#+END_SRC
+
+You can test the API with
+
+#+BEGIN_SRC shell
+http 0.0.0.0:5001/poke
+#+END_SRC
+
+Also, there is a postgres container running, you can access it using:
+
+#+BEGIN_SRC shell
+psql "postgresql://csh:csh@0.0.0.0:5444/csh"
+#+END_SRC
