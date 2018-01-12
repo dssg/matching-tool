@@ -17,9 +17,18 @@ services:
             - db
         volumes:
             - '.:/csh'
+            - /csh/webapp/frontend/node_modules
         ports:
             - 5000:5000
         environment:
+            # Flask
+            - SECRET_KEY=dev
+            - DEBUG=True
+            - SECURITY_PASSWORD_SALT=abcdefg
+            # S3 Path
+            - RAW_UPLOADS_PATH='s3://your-bucket/{jurisdiction}/{event_type}/uploaded/{date}/{upload_id}'
+            - MERGED_UPLOADS_PATH='s3://your-bucket/{jurisdiction}/{event_type}/merged'
+            # Database connection
             - PGHOST=csh_db
             - PGPORT=5432
             - PGUSER=csh

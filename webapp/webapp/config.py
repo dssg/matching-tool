@@ -1,8 +1,10 @@
-"""Load configuration from a yaml file"""
-import yaml
+"""Load configuration from a env variable"""
+import os
 
-with open('config.yaml', 'r') as f:
-    config = yaml.load(f)
+config = {
+	'merged_uploads_path': os.environ['MERGED_UPLOADS_PATH'],
+ 	'raw_uploads_path': os.environ['RAW_UPLOADS_PATH']
+ }
 
 # do some validation of the s3 upload path
 for expected_key in ['jurisdiction', 'event_type', 'date', 'upload_id']:

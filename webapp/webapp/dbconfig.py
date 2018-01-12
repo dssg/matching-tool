@@ -1,8 +1,6 @@
 import logging
 import os
-import yaml
 from sqlalchemy.engine.url import URL
-
 
 if os.environ:
     dbconfig = {

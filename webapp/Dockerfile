@@ -24,7 +24,6 @@ ADD README.md /csh/webapp/README.md
 
 RUN pip install -r requirements.txt
 
-ADD config.yaml /csh/webapp/config.yaml
 ADD setup.py /csh/webapp/setup.py
 
 RUN pip install --editable .
