@@ -26,8 +26,8 @@ services:
             - DEBUG=True
             - SECURITY_PASSWORD_SALT=abcdefg
             # S3 Configuration
-            - RAW_UPLOADS_PATH=s3://dsapp-criminal-justice/csh/{jurisdiction}/{event_type}/uploaded/{date}/{upload_id}
-            - MERGED_UPLOADS_PATH=s3://dsapp-criminal-justice/csh/{jurisdiction}/{event_type}/merged
+            - RAW_UPLOADS_PATH=s3://dsapp-criminal-justice/csh/matcher/{jurisdiction}/{event_type}/uploaded/{date}/{upload_id}
+            - MERGED_UPLOADS_PATH=s3://dsapp-criminal-justice/csh/matcher/{jurisdiction}/{event_type}/merged
             - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
             - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
             # Database connection
