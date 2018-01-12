@@ -13,7 +13,6 @@ import smart_open
 
 DATA_FIELDS = {
     'hmis_service_stays': """
-        source_id                   text,
         internal_person_id          text,
         internal_event_id           text,
         full_name                   text,
@@ -65,10 +64,10 @@ DATA_FIELDS = {
         updated_date                timestamp,
         inserted_ts                 timestamp,
         updated_ts                  timestamp,
+        source_id                   text,
         matched_id                  int
     """,
     'jail_bookings': """
-        source_id               text,
         internal_person_id      text,
         internal_event_id       text,
         inmate_number           text,
@@ -126,6 +125,7 @@ DATA_FIELDS = {
         updated_date            timestamp,
         inserted_ts             timestamp,
         updated_ts              timestamp,
+        source_id               text,
         matched_id              int
     """
 }
