@@ -63,6 +63,8 @@ DATA_FIELDS = {
         source_name                 text,
         created_date                timestamp,
         updated_date                timestamp,
+        inserted_ts                 timestamp,
+        updated_ts                  timestamp,
         matched_id                  int
     """,
     'jail_bookings': """
@@ -122,6 +124,8 @@ DATA_FIELDS = {
         source_name             text,
         created_date            timestamp,
         updated_date            timestamp,
+        inserted_ts             timestamp,
+        updated_ts              timestamp,
         matched_id              int
     """
 }
