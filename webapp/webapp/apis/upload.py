@@ -1,4 +1,4 @@
-from flask import render_template, request, jsonify, Blueprint
+from flask import render_template, make_response, request, jsonify, Blueprint
 from flask_security import Security, login_required, \
      SQLAlchemySessionUserDatastore
 from flask_login import current_user
@@ -10,7 +10,7 @@ from webapp.tasks import \
     copy_raw_table_to_db,\
     upsert_raw_table_to_master,\
     sync_merged_file_to_s3
-from webapp.utils import unique_upload_id, s3_upload_path, schema_filename
+from webapp.utils import unique_upload_id, s3_upload_path, schema_filename, notify_matcher
 from goodtables import validate
 from werkzeug.utils import secure_filename
 import requests
@@ -233,15 +233,10 @@ def merge_file():
             merge_log = db_session.query(MergeLog).get(merge_id)
             try:
                 logging.info('Merge succeeded. Now querying matcher')
-                matcher_response = requests.get(
-                    'http://matcher:5000/match/{}/{}'.format(
-                        upload_log.jurisdiction_slug,
-                        upload_log.event_type_slug
-                    )
-                )
+                notify_matcher(upload_log.jurisdiction_slug, upload_log.event_type_slug)
             except Exception as e:
                 logging.error('Error matching: ', e)
-                return jsonify(status='match-failed')
+                return make_response(jsonify(status='error'), 500)
             return jsonify(
                 status='valid',
                 new_unique_rows=merge_log.new_unique_rows,
@@ -251,4 +246,4 @@ def merge_file():
             return jsonify(status='not authorized')
     except ValueError as e:
         logging.error('Error merging: ', e)
-        return jsonify(status='invalid')
+        return make_response(jsonify(status='error'), 500)

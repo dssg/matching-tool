@@ -4,10 +4,11 @@ import csv
 import json
 import tempfile
 from datetime import date
-from webapp.config import config as path_config
+from webapp.config import config as app_config
 from webapp import SCHEMA_DIRECTORY
 
 from contextlib import contextmanager
+import requests
 
 
 def unique_upload_id():
@@ -16,7 +17,7 @@ def unique_upload_id():
 
 def s3_upload_path(jurisdiction, event_type, upload_id):
     datestring = date.today().isoformat()
-    path_template = path_config['raw_uploads_path']
+    path_template = app_config['raw_uploads_path']
 
     full_s3_path = path_template.format(
         event_type=event_type,
@@ -28,7 +29,7 @@ def s3_upload_path(jurisdiction, event_type, upload_id):
 
 
 def merged_file_path(jurisdiction, event_type):
-    path_template = path_config['merged_uploads_path']
+    path_template = app_config['merged_uploads_path']
     full_s3_path = path_template.format(
         event_type=event_type,
         jurisdiction=jurisdiction
@@ -95,3 +96,16 @@ def create_statement_from_goodtables_schema(goodtables_schema, table_name):
 
 def generate_master_table_name(jurisdiction, event_type):
     return '{jurisdiction}_{event_type}_master'.format(**locals())
+
+
+def notify_matcher(jurisdiction, event_type):
+    matcher_response = requests.get(
+        'http://{location}:{port}/match/{jurisdiction}/{event_type}'.format(
+            location=app_config['matcher_location'],
+            port=app_config['matcher_port'],
+            jurisdiction=jurisdiction,
+            event_type=event_type
+        )
+    )
+    if matcher_response.status_code != 200:
+        raise RuntimeError(matcher_response.json())
