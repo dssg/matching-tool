@@ -25,9 +25,11 @@ services:
             - SECRET_KEY=dev
             - DEBUG=True
             - SECURITY_PASSWORD_SALT=abcdefg
-            # S3 Path
-            - RAW_UPLOADS_PATH='s3://your-bucket/{jurisdiction}/{event_type}/uploaded/{date}/{upload_id}'
-            - MERGED_UPLOADS_PATH='s3://your-bucket/{jurisdiction}/{event_type}/merged'
+            # S3 Configuration
+            - RAW_UPLOADS_PATH=s3://dsapp-criminal-justice /{jurisdiction}/{event_type}/uploaded/{date}/{upload_id}
+            - MERGED_UPLOADS_PATH=s3://dsapp-criminal-justice /{jurisdiction}/{event_type}/merged
+            - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+            - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
             # Database connection
             - PGHOST=csh_db
             - PGPORT=5432
@@ -45,6 +47,8 @@ services:
         environment:
             # File storage configuration
             - S3_BUCKET=dsapp-criminal-justice
+            - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+            - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
             # Matcher distance calculation configuration
             - INDEXER=identity
             - KEYS=["first_name","last_name"]
