@@ -172,15 +172,15 @@
         },
 		{
 			"name": "homeless",
-			"type": "boolean"
+			"type": "string"
 		},
 		{
 			"name": "mental_health",
-			"type": "boolean"
+			"type": "string"
 		},
 		{
 			"name": "veteran",
-			"type": "boolean"
+			"type": "string"
 		},
 		{
 			"name": "special_initiative",
