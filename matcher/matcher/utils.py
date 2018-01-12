@@ -140,11 +140,6 @@ def read_matched_data_from_postgres(table_name, pg_keys):
 
 
 def write_matched_data_to_postgres(bucket, key, table_name, pg_keys):
-    if table_name == 'bookings':
-        fields = BOOKINGS_FIELDS
-    elif table_name == 'hmis':
-        fields = HMIS_FIELDS
-
     conn = psycopg2.connect(**pg_keys)
     cur = conn.cursor()
 
@@ -208,11 +203,11 @@ def cartesian(df1:pd.DataFrame, df2:pd.DataFrame=None) -> pd.DataFrame:
     if df2 is None:
         df2=df1.copy()
 
-    
+
     df1['_tmpkey'] = 1
     df2['_tmpkey'] = 1
 
-    
+
 
     df = pd.merge(df1, df2, on='_tmpkey', suffixes=['_left', '_right']).drop('_tmpkey', axis=1)
     df.index = pd.MultiIndex.from_product((df1.index, df2.index))
@@ -224,7 +219,7 @@ def cartesian(df1:pd.DataFrame, df2:pd.DataFrame=None) -> pd.DataFrame:
 
 def generate_row_ids(df:pd.DataFrame) -> pd.DataFrame:
     df['row_id'] = range(0, len(df))
-    
+
     return df
 
 
@@ -234,5 +229,5 @@ def version(df:pd.DataFrame) -> pd.DataFrame:
     """
     # head_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD']).rstrip()
     df['code_version'] = '0.1' #head_hash
-    
+
     return df
