@@ -1,4 +1,0 @@
----
-SECRET_KEY: 'dev'
-DEBUG: True
-SECURITY_PASSWORD_SALT: 'abcdefg'

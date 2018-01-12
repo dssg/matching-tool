@@ -33,13 +33,11 @@ def get_venn_diagram_data():
 @chart_api.route('/get_full_json_for_view1', methods=['GET'])
 def get_full_json_for_view1():
     data = OrderedDict(json.load(open(SAMPLE_DATA_DIR + 'webapp_schema_1y.json'), object_pairs_hook=OrderedDict))
-    print(data)
     return json.dumps({"result": data})
 
 @chart_api.route('/get_full_json_for_view2', methods=['GET'])
 def get_full_json_for_view2():
     data = OrderedDict(json.load(open(SAMPLE_DATA_DIR + 'webapp_schema_1m.json'), object_pairs_hook=OrderedDict))
-    print(data)
     return json.dumps({"result": data})
 
 @chart_api.route('/download/<string:to_be_downloaded>', methods=['GET'])

@@ -1,3 +1,0 @@
----
-raw_uploads_path: 's3://your-bucket/{jurisdiction}/{event_type}/uploaded/{date}/{upload_id}'
-merged_uploads_path: 's3://your-bucket/{jurisdiction}/{event_type}/merged

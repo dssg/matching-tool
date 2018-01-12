@@ -1,0 +1,67 @@
+version: '3'
+
+services:
+    db:
+        container_name: csh_db
+        image: postgres:10
+        ports:
+            - 5444:5432
+        environment:
+            - POSTGRES_DB=csh
+            - POSTGRES_USER=csh
+            - POSTGRES_PASSWORD=csh
+    webapp:
+        container_name: webapp
+        build: ./webapp
+        depends_on:
+            - db
+        volumes:
+            - '.:/csh'
+            - /csh/webapp/frontend/node_modules
+        ports:
+            - 5000:5000
+        environment:
+            # Flask
+            - SECRET_KEY=dev
+            - DEBUG=True
+            - SECURITY_PASSWORD_SALT=abcdefg
+            # S3 Configuration
+            - RAW_UPLOADS_PATH=s3://dsapp-criminal-justice/csh/matcher/{jurisdiction}/{event_type}/uploaded/{date}/{upload_id}
+            - MERGED_UPLOADS_PATH=s3://dsapp-criminal-justice/csh/matcher/{jurisdiction}/{event_type}/merged
+            - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+            - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+            # Database connection
+            - PGHOST=csh_db
+            - PGPORT=5432
+            - PGUSER=csh
+            - PGDATABASE=csh
+            - PGPASSWORD=csh
+
+    matcher:
+        container_name: matcher
+        build: ./matcher
+        volumes:
+            - '.:/csh' # HOST:CONTAINER
+        ports:
+            - 5001:5000 # HOST:CONTAINER
+        environment:
+            # File storage configuration
+            - S3_BUCKET=dsapp-criminal-justice
+            - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+            - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+            # Matcher distance calculation configuration
+            - INDEXER=identity
+            - KEYS=["first_name","last_name"]
+            - CONTRASTER=exact
+            # Matcher clustering configuration
+            - EPS=0.5
+            - MIN_SAMPLES=1
+            - ALGORITHM=auto
+            - LEAF_SIZE=30
+            - N_JOBS=1
+            # Database connection configuration
+            - PGHOST=csh_db
+            - PGPORT=5432
+            - PGUSER=csh
+            - PGDATABASE=csh
+            - PGPASSWORD=csh

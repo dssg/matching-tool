@@ -104,8 +104,8 @@ ENV/
 flask_config.yaml
 config.yaml
 database.yaml
-frontend/node_modules
-frontend/coverage
-webapp/static/output.js
-webapp/static/main.*.css
+webapp/frontend/node_modules
+webapp/frontend/coverage
+webapp/webapp/static/output.js
+webapp/webapp/static/main.*.css
 matcher/.env
