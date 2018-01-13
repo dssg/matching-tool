@@ -29,7 +29,7 @@ def test_upload_to_s3():
             sample_config = {
                 'raw_uploads_path': 's3://test-bucket/{jurisdiction}/{event_type}/uploaded/{date}/{upload_id}'
             }
-            with patch.dict('webapp.utils.path_config', sample_config):
+            with patch.dict('webapp.utils.app_config', sample_config):
                 upload_path = s3_upload_path('boone', 'hmis', '123-567-abc')
                 upload_to_s3(upload_path, filename)
 
