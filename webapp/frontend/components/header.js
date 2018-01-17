@@ -40,7 +40,7 @@ class Header extends React.Component {
           <Link to='/upload'><MenuItem primaryText='Upload' onTouchTap={this.handleToggle} /></Link>
           <Link to='/results'><MenuItem primaryText='Results' onTouchTap={this.handleToggle} /></Link>
           <Divider />
-          <Link to='/logout'><MenuItem value={'/logout'} primaryText='Logout' /></Link>
+          <Link to='/logout' target="_self"><MenuItem value={'/logout'} primaryText='Logout' /></Link>
         </Drawer>
       </div>
     )

@@ -10,7 +10,8 @@
     "test": "node_modules/.bin/jest --coverage",
     "test:watch": "node_modules/.bin/jest --watch --coverage",
     "start": "node_modules/.bin/webpack --progress --colors --watch",
-    "build": "node_modules/.bin/webpack --progress --colors"
+    "build": "node_modules/.bin/webpack --progress --colors",
+	"acceptance": "node_modules/.bin/nightwatch"
   },
   "repository": {
     "type": "git",
@@ -66,6 +67,7 @@
     "image-webpack-loader": "^1.4.0",
     "jest": "^20.0.4",
     "manifest-revision-webpack-plugin": "^0.3",
+    "nightwatch": "^0.9.19",
     "node-sass": "^4.5.3",
     "postcss": "^6.0.8",
     "postcss-cssnext": "^2.9.0",
