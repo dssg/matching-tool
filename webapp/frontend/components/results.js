@@ -93,8 +93,8 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
   return {
-    updateMatchingResults: (d) => {
-      dispatch(getMatchingResults(d))
+    updateMatchingResults: () => {
+      dispatch(getMatchingResults())
     },
     handleControlledDate: (event, date) => {
       dispatch(updateControlledDate(date))
