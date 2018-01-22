@@ -155,12 +155,13 @@ def get_records_by_time(start_time, end_time, duration=1):
             "end_time": end_time
     })
 
+
     shared_ids = filtered_hmis[filtered_hmis.matched_id.isin(filtered_bookings.matched_id)].matched_id.unique()
 
     table_data = get_table_data(filtered_bookings, filtered_hmis, list(set(list(filtered_bookings.matched_id.unique())+list(filtered_hmis.matched_id.unique()))))
 
     filters = {
-        "controlledDate": "2017-12-11",
+        "controlledDate": end_time,
         "duration": duration,
         "startDate": start_time,
         "endDate": end_time,
@@ -193,12 +194,19 @@ def get_records_by_time(start_time, end_time, duration=1):
             "size": len(shared_ids)
         }
     ]
-    filtered_data = {
-        "jailBarData": get_bar_chart_data(filtered_bookings, shared_ids, 'Jail'),
-        "homelessBarData": get_bar_chart_data(filtered_hmis, shared_ids, 'Homeless'),
-        "tableData": get_table_data(filtered_bookings, filtered_hmis, list(set(list(filtered_bookings.matched_id.unique())+list(filtered_hmis.matched_id.unique()))))
-    }
-
+    # Handle the case that empty query results in ZeroDivisionError
+    try:
+        filtered_data = {
+            "jailBarData": get_bar_chart_data(filtered_bookings, shared_ids, 'Jail'),
+            "homelessBarData": get_bar_chart_data(filtered_hmis, shared_ids, 'Homeless'),
+            "tableData": get_table_data(filtered_bookings, filtered_hmis, list(set(list(filtered_bookings.matched_id.unique())+list(filtered_hmis.matched_id.unique()))))
+        }
+    except:
+        filtered_data = {
+            "jailBarData": None,
+            "homelessBarData": None,
+            "tableData": None
+        }
     return {
         "filters": filters,
         "vennDiagramData": venn_diagram_data,

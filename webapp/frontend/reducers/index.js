@@ -45,10 +45,10 @@ const initialState = {
     availableJurisdictionalRoles: [],
     matchingResults: {
       filters: {
-        controlledDate: '2017-10-31',
-        duration: '1 month',
-        startDate: '2016-11-18',
-        endDate: '2017-11-18',
+        controlledDate: '',
+        duration: [],
+        startDate: '',
+        endDate: '',
         eventTypes: ['jail', 'hmis', 'intersection'],
         setStatus: 'All'
       },

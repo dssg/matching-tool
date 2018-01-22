@@ -4,6 +4,7 @@ import Drawer from 'material-ui/Drawer'
 import DurationBarChart from './bar'
 import FloatingActionButton from 'material-ui/FloatingActionButton'
 import Header from './header'
+import moment from 'moment'
 import MenuItem from 'material-ui/MenuItem'
 import NavigationClose from 'material-ui/svg-icons/navigation/close'
 import RaisedButton from 'material-ui/RaisedButton'
@@ -93,14 +94,23 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
   return {
-    updateMatchingResults: () => {
-      dispatch(getMatchingResults())
+    updateMatchingResults: (start, end) => {
+      dispatch(getMatchingResults(start, end))
     },
     handleControlledDate: (event, date) => {
       dispatch(updateControlledDate(date))
     },
     handleDurationChange: (event, index, value) => {
-      dispatch(updateDuration(value))
+      if (value == 1) {
+        var d = [1, "month", value]
+      }
+      else if (value == 2) {
+        var d = [3, "months", value]
+      }
+      else if (value == 3) {
+        var d = [1, "year", value]
+      }
+      dispatch(updateDuration(d))
     },
   }
 }
@@ -128,7 +138,9 @@ class Results extends React.Component {
   }
 
   handleSearch = () => {
-    this.props.updateMatchingResults("2")
+    var date = moment(this.props.controlledDate).format('YYYY-MM-DD')
+    var newdate = moment(date).subtract(this.props.duration[0], this.props.duration[1]).format('YYYY-MM-DD')
+    this.props.updateMatchingResults(newdate, date)
   }
 
   handleClick = () => {
@@ -146,7 +158,9 @@ class Results extends React.Component {
   }
 
   componentDidMount() {
-    this.props.updateMatchingResults("1")
+    var today = new moment().format("YYYY-MM-DD")
+    var oneYearAgo = moment(today).subtract(1, "year").format("YYYY-MM-DD")
+    this.props.updateMatchingResults(oneYearAgo, today)
   }
 
   renderTable() {
@@ -247,12 +261,12 @@ class Results extends React.Component {
                   <h5>Duration:</h5>
                   <h5>
                     <SelectField
-                      value={this.props.duration}
+                      value={this.props.duration[2]}
                       onChange={this.props.handleDurationChange}
                       maxHeight={200} >
-                      <MenuItem value={30} key={1} primaryText={`1 Month`} />
-                      <MenuItem value={90} key={2} primaryText={`3 Months`} />
-                      <MenuItem value={365} key={3} primaryText={`1 Year`} />
+                      <MenuItem value={1} key={1} primaryText={`1 Month`} />
+                      <MenuItem value={2} key={2} primaryText={`3 Months`} />
+                      <MenuItem value={3} key={3} primaryText={`1 Year`} />
                     </SelectField>
                   </h5>
                   <RaisedButton

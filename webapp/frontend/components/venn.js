@@ -19,9 +19,6 @@ function mapDispatchToProps(dispatch) {
     handleUpdateTableData: (data, section) => {
       dispatch(updateTableData(data, section))
     },
-    updateMatchingResults: (d) => {
-      dispatch(getMatchingResults(d))
-    },
     handleUpdateSetStatus: (d) => {
       dispatch(updateSetStatus(d))
     },
@@ -42,7 +39,6 @@ class Venn extends React.Component {
   }
 
   componentDidMount() {
-    this.props.updateMatchingResults("1")
     this.createVenn()
   }
 

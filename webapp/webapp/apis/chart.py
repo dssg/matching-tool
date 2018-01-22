@@ -12,30 +12,31 @@ chart_api = Blueprint('chart_api', __name__, url_prefix='/api/chart')
 
 SAMPLE_DATA_DIR = 'sample_data/results_input/'
 
-@chart_api.route('/get_schema', methods=['GET'])
-def get_records_by_time():
-    records = query.get_records_by_time('2017-09-01', '2017-10-31')
+@chart_api.route('/get_schema/start=<string:start>&end=<string:end>', methods=['GET'])
+def get_records_by_time(start, end):
+    records = query.get_records_by_time(start, end)
     return jsonify(result=records)
 
-@chart_api.route('/get_table_data', methods=['GET'])
-def get_table_data():
-    table = json.load(open(SAMPLE_DATA_DIR + 'table.json'))['table']
-    return jsonify(result=table)
 
-@chart_api.route('/get_homeless_bar_data', methods=['GET'])
-def get_homeless_bar_data():
-    homeless_bar_data = json.load(open(SAMPLE_DATA_DIR + 'homeless_bar_data.json'))['homeless_bar_data']
-    return jsonify(result=homeless_bar_data)
+# @chart_api.route('/get_table_data', methods=['GET'])
+# def get_table_data():
+#     table = json.load(open(SAMPLE_DATA_DIR + 'table.json'))['table']
+#     return jsonify(result=table)
 
-@chart_api.route('/get_jail_bar_data', methods=['GET'])
-def get_jail_bar_data():
-    jail_bar_data = json.load(open(SAMPLE_DATA_DIR + 'jail_bar_data.json'))['jail_bar_data']
-    return jsonify(result=jail_bar_data)
+# @chart_api.route('/get_homeless_bar_data', methods=['GET'])
+# def get_homeless_bar_data():
+#     homeless_bar_data = json.load(open(SAMPLE_DATA_DIR + 'homeless_bar_data.json'))['homeless_bar_data']
+#     return jsonify(result=homeless_bar_data)
 
-@chart_api.route('/get_venn_diagram_data', methods=['GET'])
-def get_venn_diagram_data():
-    venn_diagram_data =  json.load(open(SAMPLE_DATA_DIR + 'venn_diagram_data.json'))['venn_diagram_data']
-    return jsonify(result=venn_diagram_data)
+# @chart_api.route('/get_jail_bar_data', methods=['GET'])
+# def get_jail_bar_data():
+#     jail_bar_data = json.load(open(SAMPLE_DATA_DIR + 'jail_bar_data.json'))['jail_bar_data']
+#     return jsonify(result=jail_bar_data)
+
+# @chart_api.route('/get_venn_diagram_data', methods=['GET'])
+# def get_venn_diagram_data():
+#     venn_diagram_data =  json.load(open(SAMPLE_DATA_DIR + 'venn_diagram_data.json'))['venn_diagram_data']
+#     return jsonify(result=venn_diagram_data)
 
 # @chart_api.route('/get_full_json_for_view1', methods=['GET'])
 # def get_full_json_for_view1():

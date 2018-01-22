@@ -11,7 +11,7 @@
     "test:watch": "node_modules/.bin/jest --watch --coverage",
     "start": "node_modules/.bin/webpack --progress --colors --watch",
     "build": "node_modules/.bin/webpack --progress --colors",
-	"acceptance": "node_modules/.bin/nightwatch"
+    "acceptance": "node_modules/.bin/nightwatch"
   },
   "repository": {
     "type": "git",
@@ -29,6 +29,7 @@
     "jquery": "1.11.3",
     "material-ui": "^0.18.7",
     "material-ui-upload": "^1.1.5",
+    "moment": "^2.20.1",
     "ramda": "^0.23.0",
     "react": "15.6.1",
     "react-csv": "^1.0.8",
