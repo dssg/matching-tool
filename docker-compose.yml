@@ -36,6 +36,9 @@ services:
             - PGUSER=csh
             - PGDATABASE=csh
             - PGPASSWORD=csh
+            # Matcher connection
+            - MATCHER_LOCATION=matcher
+            - MATCHER_PORT=5000
 
     matcher:
         container_name: matcher

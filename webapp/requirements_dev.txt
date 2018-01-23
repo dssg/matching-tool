@@ -4,3 +4,4 @@ pytest-cov
 testing.postgresql
 moto[server]
 faker>=0.8.6
+requests_mock
