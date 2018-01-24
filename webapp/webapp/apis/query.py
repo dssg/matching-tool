@@ -109,7 +109,7 @@ def get_days_distribution(data):
         right=False
     ).value_counts()
 
-def get_records_by_time(start_time, end_time, duration=1):
+def get_records_by_time(start_time, end_time):
     query = """
     SELECT *,
     DATE_PART('day', {exit}::timestamp - {start}::timestamp) as days
@@ -134,6 +134,7 @@ def get_records_by_time(start_time, end_time, duration=1):
             "end_time": end_time
     })
 
+
     filtered_bookings = pd.read_sql(
         query.format(
             table_name="jail_bookings",
@@ -150,9 +151,9 @@ def get_records_by_time(start_time, end_time, duration=1):
 
     table_data = get_table_data(filtered_bookings, filtered_hmis, list(set(list(filtered_bookings.matched_id.unique())+list(filtered_hmis.matched_id.unique()))))
 
+
     filters = {
         "controlledDate": end_time,
-        "duration": duration,
         "startDate": start_time,
         "endDate": end_time,
         "service": "jail_hmis",
@@ -195,7 +196,7 @@ def get_records_by_time(start_time, end_time, duration=1):
         filtered_data = {
             "jailBarData": None,
             "homelessBarData": None,
-            "tableData": None
+            "tableData": get_table_data(filtered_bookings, filtered_hmis, list(set(list(filtered_bookings.matched_id.unique())+list(filtered_hmis.matched_id.unique()))))
         }
     return {
         "filters": filters,

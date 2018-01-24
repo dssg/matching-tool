@@ -138,14 +138,6 @@ export function updateControlledDate(date) {
   }
 }
 
-export function updateDuration(data) {
-  return {
-    type: UPDATE_DURATION,
-    payload: data
-  }
-}
-
-
 function saveMergeResults(results) {
   return {
     type: SAVE_MERGE_RESULTS,
