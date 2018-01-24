@@ -1,4 +1,4 @@
-FROM python:3.6
+FROM python:3.6.2
 
 RUN apt-get -y update && \
 	apt-get install unzip sudo
@@ -30,7 +30,7 @@ RUN pip install --editable .
 
 # Build frontend output.js
 WORKDIR /csh/webapp/frontend
-CMD npm run build
+RUN npm run build && ls -alF /csh/webapp/webapp/static 
 
 # Run flask app
 WORKDIR /csh/webapp

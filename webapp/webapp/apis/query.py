@@ -35,10 +35,10 @@ def get_table_data(filtered_bookings, filtered_hmis, unique_ids):
             "last_jail_contact": last_jail_contact,
             "last_hmis_contact": last_hmis_contact,
             "jail_contact": int(jail_contact),
-            "homeless_contact": int(homeless_contact),
+            "hmis_contact": int(homeless_contact),
             "total_contact": int(jail_contact + homeless_contact),
             "cumu_jail_days": int(cumu_jail_days),
-            "cumu_homeless_days": int(cumu_homeless_days)
+            "cumu_hmis_days": int(cumu_homeless_days)
         }
         table_data.append(person_data)
     return table_data
@@ -108,16 +108,6 @@ def get_days_distribution(data):
         [0, 1, 2, 10, 90, 1000],
         right=False
     ).value_counts()
-
-
-def test_query():
-    query = """
-    SELECT *,
-    FROM public.test_hmis_service_stays_master
-    LIMIT 5
-    """
-    output = pd.read_sql(query, con=db.engine)
-    return output
 
 def get_records_by_time(start_time, end_time, duration=1):
     query = """
