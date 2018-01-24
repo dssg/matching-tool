@@ -4,7 +4,6 @@ from flask_security import Security, login_required, \
 from webapp import app
 from webapp.database import db_session
 from webapp.models import User, Role
-# import apis
 from webapp.apis.upload import upload_api
 from webapp.apis.chart import chart_api
 import os
