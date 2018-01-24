@@ -1,8 +1,10 @@
 import unittest
+import re
 from unittest.mock import patch
 import json
 from moto import mock_s3_deprecated
 import boto
+import requests_mock
 from webapp.tests.utils import rig_test_client,\
     authenticate,\
     create_and_populate_raw_table
@@ -20,7 +22,7 @@ class UploadFileTestCase(unittest.TestCase):
         sample_config = {
             'raw_uploads_path': 's3://test-bucket/{jurisdiction}/{event_type}/uploaded/{date}/{upload_id}'
         }
-        with patch.dict('webapp.utils.path_config', sample_config):
+        with patch.dict('webapp.utils.app_config', sample_config):
             with rig_test_client() as app:
                 authenticate(app)
                 with mock_s3_deprecated():
@@ -45,12 +47,13 @@ class UploadFileTestCase(unittest.TestCase):
 
 
 class MergeFileTestCase(unittest.TestCase):
-    def test_good_file(self):
+    @requests_mock.mock()
+    def test_good_file(self, request_mock):
         sample_config = {
             'raw_uploads_path': 's3://test-bucket/{jurisdiction}/{event_type}/uploaded/{date}/{upload_id}',
             'merged_uploads_path': 's3://test-bucket/{jurisdiction}/{event_type}/merged'
         }
-        with patch.dict('webapp.utils.path_config', sample_config):
+        with patch.dict('webapp.utils.app_config', sample_config):
             with rig_test_client() as app:
                 authenticate(app)
                 with mock_s3_deprecated():
@@ -60,6 +63,7 @@ class MergeFileTestCase(unittest.TestCase):
                     # present in s3 and metadata in the database
                     # use the upload file endpoint as a shortcut for setting
                     # this environment up quickly, though this is not ideal
+                    request_mock.get(re.compile('/match/boone/hmis_service_stays'), text='stuff')
                     response = app.post(
                         '/api/upload/upload_file?jurisdiction=boone&eventType=hmis_service_stays',
                         content_type='multipart/form-data',
