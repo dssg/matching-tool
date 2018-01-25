@@ -21,6 +21,15 @@ Integrating HMIS and criminal-justice data
 1. `cd frontend && npm run start` to watch JS files and recompile
 2. `python webapp/app.py` to run the Flask server
 
+## Browser Support
+The web app is tested on the following browsers:
+
+- Firefox 52 and above
+- Chrome 61
+- IE 11
+
+If you test with any other browsers, add them to this list!
+
 ## S3 Credentials
 This project utilizes [smart_open](https://github.com/RaRe-Technologies/smart_open) for S3 connectivity, which itself uses [Boto 2](http://boto.cloudhackers.com/en/latest/). Credentials are handled at the Boto level, so you may utilize either environment variables or Boto config files to pass credentials to the application.
 
