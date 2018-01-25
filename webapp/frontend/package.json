@@ -11,7 +11,7 @@
     "test:watch": "node_modules/.bin/jest --watch --coverage",
     "start": "node_modules/.bin/webpack --progress --colors --watch",
     "build": "node_modules/.bin/webpack --progress --colors",
-	"acceptance": "node_modules/.bin/nightwatch"
+    "acceptance": "node_modules/.bin/nightwatch"
   },
   "repository": {
     "type": "git",
@@ -23,6 +23,7 @@
     "url": "https://github.com/dssg/csh/issues"
   },
   "dependencies": {
+    "babel-polyfill": "^6.26.0",
     "d3": "3.5.17",
     "d3-sankey-align": "^0.1.0",
     "immutability-helper": "^2.4.0",
@@ -45,7 +46,8 @@
     "redux": "^3.7.2",
     "redux-logger": "^3.0.6",
     "redux-thunk": "^2.2.0",
-    "venn.js": "^0.2.15"
+    "venn.js": "^0.2.15",
+    "whatwg-fetch": "^2.0.3"
   },
   "devDependencies": {
     "babel-cli": "^6.5.2",
