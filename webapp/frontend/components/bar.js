@@ -59,7 +59,6 @@ export default class DurationBarChart extends React.Component {
                 <VerticalBarSeries
                   data={entry}
                   key={idx}
-                  onValueClick={(datapoint, event) => {console.log(datapoint)}}
                   opacity={0.8} />
               ))}
             </FlexibleXYPlot>
@@ -71,7 +70,6 @@ export default class DurationBarChart extends React.Component {
               style={{
                 fontSize: 16
                 }}
-              onItemClick={(Object, number) => {console.log(Object)}}
               items={["0 day", "1 day", "2-9 days", "10-89 days", "90+ days"]} />
           </div>
         </div>

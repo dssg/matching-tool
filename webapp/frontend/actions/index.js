@@ -121,8 +121,8 @@ export function showMatchingResults(data) {
 export function getMatchingResults(start, end) {
   return function(dispatch) {
     return $.ajax({
-      url: '/api/chart/get_schema/start='+ start + '&end=' + end,
-      dataType: 'json',
+      url: '/api/chart/get_schema',
+      data: {start: start, end: end},
       method: 'GET'
     })
     .then((data) => {

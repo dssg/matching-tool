@@ -12,8 +12,10 @@ chart_api = Blueprint('chart_api', __name__, url_prefix='/api/chart')
 
 SAMPLE_DATA_DIR = 'sample_data/results_input/'
 
-@chart_api.route('/get_schema/start=<string:start>&end=<string:end>', methods=['GET'])
-def get_records_by_time(start, end):
+@chart_api.route('/get_schema', methods=['GET'])
+def get_records_by_time():
+    start = request.args.get('start')
+    end = request.args.get('end')
     records = query.get_records_by_time(start, end)
     return jsonify(result=records)
 
