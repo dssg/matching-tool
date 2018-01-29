@@ -17,7 +17,6 @@ import {
 } from '../constants/index'
 import { length, filter } from 'ramda'
 import { validJurisdictions } from '../utils/jurisdictions'
-import $ from 'jquery'
 
 export function selectEventType(eventType) {
   return {

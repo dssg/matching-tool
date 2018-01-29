@@ -215,7 +215,7 @@ def init_app_with_options(app, datastore, **options):
     security.datastore = datastore
     populate_data(app, datastore)
 
-def create_and_populate_matched_tabel(table_name, file_path, db_engine):
+def create_and_populate_matched_table(table_name, file_path, db_engine):
     create_table_query = f"""
             CREATE SCHEMA IF NOT EXISTS matched;
             DROP TABLE IF EXISTS matched.{table_name};

@@ -7,7 +7,7 @@ import boto
 import requests_mock
 from webapp.tests.utils import rig_test_client, rig_test_client_with_engine,\
     authenticate,\
-    create_and_populate_raw_table, create_and_populate_matched_tabel, load_json_example
+    create_and_populate_raw_table, create_and_populate_matched_table, load_json_example
 from datetime import date
 from smart_open import smart_open
 from webapp.database import db_session
@@ -28,10 +28,10 @@ class GetMatchedResultsCase(unittest.TestCase):
             authenticate(app)
             # Create matched jail_bookings
             table_name = 'jail_bookings'
-            create_and_populate_matched_tabel(table_name, MATCHED_BOOKING_FILE, engine)
+            create_and_populate_matched_table(table_name, MATCHED_BOOKING_FILE, engine)
             # Create matched hmis_service_stays
             table_name = 'hmis_service_stays'
-            create_and_populate_matched_tabel(table_name, MATCHED_HMIS_FILE, engine)
+            create_and_populate_matched_table(table_name, MATCHED_HMIS_FILE, engine)
             response = app.get(
                 '/api/chart/get_schema?start=2017-12-01&end=2018-01-01',
             )
