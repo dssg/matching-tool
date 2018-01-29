@@ -6,7 +6,7 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const rootAssetPath = './'
 
 module.exports = {
-  entry: './index.js',
+  entry: ['babel-polyfill', 'whatwg-fetch', path.resolve(__dirname, './index.js')],
   output: {
     path: '../webapp/static/',
     publicPath: 'http://localhost:2992/assets/',
