@@ -17,6 +17,7 @@ import {
 } from '../constants/index'
 import { length, filter } from 'ramda'
 import { validJurisdictions } from '../utils/jurisdictions'
+import $ from 'jquery'
 
 export function selectEventType(eventType) {
   return {
@@ -114,20 +115,17 @@ export function syncAvailableRoles() {
 export function showMatchingResults(data) {
   return {
     type: MATCHING_RESULTS,
-    payload: data.result
+    payload: data.results
   }
 }
 
 export function getMatchingResults(start, end) {
   return function(dispatch) {
-    return $.ajax({
-      url: '/api/chart/get_schema',
-      data: {start: start, end: end},
-      method: 'GET'
-    })
-    .then((data) => {
-      return dispatch(showMatchingResults(data))
-    })
+    return fetch('api/chart/get_schema?start='+start+'&end='+end, { method: 'GET', dataType: 'json' })
+        .then((resp) => resp.json())
+        .then((data) => {
+          dispatch(showMatchingResults(data))
+        })
   }
 }
 

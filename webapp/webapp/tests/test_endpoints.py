@@ -5,17 +5,41 @@ import json
 from moto import mock_s3_deprecated
 import boto
 import requests_mock
-from webapp.tests.utils import rig_test_client,\
+from webapp.tests.utils import rig_test_client, rig_test_client_with_engine,\
     authenticate,\
-    create_and_populate_raw_table
+    create_and_populate_raw_table, create_and_populate_matched_tabel, load_json_example
 from datetime import date
 from smart_open import smart_open
 from webapp.database import db_session
 from webapp.models import Upload, MergeLog
 import unicodecsv as csv
+import pandas as pd
+from sqlalchemy import create_engine
 
 
 GOOD_HMIS_FILE = 'sample_data/uploader_input/hmis-fake-0.csv'
+MATCHED_BOOKING_FILE = 'sample_data/matched/matched_bookings_data_20171207.csv'
+MATCHED_HMIS_FILE = 'sample_data/matched/matched_hmis_data_20171207.csv'
+
+
+class GetMatchedResultsCase(unittest.TestCase):
+    def test_matched_results(self):
+        with rig_test_client_with_engine() as (app, engine):
+            authenticate(app)
+            # Create matched jail_bookings
+            table_name = 'jail_bookings'
+            create_and_populate_matched_tabel(table_name, MATCHED_BOOKING_FILE, engine)
+            # Create matched hmis_service_stays
+            table_name = 'hmis_service_stays'
+            create_and_populate_matched_tabel(table_name, MATCHED_HMIS_FILE, engine)
+            response = app.get(
+                '/api/chart/get_schema?start=2017-12-01&end=2018-01-01',
+            )
+            self.assertEqual(response.status_code, 200)
+            response_data = json.loads(response.get_data().decode('utf-8'))
+            expected_data = load_json_example('sample_data/results_input/results_12012017_01012018.json')
+            self.assertDictEqual(response_data, expected_data)
+
 
 class UploadFileTestCase(unittest.TestCase):
     def test_good_file(self):
@@ -89,3 +113,4 @@ class MergeFileTestCase(unittest.TestCase):
 
                     # and make sure that the merge log has a record of this
                     assert db_session.query(MergeLog).filter(MergeLog.upload_id == '123-456').one
+

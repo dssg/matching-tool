@@ -66,3 +66,24 @@ describe('confirmUpload', () => {
     })
   })
 })
+
+
+describe('getMatchingResults', () => {
+  it('should query and get the matched result based on the start and end time', () => {
+    const mockReturnJSON = JSON.parse(fs.readFileSync('../sample_data/results_input/results_12012017_01012018.json'))
+    fetchMock.getOnce(
+      'api/chart/get_schema?start=2017-12-01&end=2018-01-01',
+      {
+        body: mockReturnJSON,
+        headers: { 'content-type': 'application/json' }
+      }
+    )
+    const expectedActions = [
+      { type: constants.MATCHING_RESULTS, payload: mockReturnJSON.results },
+    ]
+    const store = mockStore({matchingResults: {}})
+    return store.dispatch(actions.getMatchingResults('2017-12-01', '2018-01-01')).then(() => {
+      expect(store.getActions()).toEqual(expectedActions)
+    })
+  })
+})
