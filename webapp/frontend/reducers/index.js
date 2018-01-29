@@ -12,13 +12,13 @@ import {
   SET_ERROR_MESSAGE,
   MATCHING_RESULTS,
   UPDATE_CONTROLLED_DATE,
-  UPDATE_DURATION,
   UPDATE_TABLE_DATA,
   UPDATE_SET_STATUS
 } from '../constants/index'
 import { combineReducers } from 'redux'
 import { routerReducer } from 'react-router-redux'
 import update from 'immutability-helper'
+
 
 const initialState = {
   app: {
@@ -45,10 +45,9 @@ const initialState = {
     availableJurisdictionalRoles: [],
     matchingResults: {
       filters: {
-        controlledDate: '2017-10-31',
-        duration: '1 month',
-        startDate: '2016-11-18',
-        endDate: '2017-11-18',
+        controlledDate: '',
+        startDate: '',
+        endDate: '',
         eventTypes: ['jail', 'hmis', 'intersection'],
         setStatus: 'All'
       },
@@ -115,16 +114,6 @@ const app = createReducer(initialState, {
       matchingResults: {
         filters: {
           controlledDate: {$set: payload}
-        }
-      }
-    })
-    return newState
-  },
-  [UPDATE_DURATION]: (state, payload) => {
-    const newState = update(state, {
-      matchingResults: {
-        filters: {
-          duration: {$set: payload}
         }
       }
     })

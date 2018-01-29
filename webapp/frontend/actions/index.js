@@ -118,11 +118,11 @@ export function showMatchingResults(data) {
   }
 }
 
-export function getMatchingResults(d) {
+export function getMatchingResults(start, end) {
   return function(dispatch) {
     return $.ajax({
-      url: '/api/chart/get_full_json_for_view'+d,
-      dataType: 'json',
+      url: '/api/chart/get_schema',
+      data: {start: start, end: end},
       method: 'GET'
     })
     .then((data) => {
@@ -137,14 +137,6 @@ export function updateControlledDate(date) {
     payload: date
   }
 }
-
-export function updateDuration(data) {
-  return {
-    type: UPDATE_DURATION,
-    payload: data
-  }
-}
-
 
 function saveMergeResults(results) {
   return {

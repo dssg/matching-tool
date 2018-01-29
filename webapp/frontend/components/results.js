@@ -4,6 +4,7 @@ import Drawer from 'material-ui/Drawer'
 import DurationBarChart from './bar'
 import FloatingActionButton from 'material-ui/FloatingActionButton'
 import Header from './header'
+import moment from 'moment'
 import MenuItem from 'material-ui/MenuItem'
 import NavigationClose from 'material-ui/svg-icons/navigation/close'
 import RaisedButton from 'material-ui/RaisedButton'
@@ -12,7 +13,7 @@ import SelectField from 'material-ui/SelectField'
 import TableList from './table'
 import Venn from './venn'
 import { connect } from 'react-redux'
-import { getMatchingResults, updateControlledDate, updateDuration } from '../actions'
+import { getMatchingResults, updateControlledDate } from '../actions'
 import { Card, CardTitle } from 'material-ui/Card'
 
 const styles = {
@@ -79,7 +80,6 @@ function mapStateToProps(state) {
   return {
     matchingResults: state.app.matchingResults,
     controlledDate: state.app.matchingResults.filters.controlledDate,
-    duration: state.app.matchingResults.filters.duration,
     startDate: state.app.matchingResults.filters.startDate,
     endDate: state.app.matchingResults.filters.endDate,
     jailCount: state.app.matchingResults.vennDiagramData[0]["size"],
@@ -93,14 +93,11 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
   return {
-    updateMatchingResults: (d) => {
-      dispatch(getMatchingResults(d))
+    updateMatchingResults: (start, end) => {
+      dispatch(getMatchingResults(start, end))
     },
     handleControlledDate: (event, date) => {
       dispatch(updateControlledDate(date))
-    },
-    handleDurationChange: (event, index, value) => {
-      dispatch(updateDuration(value))
     },
   }
 }
@@ -112,6 +109,7 @@ class Results extends React.Component {
       open: true,
       barFlag: false,
       flagJailBar: true,
+      duration: [1, "year", 4]
     }
   }
 
@@ -128,11 +126,32 @@ class Results extends React.Component {
   }
 
   handleSearch = () => {
-    this.props.updateMatchingResults("2")
+    var date = moment(this.props.controlledDate).format('YYYY-MM-DD')
+    var newdate = moment(date).subtract(this.state.duration[0], this.state.duration[1]).format('YYYY-MM-DD')
+    this.props.updateMatchingResults(newdate, date)
   }
 
   handleClick = () => {
     this.setState({barFlag: !this.state.barFlag})
+  }
+
+  handleDurationChange = (event, index, value) => {
+    if (value == 1) {
+      var d = [1, "month", value]
+    }
+    else if (value == 2) {
+      var d = [3, "months", value]
+    }
+    else if (value == 3) {
+      var d = [6, "months", value]
+    }
+    else if (value == 4) {
+      var d = [1, "year", value]
+    }
+    else if (value == 5) {
+      var d = [2, "years", value]
+    }
+    this.setState({duration: d})
   }
 
   intersectionPercentage = () => {
@@ -146,7 +165,9 @@ class Results extends React.Component {
   }
 
   componentDidMount() {
-    this.props.updateMatchingResults("1")
+    var today = new moment().format("YYYY-MM-DD")
+    var oneYearAgo = moment(today).subtract(1, "year").format("YYYY-MM-DD")
+    this.props.updateMatchingResults(oneYearAgo, today)
   }
 
   renderTable() {
@@ -247,12 +268,14 @@ class Results extends React.Component {
                   <h5>Duration:</h5>
                   <h5>
                     <SelectField
-                      value={this.props.duration}
-                      onChange={this.props.handleDurationChange}
+                      value={this.state.duration[2]}
+                      onChange={this.handleDurationChange}
                       maxHeight={200} >
-                      <MenuItem value={30} key={1} primaryText={`1 Month`} />
-                      <MenuItem value={90} key={2} primaryText={`3 Months`} />
-                      <MenuItem value={365} key={3} primaryText={`1 Year`} />
+                      <MenuItem value={1} key={1} primaryText={`1 Month`} />
+                      <MenuItem value={2} key={2} primaryText={`3 Months`} />
+                      <MenuItem value={3} key={3} primaryText={`6 Months`} />
+                      <MenuItem value={4} key={4} primaryText={`1 Year`} />
+                      <MenuItem value={5} key={5} primaryText={`2 Years`} />
                     </SelectField>
                   </h5>
                   <RaisedButton
