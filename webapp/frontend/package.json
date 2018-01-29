@@ -23,6 +23,7 @@
     "url": "https://github.com/dssg/csh/issues"
   },
   "dependencies": {
+    "css-font-roboto": "^1.0.0",
     "d3": "3.5.17",
     "d3-sankey-align": "^0.1.0",
     "immutability-helper": "^2.4.0",

@@ -5,7 +5,7 @@ import logging
 logger = logging.getLogger('matcher')
 
 import pandas as pd
-from io import StringIO
+from io import StringIO, BytesIO
 import boto3
 import psycopg2
 import smart_open
@@ -143,6 +143,8 @@ def read_matched_data_from_postgres(table_name, pg_keys):
     return dat
 
 
+S3_KWARGS = {'endpoint_url': 'http://s3:3000'}
+
 def write_matched_data_to_postgres(bucket, key, table_name, pg_keys):
     conn = psycopg2.connect(**pg_keys)
     cur = conn.cursor()
@@ -159,7 +161,9 @@ def write_matched_data_to_postgres(bucket, key, table_name, pg_keys):
     cur.execute(create_table_query)
 
     logger.info(f'Inserting data into matched.{table_name}')
-    with smart_open.smart_open(f's3://{bucket}/{key}') as f:
+    s3_resource = boto3.resource('s3', **S3_KWARGS)
+    obj = s3_resource.Object(bucket, key)
+    with BytesIO(obj.get()['Body'].read()) as f:
         copy_query = f"""
             COPY matched.{table_name} FROM STDIN WITH CSV HEADER DELIMITER AS '|'
         """
@@ -177,8 +181,19 @@ def write_matched_data_to_postgres(bucket, key, table_name, pg_keys):
 def write_to_s3(df, bucket, key):
     csv_buffer = StringIO()
     df.to_csv(csv_buffer, sep='|', index=False)
-    s3_resource = boto3.resource('s3')
+    s3_resource = boto3.resource('s3', **S3_KWARGS)
     s3_resource.Object(bucket, key).put(Body=csv_buffer.getvalue())
+
+
+def read_from_s3(bucket, key):
+    logger.info('Reading object at %s, %s', bucket, key)
+    s3_resource = boto3.resource('s3', **S3_KWARGS)
+    logger.info('Connected to s3 resource')
+    obj = s3_resource.Object(bucket, key)
+    logger.info('Found s3 object %s', obj)
+    df = pd.read_csv(BytesIO(obj.get()['Body'].read()), sep='|')
+    logger.info('DF found: %s', df)
+    return df
 
 
 def get_source_id(df):

@@ -9,6 +9,7 @@ import {
   SAVE_UPLOAD_RESPONSE,
   RESET_UPLOAD_RESPONSE,
   SAVE_MERGE_RESULTS,
+  RESET_MERGE_RESULTS,
   SET_ERROR_MESSAGE,
   MATCHING_RESULTS,
   UPDATE_CONTROLLED_DATE,
@@ -127,6 +128,11 @@ const app = createReducer(initialState, {
       }
     })
     return newState
+  },
+  [RESET_MERGE_RESULTS]: (state) => {
+    return update(state, {
+      mergeResults: {$set: initialState.app.mergeResults}
+    })
   },
   [UPDATE_TABLE_DATA]: (state, payload) => {
     const newState = update(state, {

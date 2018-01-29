@@ -10,6 +10,7 @@ import { syncHistoryWithStore, routerReducer } from 'react-router-redux'
 
 import configureStore from './store/configureStore'
 import { rootReducer, initialState } from './reducers'
+//import '@css-font-roboto'
 
 const store = configureStore(initialState)
 //const history = syncHistoryWithStore(browserHistory, store)

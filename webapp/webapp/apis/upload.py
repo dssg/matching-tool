@@ -156,11 +156,13 @@ def upload_file():
                 upload_to_s3(upload_path, full_filename)
             except boto.exception.S3ResponseError as e:
                 logging.error(
-                    'Upload id %s failed to upload to s3: %s/%s/%s',
+                    'Upload id %s failed to upload to s3: %s/%s/%s. Path: %s Error: %s',
                     upload_id,
                     event_type,
                     jurisdiction,
-                    uploaded_file.filename
+                    uploaded_file.filename,
+                    upload_path,
+                    e
                 )
                 return jsonify(
                     status='error',
@@ -235,7 +237,7 @@ def merge_file():
                 logging.info('Merge succeeded. Now querying matcher')
                 notify_matcher(upload_log.jurisdiction_slug, upload_log.event_type_slug)
             except Exception as e:
-                logging.error('Error matching: ', e)
+                logging.error('Error matching: %s', e)
                 return make_response(jsonify(status='error'), 500)
             return jsonify(
                 status='valid',

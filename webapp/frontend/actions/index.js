@@ -8,6 +8,7 @@ import {
   SAVE_UPLOAD_RESPONSE,
   RESET_UPLOAD_RESPONSE,
   SAVE_MERGE_RESULTS,
+  RESET_MERGE_RESULTS,
   SET_ERROR_MESSAGE,
   MATCHING_RESULTS,
   UPDATE_CONTROLLED_DATE,
@@ -142,6 +143,12 @@ function saveMergeResults(results) {
   return {
     type: SAVE_MERGE_RESULTS,
     payload: results
+  }
+}
+
+export function resetMergeResults() {
+  return {
+    type: RESET_MERGE_RESULTS
   }
 }
 

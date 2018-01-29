@@ -25,8 +25,8 @@ services:
             - DEBUG=True
             - SECURITY_PASSWORD_SALT=abcdefg
             # S3 Configuration
-            - RAW_UPLOADS_PATH=s3://dsapp-criminal-justice/csh/matcher/{jurisdiction}/{event_type}/uploaded/{date}/{upload_id}
-            - MERGED_UPLOADS_PATH=s3://dsapp-criminal-justice/csh/matcher/{jurisdiction}/{event_type}/merged
+            - RAW_UPLOADS_PATH=s3://your-bucket/csh/matcher/{jurisdiction}/{event_type}/uploaded/{date}/{upload_id}
+            - MERGED_UPLOADS_PATH=s3://your-bucket/csh/matcher/{jurisdiction}/{event_type}/merged
             - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
             - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
             # Database connection
@@ -48,7 +48,7 @@ services:
             - 5001:5000 # HOST:CONTAINER
         environment:
             # File storage configuration
-            - S3_BUCKET=dsapp-criminal-justice
+            - S3_BUCKET=your-bucket
             - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
             - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
             # Matcher distance calculation configuration
@@ -67,3 +67,10 @@ services:
             - PGUSER=csh
             - PGDATABASE=csh
             - PGPASSWORD=csh
+    s3:
+        container_name: s3
+        image: michaelerasmus/docker-moto-server
+        environment:
+            - HTTP_HOST=s3:3000
+        expose: [3000]
+        command: ["s3", "-H", "0.0.0.0", "-p", "3000"]

@@ -16,6 +16,8 @@ import matcher.contraster as contraster
 import matcher.indexer as indexer
 import matcher.utils as utils
 
+from botocore.exceptions import ClientError
+
 
 # load dotenv
 APP_ROOT = os.path.join(os.path.dirname(__file__), '..')
@@ -93,7 +95,7 @@ def match(jurisdiction, event_type):
     app.logger.info(f"Reading data from {S3_BUCKET}/{jurisdiction}/{event_type}")
 
     merged_key = f'csh/matcher/{jurisdiction}/{event_type}/merged'
-    df1 = pd.read_csv(f's3://{S3_BUCKET}/{merged_key}', sep='|')
+    df1 = utils.read_from_s3(S3_BUCKET, merged_key)
 
     app.logger.info(f"Running matcher({KEYS},{INDEXER},{CONTRASTER}) for self-match")
     df1, df2 = matcher.run(df1, KEYS, indexer_func, contraster_func, CLUSTERING_PARAMS)
@@ -108,14 +110,14 @@ def match(jurisdiction, event_type):
 
     # Check if there is matched data available from the other source. If so,
     # match the two sets.
-    app.logger.debug("Self-matching stored. Trying to match to other data source.")
+    app.logger.info("Self-matching stored. Trying to match to other data source.")
 
     event_type_2 = NEXT_EVENT_TYPES[event_type]
     matched_key_2 = f'csh/matcher/{jurisdiction}/{event_type_2}/matched'
     
     try:
         app.logger.info(f"Trying to read data from {S3_BUCKET}/{jurisdiction}/{event_type_2}")
-        df2 = pd.read_csv(f's3://{S3_BUCKET}/{matched_key_2}', sep='|')
+        df2 = utils.read_from_s3(S3_BUCKET, matched_key_2)
         
         app.logger.info(f"Running matcher({KEYS},{INDEXER},{CONTRASTER}) to match two sources")
         df1, df2 = matcher.run(df1, KEYS, indexer_func, contraster_func, CLUSTERING_PARAMS, df2)
@@ -128,11 +130,16 @@ def match(jurisdiction, event_type):
         utils.write_matched_data_to_postgres(S3_BUCKET, matched_key_1, event_type, PG_CONNECTION)
         utils.write_matched_data_to_postgres(S3_BUCKET, matched_key_2, event_type_2, PG_CONNECTION)
 
-        app.logger.debug("Matching to other data scource done.")
-    except FileNotFoundError:
-        app.logger.debug("Matched data not available for other data source.")
+        app.logger.info("Matching to other data scource done.")
+    except ClientError as ex:
+        if ex.response['Error']['Code'] == 'NoSuchKey':
+            app.logger.info("Matched data not available for other data source.")
+        else:
+            raise
 
+    app.logger.info('Reading matched data from Postgres')
     df = utils.read_matched_data_from_postgres(event_type, PG_CONNECTION)
+    app.logger.info('Read matched data from Postgres: %s', df)
 
     response = make_response(df.to_json(orient='records'))
     response.headers["Content-Type"] = "text/json"
