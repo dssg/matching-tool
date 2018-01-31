@@ -67,3 +67,6 @@ services:
             - PGUSER=csh
             - PGDATABASE=csh
             - PGPASSWORD=csh
+
+    redis:
+       image: redis
