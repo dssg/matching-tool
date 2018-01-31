@@ -7,6 +7,8 @@ import ast
 from flask import Flask, jsonify, request
 from flask import make_response
 
+from redis import Redis
+
 from dotenv import load_dotenv
 
 import pandas as pd
@@ -50,6 +52,7 @@ NEXT_EVENT_TYPES = {
 
 # Initialize the app
 app = Flask(__name__)
+redis = Redis(host='redis', port=6379)
 
 # set config environment
 app.config.from_object(__name__)
@@ -97,7 +100,7 @@ def match(jurisdiction, event_type):
 
     app.logger.info(f"Running matcher({KEYS},{INDEXER},{CONTRASTER}) for self-match")
     df1, df2 = matcher.run(df1, KEYS, indexer_func, contraster_func, CLUSTERING_PARAMS)
-    
+
     app.logger.info('Self-matching complete. Writing data to disk.')
 
     matched_key_1 = f'csh/matcher/{jurisdiction}/{event_type}/matched'
@@ -112,11 +115,11 @@ def match(jurisdiction, event_type):
 
     event_type_2 = NEXT_EVENT_TYPES[event_type]
     matched_key_2 = f'csh/matcher/{jurisdiction}/{event_type_2}/matched'
-    
+
     try:
         app.logger.info(f"Trying to read data from {S3_BUCKET}/{jurisdiction}/{event_type_2}")
         df2 = pd.read_csv(f's3://{S3_BUCKET}/{matched_key_2}', sep='|')
-        
+
         app.logger.info(f"Running matcher({KEYS},{INDEXER},{CONTRASTER}) to match two sources")
         df1, df2 = matcher.run(df1, KEYS, indexer_func, contraster_func, CLUSTERING_PARAMS, df2)
 
@@ -137,7 +140,7 @@ def match(jurisdiction, event_type):
     response = make_response(df.to_json(orient='records'))
     response.headers["Content-Type"] = "text/json"
     return response
-    
+
 
 @app.route('/list/<jurisdiction>', methods=['POST'])
 def get_list(jurisdiction):
@@ -149,12 +152,10 @@ def get_list(jurisdiction):
             end_date = data.get('end_date', '')
         except ValueError:
             return jsonify(f"Invalid date: ({start_date}, {end_date})")
-        
+
         app.logger.debug(f"Filtering the list between dates {start_date} and {end_date}")
-        
+
     return jsonify({
         'status': 'not implemented',
         'message': 'nice try, but we are still working on it'
     })
-
-
