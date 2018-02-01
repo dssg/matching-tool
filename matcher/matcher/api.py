@@ -7,7 +7,10 @@ import ast
 from flask import Flask, jsonify, request
 from flask import make_response
 
+
 from redis import Redis
+from rq import Queue
+from rq.job import Job
 
 from dotenv import load_dotenv
 
@@ -58,6 +61,8 @@ redis = Redis(host='redis', port=6379)
 app.config.from_object(__name__)
 app.config.from_envvar('FLASK_SETTINGS', silent=True)
 
+q = Queue(connection=redis)
+
 
 @app.before_first_request
 def setup_logging():
@@ -65,7 +70,6 @@ def setup_logging():
         # In production mode, add log handler to sys.stderr.
         app.logger.addHandler(logging.StreamHandler())
         app.logger.setLevel(logging.DEBUG)
-
 
 
 @app.route('/')
@@ -87,7 +91,62 @@ def poke():
 
 @app.route('/match/<jurisdiction>/<event_type>', methods=['GET'])
 def match(jurisdiction, event_type):
+
     app.logger.debug("Someone wants to start a matching process!")
+
+    job = q.enqueue.call(
+        func=do_match,
+        args=(jurisdiction, event_type),
+        result_ttl=5000
+    )
+
+    app.logger.info(f"Job id {job.get_id()}")
+
+    response = make_response({"job": job.get_id()})
+    response.headers["Content-Type"] = "text/json"
+
+    return response
+
+
+@app.route('/match/results/<job_key>', methods=["GET"])
+def get_match_results(job_key):
+    job = Job.fetch(job_key, connection=conn)
+
+    if job.is_finished:
+        df = utils.read_matched_data_from_postgres(event_type, PG_CONNECTION)
+
+        response = make_response(df.to_json(orient='records'))
+        response.headers["Content-Type"] = "text/json"
+
+        return response
+
+    else:
+        return jsonify({
+            'status': 'not yet',
+            'message': 'nice try, but we are still working on it'
+        })
+
+
+@app.route('/list/<jurisdiction>', methods=['POST'])
+def get_list(jurisdiction):
+    app.logger.debug(f"Retrieving the list for the county {county}")
+    if request.method == 'POST':
+        try:
+            data = request.get_json()
+            start_date = data.get('start_date', '')
+            end_date = data.get('end_date', '')
+        except ValueError:
+            return jsonify(f"Invalid date: ({start_date}, {end_date})")
+
+        app.logger.debug(f"Filtering the list between dates {start_date} and {end_date}")
+
+    return jsonify({
+        'status': 'not implemented',
+        'message': 'nice try, but we are still working on it'
+    })
+
+
+def do_match(jurisdiction, event_type):
 
     indexer_func = getattr(indexer, INDEXER)
     contraster_func = getattr(contraster, CONTRASTER)
@@ -135,27 +194,5 @@ def match(jurisdiction, event_type):
     except FileNotFoundError:
         app.logger.debug("Matched data not available for other data source.")
 
-    df = utils.read_matched_data_from_postgres(event_type, PG_CONNECTION)
 
-    response = make_response(df.to_json(orient='records'))
-    response.headers["Content-Type"] = "text/json"
-    return response
-
-
-@app.route('/list/<jurisdiction>', methods=['POST'])
-def get_list(jurisdiction):
-    app.logger.debug(f"Retrieving the list for the county {county}")
-    if request.method == 'POST':
-        try:
-            data = request.get_json()
-            start_date = data.get('start_date', '')
-            end_date = data.get('end_date', '')
-        except ValueError:
-            return jsonify(f"Invalid date: ({start_date}, {end_date})")
-
-        app.logger.debug(f"Filtering the list between dates {start_date} and {end_date}")
-
-    return jsonify({
-        'status': 'not implemented',
-        'message': 'nice try, but we are still working on it'
-    })
+    return "Done!"
