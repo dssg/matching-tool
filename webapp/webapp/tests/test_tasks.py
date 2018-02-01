@@ -79,7 +79,7 @@ class TestUpsertRawTableToMaster(TestCase):
             for row in db_engine.execute(
                 '''select "Internal Event ID", "Full Name" from "{}" order by 1'''.format(master_table_name)
             )
-        ] 
+        ]
 
     def populate_seed_data(self, db_session):
         raw_table_name = '123-456'
