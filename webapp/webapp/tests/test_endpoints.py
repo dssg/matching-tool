@@ -17,7 +17,7 @@ import pandas as pd
 from sqlalchemy import create_engine
 
 
-GOOD_HMIS_FILE = 'sample_data/uploader_input/hmis-fake-0.csv'
+GOOD_HMIS_FILE = 'sample_data/uploader_input/hmis_service_stays/good.csv'
 MATCHED_BOOKING_FILE = 'sample_data/matched/matched_bookings_data_20171207.csv'
 MATCHED_HMIS_FILE = 'sample_data/matched/matched_hmis_data_20171207.csv'
 
@@ -65,7 +65,11 @@ class UploadFileTestCase(unittest.TestCase):
                     expected_s3_path = 's3://test-bucket/boone/hmis_service_stays/uploaded/{}/{}'.format(current_date, response_data['uploadId'])
                     with smart_open(expected_s3_path) as expected_s3_file:
                         with smart_open(GOOD_HMIS_FILE) as source_file:
-                            assert expected_s3_file.read() == source_file.read()
+                            # we do not expect the file on s3 to be the same as the
+                            # uploaded source file - missing columns should be filled in
+                            s3_df = pd.read_csv(expected_s3_file)
+                            source_df = pd.read_csv(source_file, sep='|')
+                            assert source_df.equals(s3_df[source_df.columns.tolist()])
 
                     assert db_session.query(Upload).filter(Upload.id == response_data['uploadId']).one
 

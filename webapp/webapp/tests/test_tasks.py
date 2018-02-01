@@ -53,31 +53,33 @@ def test_copy_raw_table_to_db():
             with smart_open(full_s3_path, 'w') as writefile:
                 writer = csv.writer(writefile)
                 for row in [
-                    [u'Internal Person ID', u'Internal Event ID', 'Full Name', 'Birthdate', 'SSN'],
-                    [u'123456', u'456789', 'Jack T. Ripper', '1896-04-10', '345-45-6789'],
-                    [u'123457', u'456780', 'Jack L. Ripper', '1896-04-10', '345-45-6780'],
+                    [u'Internal Person ID', u'Internal Event ID', u'Location ID', 'Full Name', 'Birthdate', 'SSN'],
+                    [u'123456', u'456789', u'A345', 'Jack T. Ripper', '1896-04-10', '345-45-6789'],
+                    [u'123457', u'456780', u'A345', 'Jack L. Ripper', '1896-04-10', '345-45-6780'],
+                    [u'123457', u'456780', u'A346', 'Jack L. Ripper', '1896-04-10', '345-45-6780'],
                 ]:
                     writer.writerow(row)
             jurisdiction = 'test'
             event_type = 'test'
             written_raw_table = copy_raw_table_to_db(full_s3_path, event_type, '123-456', engine)
-            assert sum(1 for _ in engine.execute('select * from "{}"'.format(written_raw_table))) == 2
+            assert sum(1 for _ in engine.execute('select * from "{}"'.format(written_raw_table))) == 3
 
 
 MASTER_TABLE_SEED_DATA = [
-    [u'123456', u'456789', 'Jack T. Ripper', '1896-04-10', '345-45-6789'],
-    [u'123457', u'456780', 'Jack L. Ripper', '1896-04-10', '345-45-6780'],
+    [u'123456', u'456789', u'A345', 'Jack T. Ripper', '1896-04-10', '345-45-6789'],
+    [u'123457', u'456780', u'A345', 'Jack L. Ripper', '1896-04-10', '345-45-6780'],
+    [u'123457', u'456780', u'A346', 'Jack L. Ripper', '1896-04-10', '345-45-6780'],
 ]
 
 class TestUpsertRawTableToMaster(TestCase):
     jurisdiction = 'test'
     event_type = 'test'
 
-    def get_event_ids_and_names(self, master_table_name, db_engine):
+    def get_pks_and_names(self, master_table_name, db_engine):
         return [
             row
             for row in db_engine.execute(
-                '''select "Internal Event ID", "Full Name" from "{}" order by 1'''.format(master_table_name)
+                '''select "Internal Event ID", "Location ID", "Full Name" from "{}" order by 1, 2'''.format(master_table_name)
             )
         ]
 
@@ -94,17 +96,18 @@ class TestUpsertRawTableToMaster(TestCase):
             # do initial insert, representing the first time data is uploaded
             self.populate_seed_data(db_session)
             master_table_name = generate_master_table_name(self.jurisdiction, self.event_type)
-            result = self.get_event_ids_and_names(master_table_name, db_session)
-            assert len(result) == 2
+            result = self.get_pks_and_names(master_table_name, db_session)
+            assert len(result) == 3
             assert result == [
-                ('456780', 'Jack L. Ripper'),
-                ('456789', 'Jack T. Ripper'),
+                ('456780', 'A345', 'Jack L. Ripper'),
+                ('456780', 'A346', 'Jack L. Ripper'),
+                ('456789', 'A345', 'Jack T. Ripper'),
             ]
             merge_logs = db_session.query(MergeLog).all()
             assert len(merge_logs) == 1
             assert merge_logs[0].upload_id == '123-456'
-            assert merge_logs[0].total_unique_rows == 2
-            assert merge_logs[0].new_unique_rows == 2
+            assert merge_logs[0].total_unique_rows == 3
+            assert merge_logs[0].new_unique_rows == 3
 
     def test_update_nonoverlapping(self):
         with testing.postgresql.Postgresql() as postgresql:
@@ -115,27 +118,28 @@ class TestUpsertRawTableToMaster(TestCase):
             self.populate_seed_data(db_session)
             raw_table_name = '234-567'
             new_data = [
-                [u'123458', u'456790', 'Jack F. Ripper', '1896-04-10', '345-45-6789'],
-                [u'123459', u'456791', 'Jack R. Ripper', '1896-04-10', '345-45-6780'],
+                [u'123458', u'456790', 'A345', 'Jack F. Ripper', '1896-04-10', '345-45-6789'],
+                [u'123459', u'456791', 'A345', 'Jack R. Ripper', '1896-04-10', '345-45-6780'],
             ]
             create_and_populate_raw_table('234-567', new_data, db_session.bind)
             upsert_raw_table_to_master(raw_table_name, self.jurisdiction, self.event_type, '234-567', db_session)
             master_table_name = generate_master_table_name(self.jurisdiction, self.event_type)
-            result = self.get_event_ids_and_names(master_table_name, db_session)
-            assert len(result) == 4
+            result = self.get_pks_and_names(master_table_name, db_session)
+            assert len(result) == 5
             assert result == [
-                ('456780', 'Jack L. Ripper'),
-                ('456789', 'Jack T. Ripper'),
-                ('456790', 'Jack F. Ripper'),
-                ('456791', 'Jack R. Ripper'),
+                ('456780', 'A345', 'Jack L. Ripper'),
+                ('456780', 'A346', 'Jack L. Ripper'),
+                ('456789', 'A345', 'Jack T. Ripper'),
+                ('456790', 'A345', 'Jack F. Ripper'),
+                ('456791', 'A345', 'Jack R. Ripper'),
             ]
             merge_logs = db_session.query(MergeLog).all()
             assert len(merge_logs) == 2
             assert merge_logs[0].upload_id == '123-456'
             assert merge_logs[1].upload_id == '234-567'
-            assert merge_logs[0].total_unique_rows == 2
+            assert merge_logs[0].total_unique_rows == 3
             assert merge_logs[1].total_unique_rows == 2
-            assert merge_logs[0].new_unique_rows == 2
+            assert merge_logs[0].new_unique_rows == 3
             assert merge_logs[1].new_unique_rows == 2
 
     def test_update_overlapping(self):
@@ -153,19 +157,20 @@ class TestUpsertRawTableToMaster(TestCase):
             NEW = '456791'
             raw_table_name = '234-567'
             new_data = [
-                [u'123458', UPDATED, 'Jack F. Ripper', '1896-04-10', '345-45-6789'],
-                [u'123459', NEW, 'Jack R. Ripper', '1896-04-10', '345-45-6780'],
+                [u'123458', UPDATED, 'A345', 'Jack F. Ripper', '1896-04-10', '345-45-6789'],
+                [u'123459', NEW, 'A345', 'Jack R. Ripper', '1896-04-10', '345-45-6780'],
             ]
             create_and_populate_raw_table('234-567', new_data, db_session.bind)
             upsert_raw_table_to_master(raw_table_name, self.jurisdiction, self.event_type, '234-567', db_session)
             master_table_name = generate_master_table_name(self.jurisdiction, self.event_type)
-            result = self.get_event_ids_and_names(master_table_name, db_session)
-            assert len(result) == 3
+            result = self.get_pks_and_names(master_table_name, db_session)
+            assert len(result) == 4
             # the duplicated event id should only be present once
             assert result == [
-                ('456780', 'Jack L. Ripper'),
-                ('456789', 'Jack F. Ripper'),
-                ('456791', 'Jack R. Ripper'),
+                ('456780', 'A345', 'Jack L. Ripper'),
+                ('456780', 'A346', 'Jack L. Ripper'),
+                ('456789', 'A345', 'Jack F. Ripper'),
+                ('456791', 'A345', 'Jack R. Ripper'),
             ]
             # let's check the timestamps
             timestamp_result = dict((row[0], (row[1], row[2])) for row in db_session.execute('''
@@ -183,7 +188,7 @@ class TestUpsertRawTableToMaster(TestCase):
             assert len(merge_logs) == 2
             assert merge_logs[0].upload_id == '123-456'
             assert merge_logs[1].upload_id == '234-567'
-            assert merge_logs[0].total_unique_rows == 2
+            assert merge_logs[0].total_unique_rows == 3
             assert merge_logs[1].total_unique_rows == 2
-            assert merge_logs[0].new_unique_rows == 2
+            assert merge_logs[0].new_unique_rows == 3
             assert merge_logs[1].new_unique_rows == 1

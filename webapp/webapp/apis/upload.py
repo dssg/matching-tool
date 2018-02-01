@@ -9,9 +9,10 @@ from webapp.tasks import \
     sync_upload_metadata,\
     copy_raw_table_to_db,\
     upsert_raw_table_to_master,\
-    sync_merged_file_to_s3
+    sync_merged_file_to_s3,\
+    add_missing_fields,\
+    validate_file
 from webapp.utils import unique_upload_id, s3_upload_path, schema_filename, notify_matcher
-from goodtables import validate
 from werkzeug.utils import secure_filename
 import requests
 import yaml
@@ -19,6 +20,7 @@ import logging
 import unicodecsv as csv
 import boto
 import os
+from io import BytesIO
 
 upload_api = Blueprint('upload_api', __name__, url_prefix='/api/upload')
 
@@ -78,10 +80,6 @@ def get_sample(saved_filename):
             except StopIteration:
                 break
         return sample_rows, reader.fieldnames
-
-
-def validate_file(request_file, event_type_slug):
-    return validate(request_file, schema=schema_filename(event_type_slug), format='csv')
 
 
 def can_access_file(upload_id):
@@ -147,13 +145,14 @@ def upload_file():
         filename = secure_filename(uploaded_file.filename)
         full_filename = os.path.join('/tmp', filename)
         uploaded_file.save(full_filename)
-        validation_report = validate_file(full_filename, event_type)
+        filename_with_all_fields = add_missing_fields(event_type, full_filename)
+        validation_report = validate_file(event_type, filename_with_all_fields)
         if validation_report['valid']:
             upload_id = unique_upload_id()
             row_count = validation_report['tables'][0]['row-count'] - 1
             upload_path = s3_upload_path(jurisdiction, event_type, upload_id)
             try:
-                upload_to_s3(upload_path, full_filename)
+                upload_to_s3(upload_path, filename_with_all_fields)
             except boto.exception.S3ResponseError as e:
                 logging.error(
                     'Upload id %s failed to upload to s3: %s/%s/%s',

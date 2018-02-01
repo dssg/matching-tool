@@ -8,6 +8,10 @@
             }
         },
         {
+            "name": "secondary_person_id",
+            "type": "string"
+        },
+        {
             "name": "internal_event_id",
             "type": "string",
             "constraints": {
@@ -44,18 +48,15 @@
         },
         {
             "name": "dob",
-            "type": "date",
-            "format": "any",
-            "constraints": {
-                "required": true
-            }
+            "type": "string"
+        },
+        {
+            "name": "dob_type",
+            "type": "string"
         },
 		{
 			"name": "ssn",
-			"type": "string",
-			"constraints": {
-				"required": true
-			}
+			"type": "string"
 		},
 		{
 			"name": "ssn_hash",
@@ -65,19 +66,20 @@
 			"name": "ssn_bigrams",
 			"type": "string"
 		},
+		{
+			"name": "ssn_data_quality",
+			"type": "string"
+		},
         {
             "name": "dmv_number",
-            "type": "string",
-            "constraints": {
-                "required": true
-            }
+            "type": "string"
         },
         {
             "name": "dmv_state",
             "type": "string",
-            "constraints": {
-                "required": true
-            }
+			"constraints": {
+				"maxLength": 2
+			}
         },
         {
             "name": "additional_id_number",
@@ -89,10 +91,11 @@
         },
         {
             "name": "race",
-            "type": "string",
-            "constraints": {
-                "required": true
-            }
+            "type": "string"
+        },
+        {
+            "name": "secondary_race",
+            "type": "string"
         },
         {
             "name": "ethnicity",
@@ -101,9 +104,9 @@
 		{
 			"name": "sex",
 			"type": "string",
-            "constraints": {
-                "required": true
-            }
+			"constraints": {
+				"enum": ["F", "M", "MT", "FT", "O", "D", "R", "N"]
+			}
 		},
 		{
 			"name": "street_address",
@@ -135,33 +138,21 @@
 		},
 		{
 			"name": "veteran_status",
-			"type": "string",
-            "constraints": {
-                "required": true
-            }
+			"type": "string"
 		},
 		{
 			"name": "disabling_condition",
-			"type": "string",
-            "constraints": {
-                "required": true
-            }
+			"type": "string"
 		},
         {
             "name": "project_start_date",
             "type": "date",
-            "format": "any",
-            "constraints": {
-                "required": true
-            }
+            "format": "%Y-%m-%d"
         },
         {
             "name": "project_exit_date",
             "type": "date",
-            "format": "any",
-            "constraints": {
-                "required": true
-            }
+            "format": "%Y-%m-%d"
         },
 		{
 			"name": "program_name",
@@ -172,92 +163,58 @@
 		},
 		{
 			"name": "program_type",
-			"type": "string",
-            "constraints": {
-                "required": true
-            }
+			"type": "string"
 		},
 		{
 			"name": "federal_program",
-			"type": "string",
-            "constraints": {
-                "required": true
-            }
+			"type": "string"
 		},
 		{
 			"name": "destination",
-			"type": "integer",
-            "constraints": {
-                "required": true
-            }
+			"type": "integer"
 		},
 		{
 			"name": "household_id",
-			"type": "string",
-            "constraints": {
-                "required": true
-            }
+			"type": "string"
 		},
 		{
 			"name": "household_relationship",
-			"type": "integer",
-            "constraints": {
-                "required": true
-            }
+			"type": "integer"
 		},
 		{
 			"name": "move_in_date",
-            "type": "date",
-            "format": "any",
-            "constraints": {
-                "required": true
-            }
+            "type": "string"
 		},
 		{
 			"name": "living_situation_type",
-			"type": "string",
-            "constraints": {
-                "required": true
-            }
+			"type": "string"
 		},
 		{
 			"name": "living_situation_length",
-			"type": "string",
-            "constraints": {
-                "required": true
-            }
+			"type": "string"
 		},
 		{
 			"name": "living_situation_start_date",
 			"type": "date",
-			"format": "any",
-            "constraints": {
-                "required": true
-            }
+			"format": "%Y-%m-%d"
 		},
 		{
 			"name": "times_on_street",
-			"type": "string",
-            "constraints": {
-                "required": true
-            }
+			"type": "string"
 		},
 		{
 			"name": "months_homeless",
-			"type": "string",
-            "constraints": {
-                "required": true
-            }
+			"type": "string"
 		},
 		{
 			"name": "client_location_start_date",
 			"type": "datetime",
-			"format": "%Y-%m-%d %H:%M:%S"
+			"format": "%Y-%m-%d"
 		},
 		{
 			"name": "client_location_end_date",
 			"type": "datetime",
-			"format": "%Y-%m-%d %H:%M:%S"
+			"format": "%Y-%m-%d"
 		},
 		{
 			"name": "client_location",
@@ -269,17 +226,15 @@
 		},
 		{
 			"name": "created_date",
-			"type": "datetime",
-			"format": "%Y-%m-%d %H:%M:%S.%f"
+			"type": "string"
 
 		},
 		{
 			"name": "updated_date",
-			"type": "datetime",
-			"format": "%Y-%m-%d %H:%M:%S.%f"
+			"type": "string"
 		}
     ],
     "trueValues": [ "true", "Y" ],
     "falseValues": [ "false", "N" ],
-	"primaryKey": "internal_event_id"
+	"primaryKey": ["internal_event_id"]
 }

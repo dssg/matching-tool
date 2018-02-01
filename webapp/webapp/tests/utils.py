@@ -233,8 +233,13 @@ def create_and_populate_matched_table(table_name, file_path, db_engine):
 
 def create_and_populate_raw_table(raw_table, data, db_engine):
     schema = load_schema_file('test')
+    n_fields = len(schema['fields'])
+    for row in data:
+        assert len(row) == n_fields, "sample raw data must have same # of fields as test schema"
+    placeholder_string = ', '.join(['%s'] * n_fields)
+
     create = create_statement_from_goodtables_schema(schema, raw_table)
     db_engine.execute(create)
     for row in data:
-        db_engine.execute('insert into "{}" values (%s, %s, %s, %s, %s)'.format(raw_table), *row)
+        db_engine.execute('insert into "{}" values ({})'.format(raw_table, placeholder_string), *row)
     db_engine.execute('insert into upload_log (id, jurisdiction_slug, event_type_slug) values (%s, %s, %s)', raw_table, 'test', 'test')
