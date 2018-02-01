@@ -1,5 +1,5 @@
 import React from 'react'
-import { resetUploadResponse, pickFile } from '../actions'
+import { resetAppState, pickFile } from '../actions'
 import PickDataType from './upload/pick-data-type'
 import UploadFile from './upload/upload-file'
 import ConfirmData from './upload/confirm-data'
@@ -36,8 +36,14 @@ function mapDispatchToProps(dispatch) {
       dispatch(pickFile(''))
     },
     resetUploadResponse: () => {
-      dispatch(resetUploadResponse())
+      dispatch(resetAppState('uploadResponse'))
     },
+    resetMergeResults: () => {
+      dispatch(resetAppState('mergeResults'))
+    },
+    resetEventType: () => {
+      dispatch(resetAppState('selectedEventType'))
+    }
   }
 }
 
@@ -49,6 +55,8 @@ class UploadPage extends React.Component {
   componentWillUnmount() {
     this.props.resetUploadResponse()
     this.props.resetFile()
+    this.props.resetMergeResults()
+    this.props.resetEventType()
   }
 
   renderStepContent() {

@@ -8,6 +8,7 @@ import {
   SAVE_UPLOAD_RESPONSE,
   RESET_UPLOAD_RESPONSE,
   SAVE_MERGE_RESULTS,
+  RESET_APP_STATE,
   SET_ERROR_MESSAGE,
   MATCHING_RESULTS,
   UPDATE_CONTROLLED_DATE,
@@ -139,6 +140,13 @@ function saveMergeResults(results) {
   return {
     type: SAVE_MERGE_RESULTS,
     payload: results
+  }
+}
+
+export function resetAppState(stateKey) {
+  return {
+    type: RESET_APP_STATE,
+    payload: stateKey
   }
 }
 
