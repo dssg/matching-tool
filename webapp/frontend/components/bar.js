@@ -31,11 +31,11 @@ export default class DurationBarChart extends React.Component {
           <div className="col-sm-8">
             <FlexibleXYPlot
               animation
-              margin={{ left: 100, right: 20, top: 20 }}
+              margin={{ left: 100, right: 1, top: 20 }}
               xType="ordinal"
               stackBy="y"
-              width={400}
-              height={350}>
+              width={300}
+              height={300}>
               <HorizontalGridLines />
               <YAxis
                 tickFormat={v => `${v}%`}
@@ -48,7 +48,7 @@ export default class DurationBarChart extends React.Component {
                 left={-80}
                 title={'Percent of Population'}
                 style={{
-                  text: {"fontSize": 16}
+                  text: {fontSize: 16}
                 }}
                 top={85} />
               <XAxis
@@ -65,7 +65,7 @@ export default class DurationBarChart extends React.Component {
           </div>
           <div className="col-sm-4">
             <DiscreteColorLegend
-              margin={{ left: 5, right: 1 }}
+              margin={{ left: 1, right: 1 }}
               orientation="vertical"
               style={{
                 fontSize: 16

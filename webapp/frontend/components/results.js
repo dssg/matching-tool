@@ -15,6 +15,7 @@ import Venn from './venn'
 import { connect } from 'react-redux'
 import { getMatchingResults, updateControlledDate } from '../actions'
 import { Card, CardTitle } from 'material-ui/Card'
+import html2canvas from 'html2canvas'
 
 const styles = {
   hr: {
@@ -74,6 +75,15 @@ const styles = {
     top: '2%',
     marginLeft: '85%'
   },
+}
+
+function downloadURI(uri, name) {
+    var link = document.createElement("a");
+
+    link.download = name;
+    link.href = uri;
+    document.body.appendChild(link);
+    link.click();
 }
 
 function mapStateToProps(state) {
@@ -154,6 +164,20 @@ class Results extends React.Component {
     this.setState({duration: d})
   }
 
+  handleDownloadChart = () => {
+    if (this.props.setStatus == "Jail" | this.props.setStatus == "All") {
+      var id = "#jailbarchart"
+    }
+    else {
+      var id = "#hmisbarchart"
+    }
+    html2canvas(document.querySelector(id)).then(canvas => {
+    // document.body.appendChild(canvas)
+    var dataURL = canvas.toDataURL()
+    downloadURI(canvas.toDataURL(), "barchart.png");
+    });
+  }
+
   intersectionPercentage = () => {
     var h = Math.floor((this.props.bothCount / this.props.homelessCount)*100)
     var j = Math.floor((this.props.bothCount / this.props.jailCount)*100)
@@ -182,7 +206,7 @@ class Results extends React.Component {
 
   renderHomelessBarChart() {
     return (
-      <Card style={styles.bar_chart}>
+      <Card style={styles.bar_chart} id='hmisbarchart'>
         <CardTitle title="Homeless Duration Bar Chart" titleStyle={{'fontSize': 20}} />
           <DurationBarChart data={this.props.matchingResults.filteredData.homelessBarData} />
       </Card>
@@ -191,7 +215,7 @@ class Results extends React.Component {
 
   renderJailBarChart() {
     return (
-      <Card style={styles.bar_chart}>
+      <Card style={styles.bar_chart} id='jailbarchart'>
         <CardTitle title="Jail Duration Bar Chart" titleStyle={{'fontSize': 20}} />
           <DurationBarChart data={this.props.matchingResults.filteredData.jailBarData} />
       </Card>
@@ -307,15 +331,14 @@ class Results extends React.Component {
                 secondary={true}
                 style={styles.button} />
             </div>
-            <a href={ this.state.barFlag ? "/api/chart/download/chart" : "/api/chart/download/list" }>
               <div style={styles.datepicker}>
                 <RaisedButton
                   label={ this.state.barFlag ? "Download Charts" : "Download List" }
                   labelStyle={{fontSize: '10px',}}
                   secondary={true}
+                  onClick={this.handleDownloadChart}
                   style={styles.button} />
               </div>
-            </a>
           </Drawer>
         </div>
         <div style={contentStyle}>
