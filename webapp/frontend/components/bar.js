@@ -48,13 +48,14 @@ export default class DurationBarChart extends React.Component {
                 left={-80}
                 title={'Percent of Population'}
                 style={{
-                  title: {fontSize: 16, color: '#000000'}
+                  title: {fontSize: 14, color: '#000000'}
                 }}
                 top={85} />
               <XAxis
                 style={{
                   ticks: {fontSize: 14}
-                }} />
+                }}
+              />
               {this.props.data.map((entry, idx) => (
                 <VerticalBarSeries
                   data={entry}
@@ -67,9 +68,6 @@ export default class DurationBarChart extends React.Component {
             <DiscreteColorLegend
               margin={{ left: 1, right: 1 }}
               orientation="vertical"
-              style={{
-                ticks: {fontSize: 14}
-                }}
               items={this.props.legendItemList} />
           </div>
         </div>

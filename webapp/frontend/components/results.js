@@ -182,7 +182,6 @@ class Results extends React.Component {
       var id = "#hmisbarchart"
     }
     html2canvas(document.querySelector(id)).then(canvas => {
-    // document.body.appendChild(canvas)
     var dataURL = canvas.toDataURL()
     downloadURI(canvas.toDataURL(), "barchart.png");
     });
