@@ -15,6 +15,7 @@ import Venn from './venn'
 import { connect } from 'react-redux'
 import { getMatchingResults, updateControlledDate } from '../actions'
 import { Card, CardTitle } from 'material-ui/Card'
+import {GridList, GridTile} from 'material-ui/GridList';
 import html2canvas from 'html2canvas'
 
 const styles = {
@@ -56,10 +57,12 @@ const styles = {
     width: '100%',
     expanded: true,
     marginLeft: 60,
-    marginRight: 7
+    marginRight: 7,
+    overflow: 'scroll',
   },
   bar_chart: {
-    width: '65%',
+    width: '100%',
+    height: '100%',
     marginLeft: 60,
   },
   button: {
@@ -75,6 +78,13 @@ const styles = {
     top: '2%',
     marginLeft: '85%'
   },
+  gridList: {
+    width: '100%',
+    overflowY: 'auto',
+  },
+  cardTitle: {
+    marginTop: 1
+  }
 }
 
 function downloadURI(uri, name) {
@@ -206,19 +216,55 @@ class Results extends React.Component {
 
   renderHomelessBarChart() {
     return (
-      <Card style={styles.bar_chart} id='hmisbarchart'>
-        <CardTitle title="Homeless Duration Bar Chart" titleStyle={{'fontSize': 20}} />
-          <DurationBarChart data={this.props.matchingResults.filteredData.homelessBarData} />
-      </Card>
+      <GridList
+        cellHeight='auto'
+        cols={1}
+        style={styles.gridList}
+        id='hmisbarchart'>
+        <GridTile>
+          <Card  style={styles.bar_chart}>
+            <CardTitle style={styles.cardTitle} title="Homeless Duration Bar Chart" titleStyle={{'fontSize': 18}} />
+            <DurationBarChart
+              data={this.props.matchingResults.filteredData.homelessDurationBarData}
+              legendItemList={["0 day", "1 day", "2-9 days", "10-89 days", "90+ days"]} />
+          </Card>
+        </GridTile>
+        <GridTile>
+          <Card style={styles.bar_chart}>
+            <CardTitle style={styles.cardTitle} title="Homeless # of Contact Bar Chart" titleStyle={{'fontSize': 18}} />
+            <DurationBarChart
+              data={this.props.matchingResults.filteredData.homelessContactBarData}
+              legendItemList={["1 contacts", "2-9 contacts", "10-99 contacts", "100-499 contacts", "500+ contacts"]} />
+          </Card>
+        </GridTile>
+      </GridList>
     )
   }
 
   renderJailBarChart() {
     return (
-      <Card style={styles.bar_chart} id='jailbarchart'>
-        <CardTitle title="Jail Duration Bar Chart" titleStyle={{'fontSize': 20}} />
-          <DurationBarChart data={this.props.matchingResults.filteredData.jailBarData} />
-      </Card>
+      <GridList
+        cellHeight='auto'
+        cols={1}
+        style={styles.gridList}
+        id='jailbarchart'>
+        <GridTile>
+          <Card style={styles.bar_chart}>
+            <CardTitle style={styles.cardTitle} title="Jail Duration Bar Chart" titleStyle={{'fontSize': 18}} />
+            <DurationBarChart
+              data={this.props.matchingResults.filteredData.jailDurationBarData}
+              legendItemList={["0 day", "1 day", "2-9 days", "10-89 days", "90+ days"]} />
+          </Card>
+        </GridTile>
+        <GridTile>
+          <Card style={styles.bar_chart}>
+            <CardTitle style={styles.cardTitle} title="Jail # of Contact Bar Chart" titleStyle={{'fontSize': 18}} />
+            <DurationBarChart
+              data={this.props.matchingResults.filteredData.jailContactBarData}
+              legendItemList={["1 contacts", "2-9 contacts", "10-99 contacts", "100-499 contacts", "500+ contacts"]} />
+          </Card>
+        </GridTile>
+      </GridList>
     )
   }
 

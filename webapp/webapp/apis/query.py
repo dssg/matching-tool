@@ -1,6 +1,6 @@
 import pandas as pd
 from webapp import db
-
+from collections import OrderedDict
 
 def get_table_data(filtered_bookings, filtered_hmis, unique_ids):
     table_data = []
@@ -24,9 +24,9 @@ def get_table_data(filtered_bookings, filtered_hmis, unique_ids):
             cumu_homeless_days = 0
 
         jail_contact = len(filtered_bookings[filtered_bookings.matched_id == unique_id])
-        homeless_contact = len(filtered_bookings[filtered_bookings.matched_id == unique_id])
+        homeless_contact = len(filtered_hmis[filtered_hmis.matched_id == unique_id])
 
-        person_data = {
+        person_data = OrderedDict({
             "matched_id": int(unique_id),
             "booking_id": ','.join(map(str,list(filtered_bookings[filtered_bookings.matched_id == unique_id].internal_event_id))),
             "hmis_id": ','.join(map(str,list(filtered_hmis[filtered_hmis.matched_id == unique_id].internal_person_id))),
@@ -39,12 +39,12 @@ def get_table_data(filtered_bookings, filtered_hmis, unique_ids):
             "total_contact": int(jail_contact + homeless_contact),
             "cumu_jail_days": int(cumu_jail_days),
             "cumu_hmis_days": int(cumu_homeless_days)
-        }
+        })
         table_data.append(person_data)
     return table_data
 
 
-def get_bar_chart_data(data, shared_ids, data_name):
+def get_duration_bar_chart_data(data, shared_ids, data_name):
     intersection_data = data[data.matched_id.isin(shared_ids)]
     days_distribution = get_days_distribution(data)
     days_distribution_intersection = get_days_distribution(intersection_data)
@@ -53,31 +53,11 @@ def get_bar_chart_data(data, shared_ids, data_name):
         [
             {
                 "x": data_name,
-                "y": int(days_distribution.iloc[4])/len(data.matched_id.unique())*100
+                "y": int(days_distribution.iloc[0])/len(data.matched_id.unique())*100
             },
             {
                 "x": "Jail & Homeless",
-                "y": int(days_distribution_intersection.iloc[4])/len(intersection_data.matched_id.unique())*100
-            }
-        ],
-        [
-            {
-                "x": data_name,
-                "y": int(days_distribution.iloc[3])/len(data.matched_id.unique())*100
-            },
-            {
-                "x": "Jail & Homeless",
-                "y": int(days_distribution_intersection.iloc[3])/len(intersection_data.matched_id.unique())*100
-            }
-        ],
-        [
-            {
-                "x": data_name,
-                "y": int(days_distribution.iloc[2])/len(data.matched_id.unique())*100
-            },
-            {
-                "x": "Jail & Homeless",
-                "y": int(days_distribution_intersection.iloc[2])/len(intersection_data.matched_id.unique())*100
+                "y": int(days_distribution_intersection.iloc[0])/len(intersection_data.matched_id.unique())*100
             }
         ],
         [
@@ -93,21 +73,109 @@ def get_bar_chart_data(data, shared_ids, data_name):
         [
             {
                 "x": data_name,
-                "y": int(days_distribution.iloc[0])/len(data.matched_id.unique())*100
+                "y": int(days_distribution.iloc[2])/len(data.matched_id.unique())*100
             },
             {
                 "x": "Jail & Homeless",
-                "y": int(days_distribution_intersection.iloc[0])/len(intersection_data.matched_id.unique())*100
+                "y": int(days_distribution_intersection.iloc[2])/len(intersection_data.matched_id.unique())*100
+            }
+        ],
+        [
+            {
+                "x": data_name,
+                "y": int(days_distribution.iloc[3])/len(data.matched_id.unique())*100
+            },
+            {
+                "x": "Jail & Homeless",
+                "y": int(days_distribution_intersection.iloc[3])/len(intersection_data.matched_id.unique())*100
+            }
+        ],
+        [
+            {
+                "x": data_name,
+                "y": int(days_distribution.iloc[4])/len(data.matched_id.unique())*100
+            },
+            {
+                "x": "Jail & Homeless",
+                "y": int(days_distribution_intersection.iloc[4])/len(intersection_data.matched_id.unique())*100
             }
         ]
     ]
+
+
+def get_contact_bar_chart_data(data, shared_ids, data_name):
+    intersection_data = data[data.matched_id.isin(shared_ids)]
+    contacts_distribution = get_contacts_distribution(data)
+    contacts_distribution_intersection = get_contacts_distribution(intersection_data)
+
+    return [
+        [
+            {
+                "x": data_name,
+                "y": int(contacts_distribution.iloc[0])/len(data.matched_id.unique())*100
+            },
+            {
+                "x": "Jail & Homeless",
+                "y": int(contacts_distribution_intersection.iloc[0])/len(intersection_data.matched_id.unique())*100
+            }
+        ],
+        [
+            {
+                "x": data_name,
+                "y": int(contacts_distribution.iloc[1])/len(data.matched_id.unique())*100
+            },
+            {
+                "x": "Jail & Homeless",
+                "y": int(contacts_distribution_intersection.iloc[1])/len(intersection_data.matched_id.unique())*100
+            }
+        ],
+        [
+            {
+                "x": data_name,
+                "y": int(contacts_distribution.iloc[2])/len(data.matched_id.unique())*100
+            },
+            {
+                "x": "Jail & Homeless",
+                "y": int(contacts_distribution_intersection.iloc[2])/len(intersection_data.matched_id.unique())*100
+            }
+        ],
+        [
+            {
+                "x": data_name,
+                "y": int(contacts_distribution.iloc[3])/len(data.matched_id.unique())*100
+            },
+            {
+                "x": "Jail & Homeless",
+                "y": int(contacts_distribution_intersection.iloc[3])/len(intersection_data.matched_id.unique())*100
+            }
+        ],
+        [
+            {
+                "x": data_name,
+                "y": int(contacts_distribution.iloc[4])/len(data.matched_id.unique())*100
+            },
+            {
+                "x": "Jail & Homeless",
+                "y": int(contacts_distribution_intersection.iloc[4])/len(intersection_data.matched_id.unique())*100
+            }
+        ]
+    ]
+
 
 def get_days_distribution(data):
     return pd.cut(
         data.groupby('matched_id').days.sum(),
         [0, 1, 2, 10, 90, 1000],
         right=False
-    ).value_counts()
+    ).value_counts(sort=False)
+
+def get_contacts_distribution(data):
+    contact = data.groupby('matched_id').matched_id.count()
+    return pd.cut(
+        contact,
+        bins=[1, 2, 10, 100, 500, 1000],
+        right=False
+    ).value_counts(sort=False)
 
 def get_records_by_time(start_time, end_time):
     query = """
@@ -188,14 +256,18 @@ def get_records_by_time(start_time, end_time):
     # Handle the case that empty query results in ZeroDivisionError
     try:
         filtered_data = {
-            "jailBarData": get_bar_chart_data(filtered_bookings, shared_ids, 'Jail'),
-            "homelessBarData": get_bar_chart_data(filtered_hmis, shared_ids, 'Homeless'),
+            "jailDurationBarData": get_duration_bar_chart_data(filtered_bookings, shared_ids, 'Jail'),
+            "homelessDurationBarData": get_duration_bar_chart_data(filtered_hmis, shared_ids, 'Homeless'),
+            "jailContactBarData": get_contact_bar_chart_data(filtered_bookings, shared_ids, 'Jail'),
+            "homelessContactBarData": get_contact_bar_chart_data(filtered_hmis, shared_ids, 'Homeless'),
             "tableData": get_table_data(filtered_bookings, filtered_hmis, list(set(list(filtered_bookings.matched_id.unique())+list(filtered_hmis.matched_id.unique()))))
         }
     except:
         filtered_data = {
-            "jailBarData": None,
-            "homelessBarData": None,
+            "jailDurationBarData": None,
+            "homelessDurationBarData": None,
+            "jailContactBarData": None,
+            "homelessContactBarData": None,
             "tableData": get_table_data(filtered_bookings, filtered_hmis, list(set(list(filtered_bookings.matched_id.unique())+list(filtered_hmis.matched_id.unique()))))
         }
     return {
