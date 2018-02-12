@@ -83,7 +83,7 @@ class Venn extends React.Component {
         node.select("path").style("fill-opacity", .65)
                            .style("stroke-width", 0)
         node.select("text").style("font-weight", "100")
-                           .style("font-size", "18px")
+                           .style("font-size", "14px")
         tooltip.style("opacity", 0)
       })
       .on("mousemove", function() {

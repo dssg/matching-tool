@@ -58,8 +58,10 @@ const initialState = {
       vennDiagramData: [{sets: [''], size: null}, {sets: [''], size: null}, {sets: [''], size: null}],
       filteredData: {
         tableData: [],
-        jailBarData: [],
-        homelessBarData: [],
+        jailDurationBarData: [],
+        homelessDurationBarData: [],
+        jailContactBarData: [],
+        homelessContactBarData: []
       }
     }
   }

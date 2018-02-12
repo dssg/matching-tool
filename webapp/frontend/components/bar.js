@@ -28,19 +28,19 @@ export default class DurationBarChart extends React.Component {
     } else {
       return (
         <div>
-          <div className="col-sm-8">
+          <div className="col-sm-4">
             <FlexibleXYPlot
               animation
-              margin={{ left: 100, right: 20, top: 20 }}
+              margin={{ left: 100, right: 5, top: 20 }}
               xType="ordinal"
               stackBy="y"
-              width={400}
-              height={350}>
+              width={300}
+              height={280}>
               <HorizontalGridLines />
               <YAxis
                 tickFormat={v => `${v}%`}
                 style={{
-                  text: {fontSize: 16}
+                  ticks: {fontSize: 14}
                 }} />
               <YAxis
                 hideLine
@@ -48,13 +48,14 @@ export default class DurationBarChart extends React.Component {
                 left={-80}
                 title={'Percent of Population'}
                 style={{
-                  text: {"fontSize": 16}
+                  title: {fontSize: 14, color: '#000000'}
                 }}
                 top={85} />
               <XAxis
                 style={{
-                  text: {fontSize: 16}
-                }} />
+                  ticks: {fontSize: 14}
+                }}
+              />
               {this.props.data.map((entry, idx) => (
                 <VerticalBarSeries
                   data={entry}
@@ -63,14 +64,11 @@ export default class DurationBarChart extends React.Component {
               ))}
             </FlexibleXYPlot>
           </div>
-          <div className="col-sm-4">
+          <div className="col-sm-2">
             <DiscreteColorLegend
-              margin={{ left: 5, right: 1 }}
+              margin={{ left: 1, right: 1 }}
               orientation="vertical"
-              style={{
-                fontSize: 16
-                }}
-              items={["0 day", "1 day", "2-9 days", "10-89 days", "90+ days"]} />
+              items={this.props.legendItemList} />
           </div>
         </div>
       )
