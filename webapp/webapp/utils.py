@@ -1,6 +1,7 @@
 from uuid import uuid4
 
 import csv
+import itertools
 import json
 import tempfile
 from datetime import date
@@ -81,10 +82,10 @@ def column_list_from_goodtables_schema(goodtables_schema):
 
 def create_statement_from_column_list(column_list, table_name, primary_key):
     column_string = ', '.join(['"{}" {}'.format(column_name, column_type) for column_name, column_type in column_list])
-    return 'create table if not exists "{table_name}" ({column_string}, primary key ("{primary_key}"))'.format(
+    return 'create table if not exists "{table_name}" ({column_string}, primary key ({primary_key}))'.format(
         table_name=table_name,
         column_string=column_string,
-        primary_key=primary_key
+        primary_key=', '.join(["\"{}\"".format(col) for col in primary_key])
     )
 
 
@@ -109,3 +110,9 @@ def notify_matcher(jurisdiction, event_type):
     )
     if matcher_response.status_code != 200:
         raise RuntimeError(matcher_response.json())
+
+
+def lower_first(iterator):
+    return itertools.chain([next(iterator).lower()], iterator)
+
+

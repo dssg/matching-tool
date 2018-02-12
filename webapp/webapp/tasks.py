@@ -1,20 +1,25 @@
 from smart_open import smart_open
 from datetime import datetime
+from goodtables import validate
 from webapp.models import Upload, MergeLog
 from webapp.utils import load_schema_file,\
     create_statement_from_goodtables_schema,\
     column_list_from_goodtables_schema,\
     create_statement_from_column_list,\
     generate_master_table_name,\
-    merged_file_path
+    merged_file_path,\
+    schema_filename,\
+    lower_first
+from webapp.validations import CHECKS_BY_SCHEMA
 from hashlib import md5
 import logging
 import os
+import unicodecsv as csv
 
 
 def upload_to_s3(full_s3_path, local_filename):
-    with smart_open(local_filename) as infile:
-        with smart_open(full_s3_path, 'w') as outfile:
+    with smart_open(full_s3_path, 'w') as outfile:
+        with smart_open(local_filename) as infile:
             outfile.write(infile.read())
 
 
@@ -100,12 +105,12 @@ def upsert_raw_table_to_master(
         insert into {master}
         select raw.*, '{new_ts}' inserted_ts, '{new_ts}' updated_ts
         from "{raw}" as raw
-        on conflict ("{primary_key}")
+        on conflict ({primary_key})
         do update set {update_string}, updated_ts = '{new_ts}'
     '''.format(
         raw=raw_table_name,
         master=master_table_name,
-        primary_key=goodtables_schema['primaryKey'],
+        primary_key=', '.join(["\"{}\"".format(col) for col in goodtables_schema['primaryKey']]),
         update_string=', '.join(update_statements),
         new_ts=start_ts.isoformat()
     )
@@ -133,8 +138,7 @@ def new_unique_rows(master_table_name, new_ts, db_session):
 def total_unique_rows(raw_table_name, primary_key, db_engine):
     return [
         row[0] for row in
-        db_engine.execute('select count(distinct "{}") from "{}"'.format(
-            primary_key,
+        db_engine.execute('select count(*) from "{}"'.format(
             raw_table_name
         )
     )][0]
@@ -147,3 +151,37 @@ def sync_merged_file_to_s3(jurisdiction, event_type, db_engine):
         cursor = db_engine.raw_connection().cursor()
         copy_stmt = 'copy "{}" to stdout with csv header delimiter as \'|\''.format(table_name)
         cursor.copy_expert(copy_stmt, outfile)
+
+
+
+
+def add_missing_fields(event_type, infilename):
+    goodtables_schema = load_schema_file(event_type)
+    schema_fields = [field['name'] for field in goodtables_schema['fields']]
+    outfilename = infilename + '.filled'
+    with open(infilename, 'rb' ) as infileobj, open(outfilename, 'wb') as outfileobj:
+        reader = csv.DictReader(lower_first(infileobj), delimiter='|')
+        writer = csv.DictWriter(outfileobj, fieldnames=schema_fields)
+        writer.writeheader()
+        for line in reader:
+            newline = {}
+            for field in schema_fields:
+                if field not in line:
+                    newline[field] = ''
+                else:
+                    newline[field] = line[field]
+            writer.writerow(newline)
+    return outfilename
+
+def validate_file(event_type, filename_with_all_fields, row_limit=1000):
+    report = validate(
+        filename_with_all_fields,
+        schema=schema_filename(event_type),
+        skip_checks=['required-constraint'],
+        checks=CHECKS_BY_SCHEMA[event_type],
+        order_fields=True,
+        row_limit=row_limit,
+        format='csv'
+    )
+
+    return report
