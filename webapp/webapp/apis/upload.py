@@ -136,8 +136,13 @@ def format_error_report(report, event_type_slug):
             formatted_error['idFields'][identifier_column] = error['row'][identifier_index]
         if error['row-number'] not in new_errors:
             new_errors[error['row-number']] = formatted_error
+        if error['column-number']:
+            column_number = error['column-number'] - 1
+            field_name = headers[column_number]
+        else:
+            field_name = ''
         error_fields = {
-            'fieldName': headers[error['column-number'] - 1],
+            'fieldName': field_name,
             'message': error['message'],
         }
         new_errors[error['row-number']]['errors'].append(error_fields)
@@ -181,6 +186,7 @@ def get_validated_result(job_key):
                     uploaded_file_name,
                     e.message
                 )
+                db_session.commit()
                 return jsonify({
                     'validation': {
                         'status': 'valid',
@@ -204,6 +210,7 @@ def get_validated_result(job_key):
                 s3_upload_path=upload_path,
             )
             sample_rows, field_names = get_sample(filename_with_all_fields)
+            db_session.commit()
             return jsonify({
                 'validation': {
                     'status': 'valid',
@@ -218,6 +225,7 @@ def get_validated_result(job_key):
                 }
             })
         else:
+            db_session.commit()
             return jsonify({
                 'validation': {
                     'jobKey': job_key,
@@ -232,6 +240,7 @@ def get_validated_result(job_key):
                 }
             })
     else:
+        db_session.commit()
         return jsonify({
             'validation': {
                 'jobKey': job_key,
@@ -280,7 +289,8 @@ def upload_file():
     event_type = request.args.get('eventType')
     if can_upload_file(jurisdiction, event_type):
         filenames = [key for key in request.files.keys()]
-        assert len(filenames) == 1
+        if len(filenames) != 1:
+            return jsonify(status='error', message='Exactly one file must be uploaded at a time')
         uploaded_file = request.files[filenames[0]]
         filename = secure_filename(uploaded_file.filename)
         cwd = os.getcwd()
@@ -344,7 +354,9 @@ def merge_file():
                 notify_matcher(upload_log.jurisdiction_slug, upload_log.event_type_slug, upload_id)
             except Exception as e:
                 logging.error('Error matching: ', e)
+                db_session.rollback()
                 return make_response(jsonify(status='error'), 500)
+            db_session.commit()
             return jsonify(
                 status='valid',
                 new_unique_rows=merge_log.new_unique_rows,
@@ -354,4 +366,5 @@ def merge_file():
             return jsonify(status='not authorized')
     except ValueError as e:
         logging.error('Error merging: ', e)
+        db_session.rollback()
         return make_response(jsonify(status='error'), 500)

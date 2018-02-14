@@ -161,7 +161,12 @@ def rig_test_client():
         app.config['SQLALCHEMY_DATABASE_URI'] = dburl
         app.config['WTF_CSRF_ENABLED'] = False
         init_app_with_options(app, user_datastore)
-        yield app.test_client()
+        try:
+            yield app.test_client()
+        finally:
+            db_session.remove()
+            engine.dispose()
+
 
 
 @contextlib.contextmanager
