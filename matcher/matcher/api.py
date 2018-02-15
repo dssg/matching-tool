@@ -8,8 +8,8 @@ from flask import Flask, jsonify, request
 from flask import make_response
 
 
-from redis import Redis, from_url
-from rq import Queue, Worker, Connection, get_current_job
+from redis import Redis
+from rq import Queue
 from rq.job import Job
 
 from dotenv import load_dotenv
