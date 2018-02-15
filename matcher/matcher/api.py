@@ -84,6 +84,9 @@ def poke():
 
 @app.route('/match/<jurisdiction>/<event_type>', methods=['GET'])
 def match(jurisdiction, event_type):
+    upload_id = request.args.get('uploadId', None)
+    if not upload_id:
+        return jsonify(status='invalid', reason='uploadId not present')
     app.logger.debug("Someone wants to start a matching process!")
 
     indexer_func = getattr(indexer, INDEXER)

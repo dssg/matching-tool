@@ -232,7 +232,7 @@ def merge_file():
             merge_log = db_session.query(MergeLog).get(merge_id)
             try:
                 logging.info('Merge succeeded. Now querying matcher')
-                notify_matcher(upload_log.jurisdiction_slug, upload_log.event_type_slug)
+                notify_matcher(upload_log.jurisdiction_slug, upload_log.event_type_slug, upload_id)
             except Exception as e:
                 logging.error('Error matching: ', e)
                 return make_response(jsonify(status='error'), 500)
