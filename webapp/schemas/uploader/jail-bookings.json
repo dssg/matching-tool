@@ -9,10 +9,7 @@
         },
         {
             "name": "internal_event_id",
-            "type": "string",
-            "constraints": {
-                "required": true
-            }
+            "type": "string"
         },
 		{
 			"name": "inmate_number",
@@ -44,11 +41,7 @@
         },
         {
             "name": "dob",
-            "type": "date",
-            "format": "any",
-            "constraints": {
-                "required": true
-            }
+            "type": "string"
         },
 		{
 			"name": "ssn",
@@ -68,17 +61,14 @@
 		},
         {
             "name": "dmv_number",
-            "type": "string",
-            "constraints": {
-                "required": true
-            }
+            "type": "string"
         },
         {
             "name": "dmv_state",
             "type": "string",
-            "constraints": {
-                "required": true
-            }
+			"constraints": {
+				"maxLength": 2
+			}
         },
         {
             "name": "additional_id_number",
@@ -156,19 +146,11 @@
 		},
         {
             "name": "jail_entry_date",
-            "type": "date",
-            "format": "any",
-            "constraints": {
-                "required": true
-            }
+            "type": "string"
         },
         {
             "name": "jail_exit_date",
-            "type": "date",
-            "format": "any",
-            "constraints": {
-                "required": true
-            }
+            "type": "string"
         },
 		{
 			"name": "homeless",
@@ -232,8 +214,7 @@
 		},
         {
             "name": "relocation_date",
-            "type": "date",
-            "format": "any"
+            "type": "string"
         },
 		{
 			"name": "case_number",
@@ -245,16 +226,14 @@
 		},
         {
             "name": "created_date",
-            "type": "date",
-            "format": "any"
+            "type": "string"
         },
         {
             "name": "updated_date",
-            "type": "date",
-            "format": "any"
+            "type": "string"
         }
     ],
+	"primaryKey": ["booking_number", "internal_event_id"],
     "trueValues": [ "Y", "true" ],
-    "falseValues": [ "N", "false" ],
-	"primaryKey": "internal_event_id"
+    "falseValues": [ "N", "false" ]
 }

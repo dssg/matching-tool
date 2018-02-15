@@ -15,6 +15,8 @@ import Venn from './venn'
 import { connect } from 'react-redux'
 import { getMatchingResults, updateControlledDate } from '../actions'
 import { Card, CardTitle } from 'material-ui/Card'
+import {GridList, GridTile} from 'material-ui/GridList';
+import html2canvas from 'html2canvas'
 
 const styles = {
   hr: {
@@ -55,10 +57,12 @@ const styles = {
     width: '100%',
     expanded: true,
     marginLeft: 60,
-    marginRight: 7
+    marginRight: 7,
+    overflow: 'scroll',
   },
   bar_chart: {
-    width: '65%',
+    width: '100%',
+    height: '100%',
     marginLeft: 60,
   },
   button: {
@@ -74,6 +78,22 @@ const styles = {
     top: '2%',
     marginLeft: '85%'
   },
+  gridList: {
+    width: '100%',
+    overflowY: 'auto',
+  },
+  cardTitle: {
+    marginTop: 1
+  }
+}
+
+function downloadURI(uri, name) {
+    var link = document.createElement("a");
+
+    link.download = name;
+    link.href = uri;
+    document.body.appendChild(link);
+    link.click();
 }
 
 function mapStateToProps(state) {
@@ -154,6 +174,19 @@ class Results extends React.Component {
     this.setState({duration: d})
   }
 
+  handleDownloadChart = () => {
+    if (this.props.setStatus == "Jail" | this.props.setStatus == "All") {
+      var id = "#jailbarchart"
+    }
+    else {
+      var id = "#hmisbarchart"
+    }
+    html2canvas(document.querySelector(id)).then(canvas => {
+    var dataURL = canvas.toDataURL()
+    downloadURI(canvas.toDataURL(), "barchart.png");
+    });
+  }
+
   intersectionPercentage = () => {
     var h = Math.floor((this.props.bothCount / this.props.homelessCount)*100)
     var j = Math.floor((this.props.bothCount / this.props.jailCount)*100)
@@ -182,19 +215,55 @@ class Results extends React.Component {
 
   renderHomelessBarChart() {
     return (
-      <Card style={styles.bar_chart}>
-        <CardTitle title="Homeless Duration Bar Chart" titleStyle={{'fontSize': 20}} />
-          <DurationBarChart data={this.props.matchingResults.filteredData.homelessBarData} />
-      </Card>
+      <GridList
+        cellHeight='auto'
+        cols={1}
+        style={styles.gridList}
+        id='hmisbarchart'>
+        <GridTile>
+          <Card  style={styles.bar_chart}>
+            <CardTitle style={styles.cardTitle} title="Homeless Duration Bar Chart" titleStyle={{'fontSize': 18}} />
+            <DurationBarChart
+              data={this.props.matchingResults.filteredData.homelessDurationBarData}
+              legendItemList={["0 day", "1 day", "2-9 days", "10-89 days", "90+ days"]} />
+          </Card>
+        </GridTile>
+        <GridTile>
+          <Card style={styles.bar_chart}>
+            <CardTitle style={styles.cardTitle} title="Homeless # of Contact Bar Chart" titleStyle={{'fontSize': 18}} />
+            <DurationBarChart
+              data={this.props.matchingResults.filteredData.homelessContactBarData}
+              legendItemList={["1 contacts", "2-9 contacts", "10-99 contacts", "100-499 contacts", "500+ contacts"]} />
+          </Card>
+        </GridTile>
+      </GridList>
     )
   }
 
   renderJailBarChart() {
     return (
-      <Card style={styles.bar_chart}>
-        <CardTitle title="Jail Duration Bar Chart" titleStyle={{'fontSize': 20}} />
-          <DurationBarChart data={this.props.matchingResults.filteredData.jailBarData} />
-      </Card>
+      <GridList
+        cellHeight='auto'
+        cols={1}
+        style={styles.gridList}
+        id='jailbarchart'>
+        <GridTile>
+          <Card style={styles.bar_chart}>
+            <CardTitle style={styles.cardTitle} title="Jail Duration Bar Chart" titleStyle={{'fontSize': 18}} />
+            <DurationBarChart
+              data={this.props.matchingResults.filteredData.jailDurationBarData}
+              legendItemList={["0 day", "1 day", "2-9 days", "10-89 days", "90+ days"]} />
+          </Card>
+        </GridTile>
+        <GridTile>
+          <Card style={styles.bar_chart}>
+            <CardTitle style={styles.cardTitle} title="Jail # of Contact Bar Chart" titleStyle={{'fontSize': 18}} />
+            <DurationBarChart
+              data={this.props.matchingResults.filteredData.jailContactBarData}
+              legendItemList={["1 contacts", "2-9 contacts", "10-99 contacts", "100-499 contacts", "500+ contacts"]} />
+          </Card>
+        </GridTile>
+      </GridList>
     )
   }
 
@@ -307,15 +376,14 @@ class Results extends React.Component {
                 secondary={true}
                 style={styles.button} />
             </div>
-            <a href={ this.state.barFlag ? "/api/chart/download/chart" : "/api/chart/download/list" }>
               <div style={styles.datepicker}>
                 <RaisedButton
                   label={ this.state.barFlag ? "Download Charts" : "Download List" }
                   labelStyle={{fontSize: '10px',}}
                   secondary={true}
+                  onClick={this.handleDownloadChart}
                   style={styles.button} />
               </div>
-            </a>
           </Drawer>
         </div>
         <div style={contentStyle}>

@@ -39,7 +39,8 @@ setup(
     url='https://github.com/dssg/csh',
     packages=[
         'webapp',
-        'webapp.apis'
+        'webapp.apis',
+        'webapp.validations'
     ],
     include_package_data=True,
     install_requires=REQUIREMENTS,

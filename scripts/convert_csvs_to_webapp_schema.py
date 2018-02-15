@@ -80,7 +80,7 @@ def get_table_data(filtered_bookings, filtered_hmis, unique_ids):
         else:
             last_jail_contact = None
             cumu_jail_days = 0
-        
+
         if unique_id in list(filtered_hmis.match_id):
             last_hmis_contact = filtered_hmis[filtered_hmis.match_id == unique_id].client_location_start_date.sort_values(ascending=False).iloc[0].strftime('%Y-%m-%d')
             cumu_homeless_days = filtered_hmis[filtered_hmis.match_id == unique_id].days.sum()
@@ -102,18 +102,17 @@ def get_table_data(filtered_bookings, filtered_hmis, unique_ids):
             "last_jail_contact": last_jail_contact,
             "last_hmis_contact": last_hmis_contact,
             "jail_contact": int(jail_contact),
-            "homeless_contact": int(homeless_contact),
+            "hmis_contact": int(homeless_contact),
             "total_contact": int(jail_contact + homeless_contact),
             "cumu_jail_days": int(cumu_jail_days),
-            "cumu_homeless_days": int(cumu_homeless_days)
+            "cumu_hmis_days": int(cumu_homeless_days)
         }
         table_data.append(person_data)
     return table_data
 
-def get_schema(bookings, hmis, start_date, end_date, duration):
+def get_schema(bookings, hmis, start_date, end_date):
     filters = {
         "controlledDate": "2017-12-11",
-        "duration": duration,
         "startDate": start_date.strftime('%Y-%m-%d'),
         "endDate": end_date.strftime('%Y-%m-%d'),
         "service": "jail_hmis",
@@ -189,20 +188,20 @@ def get_schema(bookings, hmis, start_date, end_date, duration):
 
 
 def run():
-    bookings = pd.read_csv('sample_data/matched/matched_bookings_data_20171207.csv')
-    hmis = pd.read_csv('sample_data/matched/matched_hmis_data_20171207.csv')
+    bookings = pd.read_csv('../webapp/sample_data/matched/matched_bookings_data_20171207.csv')
+    hmis = pd.read_csv('../webapp/sample_data/matched/matched_hmis_data_20171207.csv')
     bookings['jail_entry_date'] = pd.to_datetime(bookings['jail_entry_date'])
     bookings['jail_exit_date'] = pd.to_datetime(bookings['jail_exit_date'])
     hmis['client_location_start_date'] = pd.to_datetime(hmis['client_location_start_date'])
     hmis['client_location_end_date'] = pd.to_datetime(hmis['client_location_end_date'])
 
-    year_data = get_schema(bookings, hmis, pd.datetime(2016,12,11), pd.datetime(2017,12,11), '1Y')
-    month_data = get_schema(bookings, hmis, pd.datetime(2017,11,1), pd.datetime(2017,11,30,23,59,59), '1M')
+    year_data = get_schema(bookings, hmis, pd.datetime(2016,12,11), pd.datetime(2017,12,11))
+    month_data = get_schema(bookings, hmis, pd.datetime(2017,11,1), pd.datetime(2017,11,30,23,59,59))
 
-    with open('sample_data/results_input/webapp_schema_1y.json', 'w') as outfile:
+    with open('../webapp/sample_data/results_input/webapp_schema_1y.json', 'w') as outfile:
         json.dump(year_data, outfile, indent=4)
 
-    with open('sample_data/results_input/webapp_schema_1m.json', 'w') as outfile:
+    with open('../webapp/sample_data/results_input/webapp_schema_1m.json', 'w') as outfile:
         json.dump(month_data, outfile, indent=4)
 
 

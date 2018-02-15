@@ -17,7 +17,7 @@ def get_records_by_time():
     start = request.args.get('start')
     end = request.args.get('end')
     records = query.get_records_by_time(start, end)
-    return jsonify(result=records)
+    return jsonify(results=records)
 
 @chart_api.route('/download/<string:to_be_downloaded>', methods=['GET'])
 def download_list(to_be_downloaded):

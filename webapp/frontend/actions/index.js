@@ -8,6 +8,7 @@ import {
   SAVE_UPLOAD_RESPONSE,
   RESET_UPLOAD_RESPONSE,
   SAVE_MERGE_RESULTS,
+  RESET_APP_STATE,
   SET_ERROR_MESSAGE,
   MATCHING_RESULTS,
   UPDATE_CONTROLLED_DATE,
@@ -114,20 +115,17 @@ export function syncAvailableRoles() {
 export function showMatchingResults(data) {
   return {
     type: MATCHING_RESULTS,
-    payload: data.result
+    payload: data.results
   }
 }
 
 export function getMatchingResults(start, end) {
   return function(dispatch) {
-    return $.ajax({
-      url: '/api/chart/get_schema',
-      data: {start: start, end: end},
-      method: 'GET'
-    })
-    .then((data) => {
-      return dispatch(showMatchingResults(data))
-    })
+    return fetch('api/chart/get_schema?start='+start+'&end='+end, { method: 'GET', dataType: 'json' })
+        .then((resp) => resp.json())
+        .then((data) => {
+          dispatch(showMatchingResults(data))
+        })
   }
 }
 
@@ -142,6 +140,13 @@ function saveMergeResults(results) {
   return {
     type: SAVE_MERGE_RESULTS,
     payload: results
+  }
+}
+
+export function resetAppState(stateKey) {
+  return {
+    type: RESET_APP_STATE,
+    payload: stateKey
   }
 }
 

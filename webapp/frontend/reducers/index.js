@@ -8,6 +8,7 @@ import {
   SAVE_AVAILABLE_ROLES,
   SAVE_UPLOAD_RESPONSE,
   RESET_UPLOAD_RESPONSE,
+  RESET_APP_STATE,
   SAVE_MERGE_RESULTS,
   SET_ERROR_MESSAGE,
   MATCHING_RESULTS,
@@ -15,6 +16,9 @@ import {
   UPDATE_TABLE_DATA,
   UPDATE_SET_STATUS
 } from '../constants/index'
+
+import resetAppState from './reset-app-state'
+
 import { combineReducers } from 'redux'
 import { routerReducer } from 'react-router-redux'
 import update from 'immutability-helper'
@@ -54,8 +58,10 @@ const initialState = {
       vennDiagramData: [{sets: [''], size: null}, {sets: [''], size: null}, {sets: [''], size: null}],
       filteredData: {
         tableData: [],
-        jailBarData: [],
-        homelessBarData: [],
+        jailDurationBarData: [],
+        homelessDurationBarData: [],
+        jailContactBarData: [],
+        homelessContactBarData: []
       }
     }
   }
@@ -128,6 +134,7 @@ const app = createReducer(initialState, {
     })
     return newState
   },
+  [RESET_APP_STATE]: resetAppState,
   [UPDATE_TABLE_DATA]: (state, payload) => {
     const newState = update(state, {
       matchingResults: {
