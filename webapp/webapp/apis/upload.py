@@ -155,11 +155,12 @@ def upload_file():
                 upload_to_s3(upload_path, filename_with_all_fields)
             except boto.exception.S3ResponseError as e:
                 logging.error(
-                    'Upload id %s failed to upload to s3: %s/%s/%s',
+                    'Upload id %s failed to upload to s3: %s/%s/%s. Exception: %s',
                     upload_id,
                     event_type,
                     jurisdiction,
-                    uploaded_file.filename
+                    uploaded_file.filename,
+                    e.message
                 )
                 return jsonify(
                     status='error',
