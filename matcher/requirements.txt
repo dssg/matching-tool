@@ -13,3 +13,4 @@ psycopg2==2.7.3.2
 smart-open==1.5.6
 redis
 rq
+flask_script
