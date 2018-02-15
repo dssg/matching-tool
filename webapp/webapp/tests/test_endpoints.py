@@ -91,7 +91,6 @@ class MergeFileTestCase(unittest.TestCase):
                     # present in s3 and metadata in the database
                     # use the upload file endpoint as a shortcut for setting
                     # this environment up quickly, though this is not ideal
-                    request_mock.get(re.compile('/match/boone/hmis_service_stays'), text='stuff')
                     response = app.post(
                         '/api/upload/upload_file?jurisdiction=boone&eventType=hmis_service_stays',
                         content_type='multipart/form-data',
@@ -104,6 +103,8 @@ class MergeFileTestCase(unittest.TestCase):
                     assert response_data['status'] == 'valid'
                     upload_id = json.loads(response.get_data().decode('utf-8'))['uploadId']
 
+                    compiled_regex = re.compile('/match/boone/hmis_service_stays\?uploadId={upload_id}'.format(upload_id=upload_id))
+                    request_mock.get(compiled_regex, text='stuff')
                     # okay, here's what we really want to test.
                     # call the merge endpoint
                     response = app.post('/api/upload/merge_file?uploadId={}'.format(upload_id))
@@ -117,4 +118,3 @@ class MergeFileTestCase(unittest.TestCase):
 
                     # and make sure that the merge log has a record of this
                     assert db_session.query(MergeLog).filter(MergeLog.upload_id == '123-456').one
-
