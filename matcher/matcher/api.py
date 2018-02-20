@@ -62,7 +62,7 @@ app.config.from_object(__name__)
 app.config.from_envvar('FLASK_SETTINGS', silent=True)
 
 
-q = Queue(connection=redis_connection)
+q = Queue('matching', connection=redis_connection)
 
 
 @app.before_first_request

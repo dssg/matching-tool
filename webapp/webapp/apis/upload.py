@@ -2,6 +2,8 @@ from flask import render_template, make_response, request, jsonify, Blueprint
 from flask_security import Security, login_required, \
      SQLAlchemySessionUserDatastore
 from flask_login import current_user
+
+from webapp import app
 from webapp.database import db_session
 from webapp.models import User, Role, Upload, MergeLog
 from webapp.tasks import \
@@ -13,7 +15,13 @@ from webapp.tasks import \
     add_missing_fields,\
     validate_file
 from webapp.utils import unique_upload_id, s3_upload_path, schema_filename, notify_matcher
+
 from werkzeug.utils import secure_filename
+
+from redis import Redis
+from rq import Queue, get_current_job
+from rq.job import Job
+
 import requests
 import yaml
 import logging
@@ -38,6 +46,9 @@ PRETTY_PROVIDER_MAP = {
     'jail_bookings': 'Jail Bookings',
     'other': 'Other',
 }
+
+redis_connection = Redis(host='redis', port=6379)
+q = Queue('webapp', connection=redis_connection)
 
 def get_jurisdiction_roles():
     jurisdiction_roles = []
@@ -133,6 +144,83 @@ def format_error_report(report, event_type_slug):
 def jurisdiction_roles():
     return jsonify(results=get_jurisdiction_roles())
 
+@upload_api.route('/validated_result/<job_key>', methods=['GET'])
+@login_required
+def validated_result(job_key):
+    job = Job.fetch(job_key, connection=redis_connection)
+    if job.is_finished:
+        result = job.result
+        validation_report = result['validation_report']
+        jurisdiction = result['jurisdiction']
+        event_type = result['event_type']
+        filename_with_all_fields = result['filename_with_all_fields']
+        uploaded_file_name = result['uploaded_file_name']
+        full_filename = result['full_filename']
+        if validation_report['valid']:
+            upload_id = unique_upload_id()
+            row_count = validation_report['tables'][0]['row-count'] - 1
+            upload_path = s3_upload_path(jurisdiction, event_type, upload_id)
+            try:
+                app.logger.info('Uploading upload_id: %s to s3', upload_id)
+                upload_to_s3(upload_path, filename_with_all_fields)
+            except boto.exception.S3ResponseError as e:
+                logging.error(
+                    'Upload id %s failed to upload to s3: %s/%s/%s. Exception: %s',
+                    upload_id,
+                    event_type,
+                    jurisdiction,
+                    uploaded_file_name,
+                    e.message
+                )
+                return jsonify({'status': 'error'})
+
+            sync_upload_metadata(
+                upload_id=upload_id,
+                event_type=event_type,
+                jurisdiction=jurisdiction,
+                user=current_user,
+                given_filename=uploaded_file_name,
+                local_filename=full_filename,
+                db_session=db_session,
+                s3_upload_path=upload_path,
+            )
+
+            sample_rows, field_names = get_sample(full_filename)
+            return jsonify({
+                'status': 'valid',
+                'rowCount': row_count,
+                'exampleRows': sample_rows,
+                'fieldOrder': field_names,
+                'uploadId': upload_id
+            })
+        else:
+            return jsonify({
+                'status': 'invalid',
+                'exampleRows': format_error_report(validation_report, event_type)
+            })
+    else:
+        return jsonify({
+        'status': 'validating',
+        'message': 'Still validating data!'
+})
+
+
+def upload_and_validate(uploaded_file_name, jurisdiction, full_filename, event_type, row_limit):
+    # filename = secure_filename(uploaded_file.filename)
+    # full_filename = os.path.join('/csh/webapp/tmp', filename)
+    # uploaded_file.save(full_filename)
+    filename_with_all_fields = add_missing_fields(event_type, full_filename)
+    validation_report = validate_file(event_type, filename_with_all_fields, row_limit)
+    return {
+        'validation_report': validation_report,
+        'event_type': event_type,
+        'jurisdiction': jurisdiction,
+        'filename_with_all_fields': filename_with_all_fields,
+        'uploaded_file_name': uploaded_file_name,
+        'full_filename': full_filename
+    }
+
+
 @upload_api.route('/upload_file', methods=['POST'])
 @login_required
 def upload_file():
@@ -143,53 +231,17 @@ def upload_file():
         assert len(filenames) == 1
         uploaded_file = request.files[filenames[0]]
         filename = secure_filename(uploaded_file.filename)
-        full_filename = os.path.join('/tmp', filename)
+        full_filename = os.path.join('/csh/webapp/tmp', filename)
         uploaded_file.save(full_filename)
-        filename_with_all_fields = add_missing_fields(event_type, full_filename)
-        validation_report = validate_file(event_type, filename_with_all_fields)
-        if validation_report['valid']:
-            upload_id = unique_upload_id()
-            row_count = validation_report['tables'][0]['row-count'] - 1
-            upload_path = s3_upload_path(jurisdiction, event_type, upload_id)
-            try:
-                upload_to_s3(upload_path, filename_with_all_fields)
-            except boto.exception.S3ResponseError as e:
-                logging.error(
-                    'Upload id %s failed to upload to s3: %s/%s/%s. Exception: %s',
-                    upload_id,
-                    event_type,
-                    jurisdiction,
-                    uploaded_file.filename,
-                    e.message
-                )
-                return jsonify(
-                    status='error',
-                )
-
-            sync_upload_metadata(
-                upload_id=upload_id,
-                event_type=event_type,
-                jurisdiction=jurisdiction,
-                user=current_user,
-                given_filename=uploaded_file.filename,
-                local_filename=full_filename,
-                db_session=db_session,
-                s3_upload_path=upload_path,
-            )
-
-            sample_rows, field_names = get_sample(full_filename)
-            return jsonify(
-                status='valid',
-                rowCount=row_count,
-                exampleRows=sample_rows,
-                fieldOrder=field_names,
-                uploadId=upload_id
-            )
-        else:
-            return jsonify(
-                status='invalid',
-                exampleRows=format_error_report(validation_report, event_type)
-            )
+        # filename_with_all_fields = add_missing_fields(event_type, full_filename)
+        # validation_report = validate_file(event_type, filename_with_all_fields, row_limit=100000)
+        job = q.enqueue_call(
+            func=upload_and_validate,
+            args=(uploaded_file.filename, jurisdiction, full_filename, event_type, 100000),
+            result_ttl=5000
+        )
+        app.logger.info(f"Job id {job.get_id()}")
+        return jsonify(status='validating', jobKey=job.get_id())
     else:
         return jsonify(
             status='not authorized',
