@@ -10,8 +10,7 @@ from datetime import datetime
 
 fake = Faker()
 
-flags = ['N'] * 5
-flags.append('Y')
+flags = ['DATA NOT COLLECTED', 'NO', "CLIENT DOESN'T KNOW", 'CLIENT REFUSED', 'YES']
 
 # dictionaries of fields to match values on
 MATCH_FIELD_INDICES = [
@@ -57,8 +56,8 @@ booking_fakers = [
     ('dmv_state', lambda: 'FL'),
     ('additional_id_number', lambda: ''),
     ('additional_id_name', lambda: ''),
-    ('race', lambda: random.choice(['white', 'black', 'amindian', 'asian', 'pacisland', 'other'])),
-    ('ethnicity', lambda: random.choice(['hispanic', 'nonhispanic'])),
+    ('race', lambda: random.choice(['B', 'O', 'R', 'D', 'I', 'H', 'N', 'P', 'A', 'W'])),
+    ('ethnicity', lambda: random.choice(['NOT HISPANIC', 'DATA NOT COLLECTED', "INMATE DOESN'T KNOW", 'INMATE REFUSED', 'HISPANIC'])),
     ('sex', lambda: 'F'),
     ('hair_color', lambda: ''),
     ('eye_color', lambda: ''),
@@ -72,12 +71,12 @@ booking_fakers = [
     ('country', lambda: ''),
     ('birth_place', lambda: ''),
     ('booking_number', lambda: ''),
-    ('jail_entry_date', partial(fake.date_time_between, start_date='-1y', end_date='-90d')),
-    ('jail_exit_date', partial(fake.date_time_between, start_date='-90d', end_date='-1d')),
-    ('homeless', lambda: random.choice(flags)),
-    ('mental_health', lambda: random.choice(flags)),
-    ('veteran', lambda: random.choice(flags)),
-    ('special_initiative', lambda: random.choice(flags)),
+    ('jail_entry_date', lambda: partial(fake.date_time_between, start_date='-1y', end_date='-90d')().strftime('%Y-%m-%dT%H:%M:%S-00')),
+    ('jail_exit_date', lambda: partial(fake.date_time_between, start_date='-90d', end_date='-1d')().strftime('%Y-%m-%dT%H:%M:%S-00')),
+    ('homeless', lambda: random.choice(['Y', 'N', ''])),
+    ('mental_health', lambda: random.choice(['Y', 'N', ''])),
+    ('veteran', lambda: random.choice(['Y', 'N', ''])),
+    ('special_initiative', lambda: random.choice(['Y', 'N', ''])),
     ('bond_amount', lambda: ''),
     ('arresting_agency', lambda: ''),
     ('bed', lambda: ''),
@@ -106,7 +105,7 @@ hmis_fakers = [
     ('last_name', fake.last_name),
     ('suffix', lambda: ''),
     ('name_data_quality', lambda: ''),
-    ('dob', partial(fake.date_time_between, start_date='-75y', end_date='-18y')),
+    ('dob', lambda: partial(fake.date_time_between, start_date='-75y', end_date='-18y')().strftime('%Y-%m-%d')),
     ('ssn', fake.ssn),
     ('ssn_hash', lambda: ''),
     ('ssn_bigrams', lambda: ''),
@@ -126,22 +125,22 @@ hmis_fakers = [
     ('address_data_quality', lambda: ''),
     ('veteran_status', lambda: random.choice(flags)),
     ('disabling_condition', lambda: random.choice(flags)),
-    ('project_start_date', partial(fake.date_time_between, start_date='-1y', end_date='-90d')),
-    ('project_exit_date', partial(fake.date_time_between, start_date='-90d', end_date='-1d')),
+    ('project_start_date', lambda: partial(fake.date_time_between, start_date='-1y', end_date='-90d')().strftime('%Y-%m-%d')),
+    ('project_exit_date', lambda: partial(fake.date_time_between, start_date='-90d', end_date='-1d')().strftime('%Y-%m-%d')),
     ('program_name', lambda: 'SAFE HAVEN SHELTER'),
     ('program_type', lambda: 'EMERGENCY SHELTER'),
     ('federal_program', lambda: 'RHSP'),
     ('destination', lambda: 8),
     ('household_id', lambda: str(random.randint(0, 100000))),
     ('household_relationship', lambda: 1),
-    ('move_in_date', fake.date_this_month),
+    ('move_in_date', lambda: fake.date_this_month().strftime('%Y-%m-%d')+'T10:00:00 CST'),
     ('living_situation_type', lambda: 'CLIENT DOESNT NOW'),
     ('living_situation_length', lambda: '90 DAYS OR MORE, BUT LESS THAN ONE YEAR'),
-    ('living_situation_start_date', partial(fake.date_time_between, start_date='-4y', end_date='-2y')),
+    ('living_situation_start_date', lambda: partial(fake.date_time_between, start_date='-4y', end_date='-2y')().strftime('%Y-%m-%d')),
     ('times_on_street', lambda: 'THREE TIMES'),
     ('months_homeless', lambda: 32),
-    ('client_location_start_date', partial(fake.date_time_between, start_date='-1y', end_date='-90d')),
-    ('client_location_end_date', partial(fake.date_time_between, start_date='-90d', end_date='-1d')),
+    ('client_location_start_date', lambda: partial(fake.date_time_between, start_date='-1y', end_date='-90d')().strftime('%Y-%m-%d')),
+    ('client_location_end_date', lambda: partial(fake.date_time_between, start_date='-90d', end_date='-1d')().strftime('%Y-%m-%d')),
     ('client_location', lambda: 'LOCATION'),
     ('source_name', lambda: 'HOMELESS ALLIANCE OF DOVE COUNTY'),
     ('created_date', lambda: datetime.today()),
@@ -202,7 +201,7 @@ def apply_matches(fake_datasets, matches_within, matches_between):
     """
     # iterate through all pairs of datasets
     for dataset1, dataset2 in itertools.product(fake_datasets, repeat=2):
-        
+
         type1 = dataset1['type']
         type2 = dataset2['type']
 
@@ -226,24 +225,34 @@ def apply_matches(fake_datasets, matches_within, matches_between):
 
             # set the end date for the earlier row to be before the start date of the second row
             # THIS IS HIDEOUS
-            if row1[DATE_FIELD_INDICES[type1]['start_date']] < row2[DATE_FIELD_INDICES[type2]['start_date']]:
-                row1[DATE_FIELD_INDICES[type1]['end_date']] = fake.date_time_between(start_date=row1[DATE_FIELD_INDICES[type1]['start_date']], end_date=row2[DATE_FIELD_INDICES[type2]['start_date']])
-            elif row2[DATE_FIELD_INDICES[type2]['start_date']] < row1[DATE_FIELD_INDICES[type1]['start_date']]:
-                row2[DATE_FIELD_INDICES[type2]['end_date']] = fake.date_time_between(start_date=row2[DATE_FIELD_INDICES[type2]['start_date']], end_date=row1[DATE_FIELD_INDICES[type1]['start_date']])
+            def datetime_format(service_type):
+                if service_type == 'bookings':
+                    return '%Y-%m-%dT%H:%M:%S-00'
+                elif service_type == 'hmis':
+                    return '%Y-%m-%d'
+
+            if datetime.strptime(row1[DATE_FIELD_INDICES[type1]['start_date']], datetime_format(type1)) < datetime.strptime(row2[DATE_FIELD_INDICES[type2]['start_date']], datetime_format(type2)):
+                row1[DATE_FIELD_INDICES[type1]['end_date']] = fake.date_time_between(
+                    start_date=datetime.strptime(row1[DATE_FIELD_INDICES[type1]['start_date']], datetime_format(type1)),
+                    end_date=datetime.strptime(row2[DATE_FIELD_INDICES[type2]['start_date']], datetime_format(type2))).strftime(datetime_format(type1))
+            elif datetime.strptime(row2[DATE_FIELD_INDICES[type2]['start_date']], datetime_format(type2)) < datetime.strptime(row1[DATE_FIELD_INDICES[type1]['start_date']], datetime_format(type1)):
+                row2[DATE_FIELD_INDICES[type2]['end_date']] = fake.date_time_between(
+                    start_date=datetime.strptime(row2[DATE_FIELD_INDICES[type2]['start_date']], datetime_format(type2)),
+                    end_date=datetime.strptime(row1[DATE_FIELD_INDICES[type1]['start_date']], datetime_format(type1))).strftime(datetime_format(type2))
 
     return fake_datasets
 
 
-def write_csvs(fake_datasets):
+def write_csvs(fake_datasets, rows):
     counters = {'bookings': 0, 'hmis': 0}
     filenames = []
 
     for fake_dataset in fake_datasets:
         event_type = fake_dataset['type']
         counter = counters[event_type]
-        filename = f'sample_data/uploader_input/{event_type}-fake-{counter}.csv'
+        filename = f'webapp/sample_data/uploader_input/{event_type}-fake-{rows}.csv'
         with open(filename, 'w') as f:
-            writer = csv.writer(f, quoting=csv.QUOTE_MINIMAL)
+            writer = csv.writer(f, quoting=csv.QUOTE_MINIMAL, delimiter='|')
             if event_type == 'bookings':
                 headers = [column_name for column_name, _ in booking_fakers]
             elif event_type == 'hmis':
@@ -260,9 +269,9 @@ def write_csvs(fake_datasets):
 def main(datasets, rows, matches_within, matches_between):
     fake_datasets = generate_rows(datasets, rows)
     apply_matches(fake_datasets, matches_within, matches_between)
-    filenames = write_csvs(fake_datasets)
+    filenames = write_csvs(fake_datasets, rows[0])
 
-    print(('Data faking complete! Congratulations! You are a totally cool ' 
+    print(('Data faking complete! Congratulations! You are a totally cool '
            f'person! Your files are {filenames}'))
 
 if __name__ == '__main__':
