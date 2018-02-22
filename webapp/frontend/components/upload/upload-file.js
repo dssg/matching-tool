@@ -10,9 +10,11 @@ function mapStateToProps(state) {
   return {
     selectedEventType: state.app.selectedEventType,
     selectedJurisdiction: state.app.selectedJurisdiction,
+    uploadValidating: state.app.uploadResponse.status === 'validating',
     uploadFailed: state.app.uploadResponse.status === 'invalid',
     uploadError: state.app.uploadResponse.status === 'error',
     filePicked: state.app.filePicked,
+    jobKey: state.app.uploadResponse.jobKey,
   }
 }
 
@@ -64,6 +66,8 @@ class UploadFile extends React.Component {
       return (<UploadInvalid />)
     } else if(this.props.uploadError) {
       return (<div>Oops! There was an unexpected error when uploading. This error has been logged</div>)
+    } else if(this.props.uploadValidating) {
+      return (<div>The uploader is validating! job key is {this.props.jobKey}</div>)
     } else {
       return (
         <div style={styles.step}>

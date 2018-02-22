@@ -4,6 +4,7 @@ import PickDataType from './upload/pick-data-type'
 import UploadFile from './upload/upload-file'
 import ConfirmData from './upload/confirm-data'
 import Done from './upload/done'
+import Validating from './upload/validating'
 import { Step, Stepper, StepLabel } from 'material-ui/Stepper'
 import WarningIcon from 'material-ui/svg-icons/alert/warning'
 import {red500} from 'material-ui/styles/colors'
@@ -14,12 +15,14 @@ import Header from './header'
 function mapStateToStep(state) {
   if(state.app.selectedEventType.slug === '') {
     return 0
+  } else if (state.app.uploadResponse.status === 'validating') {
+    return 2
   } else if (state.app.uploadResponse.status === '' || state.app.uploadResponse.status === 'invalid' || state.app.uploadResponse.status === 'error') {
     return 1
   } else if (state.app.mergeResults.totalUniqueRows !== '') {
-    return 3
+    return 4
   } else if (state.app.uploadResponse.status === 'valid') {
-    return 2
+    return 3
   }
 }
 
@@ -63,8 +66,9 @@ class UploadPage extends React.Component {
     switch (this.props.step) {
     case 0: return (<PickDataType />)
     case 1: return (<UploadFile />)
-    case 2: return (<ConfirmData />)
-    case 3: return (<Done />)
+    case 2: return (<Validating />)
+    case 3: return (<ConfirmData />)
+    case 4: return (<Done />)
     default: return 'unknown step'
     }
   }
@@ -85,6 +89,9 @@ class UploadPage extends React.Component {
                 style={this.props.uploadProblem ? {color: red500} : {}}
               >Upload File
               </StepLabel>
+            </Step>
+            <Step>
+              <StepLabel>Validating</StepLabel>
             </Step>
             <Step>
               <StepLabel>Confirm Upload</StepLabel>

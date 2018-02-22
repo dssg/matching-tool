@@ -144,9 +144,23 @@ def format_error_report(report, event_type_slug):
 def jurisdiction_roles():
     return jsonify(results=get_jurisdiction_roles())
 
+@upload_api.route('/isvalidated/<job_key>', methods=['GET'])
+def isvalidated(job_key):
+    job = Job.fetch(job_key, connection=redis_connection)
+    if job.is_finished:
+        return jsonify({
+            'status': 'done',
+            'message': 'validated!'
+            })
+    else:
+        return jsonify({
+            'status': 'validating',
+            'message': 'Still validating data!'
+            })
+
 @upload_api.route('/validated_result/<job_key>', methods=['GET'])
 @login_required
-def validated_result(job_key):
+def get_validated_result(job_key):
     job = Job.fetch(job_key, connection=redis_connection)
     if job.is_finished:
         result = job.result
@@ -172,7 +186,10 @@ def validated_result(job_key):
                     uploaded_file_name,
                     e.message
                 )
-                return jsonify({'status': 'error'})
+                return jsonify({
+                    'status': 'error',
+                    'jobKey': job_key
+                    })
 
             sync_upload_metadata(
                 upload_id=upload_id,
@@ -191,18 +208,21 @@ def validated_result(job_key):
                 'rowCount': row_count,
                 'exampleRows': sample_rows,
                 'fieldOrder': field_names,
-                'uploadId': upload_id
+                'uploadId': upload_id,
+                'jobKey': job_key
             })
         else:
             return jsonify({
+                'jobKey': job_key,
                 'status': 'invalid',
                 'exampleRows': format_error_report(validation_report, event_type)
             })
     else:
         return jsonify({
-        'status': 'validating',
-        'message': 'Still validating data!'
-})
+            'jobKey': job_key,
+            'status': 'validating',
+            'message': 'Still validating data!'
+        })
 
 
 def upload_and_validate(uploaded_file_name, jurisdiction, full_filename, event_type, row_limit):
@@ -241,7 +261,11 @@ def upload_file():
             result_ttl=5000
         )
         app.logger.info(f"Job id {job.get_id()}")
-        return jsonify(status='validating', jobKey=job.get_id())
+        return jsonify(
+            status='validating',
+            jobKey=job.get_id(),
+            message='Validating data!'
+        )
     else:
         return jsonify(
             status='not authorized',

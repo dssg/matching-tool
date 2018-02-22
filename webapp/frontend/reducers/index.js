@@ -14,7 +14,8 @@ import {
   MATCHING_RESULTS,
   UPDATE_CONTROLLED_DATE,
   UPDATE_TABLE_DATA,
-  UPDATE_SET_STATUS
+  UPDATE_SET_STATUS,
+  VALIDATED_RESULT
 } from '../constants/index'
 
 import resetAppState from './reset-app-state'
@@ -32,7 +33,9 @@ const initialState = {
     },
     filePicked: '',
     uploadResponse: {
+      message: '',
       status: '',
+      jobKey: '',
       exampleRows: [],
       fieldOrder: [],
       rowCount: '',
@@ -154,7 +157,13 @@ const app = createReducer(initialState, {
       }
     })
     return newState
-  }
+  },
+  [VALIDATED_RESULT]: (state, payload) => {
+    const newState = update(state, {
+      uploadResponse: {$set: payload}
+    })
+    return newState
+  },
 })
 const rootReducer = combineReducers({
   routing: routerReducer,
