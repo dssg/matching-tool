@@ -145,7 +145,19 @@ def upload_file():
         filename = secure_filename(uploaded_file.filename)
         full_filename = os.path.join('/tmp', filename)
         uploaded_file.save(full_filename)
-        filename_with_all_fields = add_missing_fields(event_type, full_filename)
+        try:
+            filename_with_all_fields = add_missing_fields(event_type, full_filename)
+        except ValueError as e:
+            return jsonify(
+                status='invalid',
+                exampleRows=[{
+                    'idFields': {'rowNumber': '1'},
+                    'errors': [{
+                        'fieldName': 'delimiter',
+                        'message': str(e)
+                    }]
+                }]
+            )
         validation_report = validate_file(event_type, filename_with_all_fields)
         if validation_report['valid']:
             upload_id = unique_upload_id()
@@ -177,7 +189,7 @@ def upload_file():
                 s3_upload_path=upload_path,
             )
 
-            sample_rows, field_names = get_sample(full_filename)
+            sample_rows, field_names = get_sample(filename_with_all_fields)
             return jsonify(
                 status='valid',
                 rowCount=row_count,
