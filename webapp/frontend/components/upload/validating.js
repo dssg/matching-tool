@@ -3,7 +3,7 @@ import { connect } from 'react-redux'
 import { Link } from 'react-router-dom'
 import RaisedButton from 'material-ui/RaisedButton'
 import { getValidatedResult } from '../../actions'
-
+import CircularProgress from 'material-ui/CircularProgress'
 
 const styles = {
   button: { margin: 12, },
@@ -13,9 +13,10 @@ const styles = {
 
 function mapStateToProps(state) {
   return {
-    jobKey: state.app.uploadResponse.jobKey,
-    uploadResponse: state.app.uploadResponse,
-    message: state.app.uploadResponse.message
+    jobKey: state.app.validationResponse.jobKey,
+    message: state.app.validationResponse.message,
+    validationResponse: state.app.validationResponse,
+    rowCount: state.app.uploadResponse.rowCount
   }
 }
 
@@ -30,19 +31,32 @@ function mapDispatchToProps(dispatch) {
 
 
 class Validating extends React.Component {
+  startPoll = () => {
+    this.timeout = setTimeout(() => this.props.getValidatedResult(this.props.jobKey), 1000)
+  }
 
-  handleClick = () => {
+  componentWillReceiveProps(nextProps) {
+    if (!this.props.isFetching) {
+        console.log("start polling")
+        this.startPoll()
+    }
+  }
+
+  componentWillMount() {
     this.props.getValidatedResult(this.props.jobKey)
+  }
+
+  componentWillUnmount() {
+    clearTimeout(this.timeout);
   }
 
   render() {
     return (
       <div style={styles.step}>
         <p>{this.props.message} {this.props.jobKey}</p>
-        <RaisedButton
-          style={styles.button}
-          label="Check"
-          onClick={this.handleClick} />
+        <div>
+          <CircularProgress size={60} thickness={7} />
+        </div>
         <Link to="/">
           <RaisedButton
             style={styles.button}

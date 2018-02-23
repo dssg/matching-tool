@@ -10,11 +10,11 @@ function mapStateToProps(state) {
   return {
     selectedEventType: state.app.selectedEventType,
     selectedJurisdiction: state.app.selectedJurisdiction,
-    uploadValidating: state.app.uploadResponse.status === 'validating',
-    uploadFailed: state.app.uploadResponse.status === 'invalid',
+    uploadValidating: state.app.validationResponse.status === 'validating',
+    uploadFailed: state.app.validationResponse.status === 'invalid',
     uploadError: state.app.uploadResponse.status === 'error',
     filePicked: state.app.filePicked,
-    jobKey: state.app.uploadResponse.jobKey,
+    jobKey: state.app.validationResponse.jobKey,
   }
 }
 

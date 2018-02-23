@@ -15,20 +15,20 @@ import Header from './header'
 function mapStateToStep(state) {
   if(state.app.selectedEventType.slug === '') {
     return 0
-  } else if (state.app.uploadResponse.status === 'validating') {
+  } else if (state.app.validationResponse.status === 'validating') {
     return 2
-  } else if (state.app.uploadResponse.status === '' || state.app.uploadResponse.status === 'invalid' || state.app.uploadResponse.status === 'error') {
+  } else if (state.app.validationResponse.status === '' || state.app.validationResponse.status === 'invalid' || state.app.validationResponse.status === 'error') {
     return 1
   } else if (state.app.mergeResults.totalUniqueRows !== '') {
     return 4
-  } else if (state.app.uploadResponse.status === 'valid') {
+  } else if (state.app.validationResponse.status === 'valid') {
     return 3
   }
 }
 
 function mapStateToProps(state) {
   return {
-    uploadProblem: ['invalid', 'error'].includes(state.app.uploadResponse.status ),
+    uploadProblem: ['invalid', 'error'].includes(state.app.validationResponse.status ),
     step: mapStateToStep(state)
   }
 }
@@ -40,6 +40,9 @@ function mapDispatchToProps(dispatch) {
     },
     resetUploadResponse: () => {
       dispatch(resetAppState('uploadResponse'))
+    },
+    resetValidationResponse: () => {
+      dispatch(resetAppState('validationResponse'))
     },
     resetMergeResults: () => {
       dispatch(resetAppState('mergeResults'))
@@ -60,6 +63,7 @@ class UploadPage extends React.Component {
     this.props.resetFile()
     this.props.resetMergeResults()
     this.props.resetEventType()
+    this.props.resetValidationResponse()
   }
 
   renderStepContent() {

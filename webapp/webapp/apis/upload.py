@@ -3,7 +3,8 @@ from flask_security import Security, login_required, \
      SQLAlchemySessionUserDatastore
 from flask_login import current_user
 
-from webapp import app
+
+from webapp import app, redis_connection
 from webapp.database import db_session
 from webapp.models import User, Role, Upload, MergeLog
 from webapp.tasks import \
@@ -18,7 +19,7 @@ from webapp.utils import unique_upload_id, s3_upload_path, schema_filename, noti
 
 from werkzeug.utils import secure_filename
 
-from redis import Redis
+
 from rq import Queue, get_current_job
 from rq.job import Job
 
@@ -47,8 +48,9 @@ PRETTY_PROVIDER_MAP = {
     'other': 'Other',
 }
 
-redis_connection = Redis(host='redis', port=6379)
-q = Queue('webapp', connection=redis_connection)
+def get_q(redis_connection):
+    return Queue('webapp', connection=redis_connection)
+
 
 def get_jurisdiction_roles():
     jurisdiction_roles = []
@@ -144,19 +146,6 @@ def format_error_report(report, event_type_slug):
 def jurisdiction_roles():
     return jsonify(results=get_jurisdiction_roles())
 
-@upload_api.route('/isvalidated/<job_key>', methods=['GET'])
-def isvalidated(job_key):
-    job = Job.fetch(job_key, connection=redis_connection)
-    if job.is_finished:
-        return jsonify({
-            'status': 'done',
-            'message': 'validated!'
-            })
-    else:
-        return jsonify({
-            'status': 'validating',
-            'message': 'Still validating data!'
-            })
 
 @upload_api.route('/validated_result/<job_key>', methods=['GET'])
 @login_required
@@ -187,9 +176,16 @@ def get_validated_result(job_key):
                     e.message
                 )
                 return jsonify({
-                    'status': 'error',
-                    'jobKey': job_key
-                    })
+                    'validation': {
+                        'status': 'valid',
+                        'jobKey': job_key
+                    },
+                    'upload_result': {
+                        'status': 'error',
+                        'uploadId': upload_id,
+                        'message': 'Upload error!'
+                    }
+                })
 
             sync_upload_metadata(
                 upload_id=upload_id,
@@ -201,34 +197,48 @@ def get_validated_result(job_key):
                 db_session=db_session,
                 s3_upload_path=upload_path,
             )
-
             sample_rows, field_names = get_sample(full_filename)
             return jsonify({
-                'status': 'valid',
-                'rowCount': row_count,
-                'exampleRows': sample_rows,
-                'fieldOrder': field_names,
-                'uploadId': upload_id,
-                'jobKey': job_key
+                'validation': {
+                    'status': 'valid',
+                    'jobKey': job_key,
+                },
+                'upload_result': {
+                    'status': 'done',
+                    'rowCount': row_count,
+                    'exampleRows': sample_rows,
+                    'fieldOrder': field_names,
+                    'uploadId': upload_id
+                }
             })
         else:
             return jsonify({
-                'jobKey': job_key,
-                'status': 'invalid',
-                'exampleRows': format_error_report(validation_report, event_type)
+                'validation': {
+                    'jobKey': job_key,
+                    'status': 'invalid'
+                },
+                'upload_result': {
+                    'status': 'done',
+                    'rowCount': '',
+                    'fieldOrder': [],
+                    'exampleRows': format_error_report(validation_report, event_type),
+                    'upload_id': ''
+                }
             })
     else:
         return jsonify({
-            'jobKey': job_key,
-            'status': 'validating',
-            'message': 'Still validating data!'
+            'validation': {
+                'jobKey': job_key,
+                'status': 'validating',
+                'message': 'Still validating data!'
+            },
+            'upload_result': {
+                'status': 'not yet',
+            }
         })
 
 
-def upload_and_validate(uploaded_file_name, jurisdiction, full_filename, event_type, row_limit):
-    # filename = secure_filename(uploaded_file.filename)
-    # full_filename = os.path.join('/csh/webapp/tmp', filename)
-    # uploaded_file.save(full_filename)
+def validate_async(uploaded_file_name, jurisdiction, full_filename, event_type, row_limit):
     filename_with_all_fields = add_missing_fields(event_type, full_filename)
     validation_report = validate_file(event_type, filename_with_all_fields, row_limit)
     return {
@@ -251,12 +261,12 @@ def upload_file():
         assert len(filenames) == 1
         uploaded_file = request.files[filenames[0]]
         filename = secure_filename(uploaded_file.filename)
-        full_filename = os.path.join('/csh/webapp/tmp', filename)
+        cwd = os.getcwd()
+        full_filename = os.path.join(cwd + '/tmp', filename)
         uploaded_file.save(full_filename)
-        # filename_with_all_fields = add_missing_fields(event_type, full_filename)
-        # validation_report = validate_file(event_type, filename_with_all_fields, row_limit=100000)
+        q = get_q(redis_connection)
         job = q.enqueue_call(
-            func=upload_and_validate,
+            func=validate_async,
             args=(uploaded_file.filename, jurisdiction, full_filename, event_type, 100000),
             result_ttl=5000
         )

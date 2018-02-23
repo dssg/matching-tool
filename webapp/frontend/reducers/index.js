@@ -15,7 +15,8 @@ import {
   UPDATE_CONTROLLED_DATE,
   UPDATE_TABLE_DATA,
   UPDATE_SET_STATUS,
-  VALIDATED_RESULT
+  VALIDATED_RESULT,
+  FETCHING_RESULT
 } from '../constants/index'
 
 import resetAppState from './reset-app-state'
@@ -32,10 +33,14 @@ const initialState = {
       slug: ''
     },
     filePicked: '',
-    uploadResponse: {
+    validationResponse: {
       message: '',
       status: '',
       jobKey: '',
+    },
+    uploadResponse: {
+      status: '',
+      isFetching: false,
       exampleRows: [],
       fieldOrder: [],
       rowCount: '',
@@ -103,14 +108,15 @@ const app = createReducer(initialState, {
     })
   },
   [SAVE_UPLOAD_RESPONSE]: (state, payload) => {
-    const newState = Object.assign({}, state, {
-      uploadResponse: payload
+    const newState = update(state, {
+      validationResponse: {$set: payload}
     })
     return newState
   },
   [RESET_UPLOAD_RESPONSE]: (state) => {
     return update(state, {
-      uploadResponse: {$set: initialState.app.uploadResponse}
+      uploadResponse: {$set: initialState.app.uploadResponse},
+      validationResponse: {$set: initialState.app.validationResponse}
     })
   },
   [MATCHING_RESULTS]: (state, payload) => {
@@ -159,12 +165,36 @@ const app = createReducer(initialState, {
     return newState
   },
   [VALIDATED_RESULT]: (state, payload) => {
+    console.log("validated_result!")
     const newState = update(state, {
-      uploadResponse: {$set: payload}
+      validationResponse: {
+        message: {$set: payload.validation.message},
+        status: {$set: payload.validation.status},
+        jobKey: {$set: payload.validation.jobKey}
+      },
+      uploadResponse: {
+        status: {$set: payload.upload_result.status},
+        isFetching: {$set: false},
+        exampleRows: {$set: payload.upload_result.exampleRows},
+        fieldOrder: {$set: payload.upload_result.fieldOrder},
+        rowCount: {$set: payload.upload_result.rowCount},
+        uploadId: {$set: payload.upload_result.uploadId}
+      }
     })
     return newState
   },
+  [FETCHING_RESULT]: (state, payload) => {
+    console.log('fetching_result!')
+    const newState = update(state, {
+      validationResponse: {$set: payload.validation},
+      uploadResponse: {
+        isFetching: {$set: true}
+      }
+    })
+    return newState
+  }
 })
+
 const rootReducer = combineReducers({
   routing: routerReducer,
   app,
