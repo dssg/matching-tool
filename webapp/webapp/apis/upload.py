@@ -4,7 +4,7 @@ from flask_security import Security, login_required, \
 from flask_login import current_user
 
 
-from webapp import app, redis_connection
+from webapp import app
 from webapp.database import db_session
 from webapp.models import User, Role, Upload, MergeLog
 from webapp.tasks import \
@@ -19,7 +19,7 @@ from webapp.utils import unique_upload_id, s3_upload_path, schema_filename, noti
 
 from werkzeug.utils import secure_filename
 
-
+from redis import Redis
 from rq import Queue, get_current_job
 from rq.job import Job
 
@@ -48,9 +48,14 @@ PRETTY_PROVIDER_MAP = {
     'other': 'Other',
 }
 
+# q = Queue('webapp', connection=redis_connection)
+
+
 def get_q(redis_connection):
     return Queue('webapp', connection=redis_connection)
 
+def get_redis_connection():
+    return Redis(host='redis', port=6379)
 
 def get_jurisdiction_roles():
     jurisdiction_roles = []
@@ -150,7 +155,7 @@ def jurisdiction_roles():
 @upload_api.route('/validated_result/<job_key>', methods=['GET'])
 @login_required
 def get_validated_result(job_key):
-    job = Job.fetch(job_key, connection=redis_connection)
+    job = Job.fetch(job_key, connection=get_redis_connection())
     if job.is_finished:
         result = job.result
         validation_report = result['validation_report']
@@ -264,7 +269,7 @@ def upload_file():
         cwd = os.getcwd()
         full_filename = os.path.join(cwd + '/tmp', filename)
         uploaded_file.save(full_filename)
-        q = get_q(redis_connection)
+        q = get_q(get_redis_connection())
         job = q.enqueue_call(
             func=validate_async,
             args=(uploaded_file.filename, jurisdiction, full_filename, event_type, 100000),

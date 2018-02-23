@@ -2,8 +2,6 @@ from flask import Flask
 import os
 from webapp.dbconfig import dburl
 from flask_sqlalchemy import SQLAlchemy
-from redis import Redis
-
 
 
 
@@ -18,5 +16,5 @@ app.config['SECURITY_PASSWORD_SALT'] = os.environ['SECURITY_PASSWORD_SALT']
 app.config['SQLALCHEMY_DATABASE_URI'] = dburl
 app.config["JSON_SORT_KEYS"] = False
 
-redis_connection = Redis(host='redis', port=6379)
+
 db = SQLAlchemy(app)
