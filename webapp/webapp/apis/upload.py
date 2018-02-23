@@ -48,7 +48,6 @@ PRETTY_PROVIDER_MAP = {
     'other': 'Other',
 }
 
-# q = Queue('webapp', connection=redis_connection)
 
 
 def get_q(redis_connection):
