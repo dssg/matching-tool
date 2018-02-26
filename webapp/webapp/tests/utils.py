@@ -214,7 +214,7 @@ def create_roles(ds):
 
 def create_users(ds):
     users = [
-        ('boone_hmis@example.com', 'boone hmis', 'password', ['boone_hmis_service_stays'], True),
+        ('boone_hmis@example.com', 'boone hmis', 'password', ['boone_hmis_service_stays', 'boone_jail_bookings'], True),
         ('boone_jail@example.com', 'boone jail', 'password', ['boone_jail_bookings'], True),
         ('clark_hmis@example.com', 'clark hmis', 'password', ['clark_hmis_service_stays'], True),
         ('clark_jail@example.com', 'clark jail', 'password', ['clark_jail_bookings'], True),

@@ -15,7 +15,7 @@ from webapp.tasks import \
     sync_merged_file_to_s3,\
     add_missing_fields,\
     validate_file
-from webapp.utils import unique_upload_id, s3_upload_path, schema_filename, notify_matcher
+from webapp.utils import unique_upload_id, s3_upload_path, schema_filename, notify_matcher, infer_delimiter
 
 from werkzeug.utils import secure_filename
 
@@ -23,6 +23,7 @@ from redis import Redis
 from rq import Queue, get_current_job
 from rq.job import Job
 
+import re
 import requests
 import yaml
 import logging
@@ -88,8 +89,9 @@ def can_upload_file(file_jurisdiction, file_event_type):
 
 
 def get_sample(saved_filename):
+    delimiter = infer_delimiter(saved_filename)
     with open(saved_filename, 'rb') as request_file:
-        reader = csv.DictReader(request_file, delimiter='|')
+        reader = csv.DictReader(request_file, delimiter=delimiter)
         sample_rows = []
         for x in range(10):
             try:
@@ -143,7 +145,7 @@ def format_error_report(report, event_type_slug):
             field_name = ''
         error_fields = {
             'fieldName': field_name,
-            'message': error['message'],
+            'message': re.sub('Row number \d+: ', '', error['message']),
         }
         new_errors[error['row-number']]['errors'].append(error_fields)
 
@@ -263,9 +265,9 @@ def validate_async(uploaded_file_name, jurisdiction, full_filename, event_type, 
         },
         'upload_result': {
             'exampleRows': [{
-                'idFields': {'rowNumber': '1'},
+                'idFields': {'rowNumber': ''},
                 'errors': [{
-                    'fieldName': 'delimiter',
+                    'fieldName': '',
                     'message': str(e)
                 }]
             }]
@@ -299,8 +301,9 @@ def upload_file():
         q = get_q(get_redis_connection())
         job = q.enqueue_call(
             func=validate_async,
-            args=(uploaded_file.filename, jurisdiction, full_filename, event_type, 100000),
-            result_ttl=5000
+            args=(uploaded_file.filename, jurisdiction, full_filename, event_type, 1000000),
+            result_ttl=5000,
+            timeout=3600,
         )
         app.logger.info(f"Job id {job.get_id()}")
         return jsonify(

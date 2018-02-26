@@ -3,6 +3,7 @@ import RaisedButton from 'material-ui/RaisedButton'
 import ReactUploadFile from 'react-upload-file'
 import { pickFile, resetEventType, resetUploadResponse, saveUploadResponse } from '../../actions'
 import UploadInvalid from './invalid'
+import CircularProgress from 'material-ui/CircularProgress'
 import { connect } from 'react-redux'
 
 
@@ -41,18 +42,24 @@ const styles = {
 }
 
 
-const beforeUpload = (files) => {
-  return true;
-}
-
 class UploadFile extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {uploading: false};
+  }
   options() {
     return {
       baseUrl: 'api/upload/upload_file',
       withCredentials: true,
       didChoose: this.props.pickFile,
-      beforeUpload: beforeUpload,
-      uploadSuccess: this.props.saveUploadResponse,
+      beforeUpload: (files) => {
+        this.setState({uploading: true})
+        return files
+      },
+      uploadSuccess: (uploadResponse) => {
+        this.setState({uploading: false})
+        this.props.saveUploadResponse(uploadResponse)
+      },
       query: () => {
         return {
           jurisdiction: this.props.selectedJurisdiction.slug,
@@ -69,17 +76,23 @@ class UploadFile extends React.Component {
     } else if(this.props.uploadValidating) {
       return (<div>The uploader is validating! job key is {this.props.jobKey}</div>)
     } else {
+      const label = this.state.uploading === true ? 'Uploading ' + this.props.filePicked + ' ...' : 'Upload ' + this.props.filePicked
       return (
         <div style={styles.step}>
           <h4>Pick {this.props.selectedEventType.name} file</h4>
+          {this.state.uploading === true ? <span><p>{label}</p><div><CircularProgress size={60} thickness={7} /></div></span> : null}
           <ReactUploadFile
             options={this.options()}
-            chooseFileButton={<RaisedButton style={styles.button} label="Browse for File" />}
+            chooseFileButton={<RaisedButton
+              style={styles.button}
+              label="Browse for File"
+              disabled={this.state.uploading === true}
+            />}
             uploadFileButton={<RaisedButton
-              disabled={this.props.filePicked === ''}
+              disabled={this.props.filePicked === '' || this.state.uploading === true}
               primary={this.props.filePicked !== ''}
               style={styles.button}
-              label={'Upload ' + this.props.filePicked}
+              label={label}
             />}
           />
           <br />
