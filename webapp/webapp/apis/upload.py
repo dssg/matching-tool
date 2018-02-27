@@ -89,7 +89,7 @@ def can_upload_file(file_jurisdiction, file_event_type):
 
 def get_sample(saved_filename):
     with open(saved_filename, 'rb') as request_file:
-        reader = csv.DictReader(request_file)
+        reader = csv.DictReader(request_file, delimiter='|')
         sample_rows = []
         for x in range(10):
             try:

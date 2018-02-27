@@ -53,7 +53,7 @@ class Validating extends React.Component {
   render() {
     return (
       <div style={styles.step}>
-        <p>{this.props.message} {this.props.jobKey}</p>
+        <p>{this.props.message}</p>
         <div>
           <CircularProgress size={60} thickness={7} />
         </div>
