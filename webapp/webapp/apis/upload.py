@@ -157,6 +157,8 @@ def get_validated_result(job_key):
     job = Job.fetch(job_key, connection=get_redis_connection())
     if job.is_finished:
         result = job.result
+        if 'validation' in result and 'upload_result' in result:
+            return jsonify(result)
         validation_report = result['validation_report']
         jurisdiction = result['jurisdiction']
         event_type = result['event_type']
@@ -201,7 +203,7 @@ def get_validated_result(job_key):
                 db_session=db_session,
                 s3_upload_path=upload_path,
             )
-            sample_rows, field_names = get_sample(full_filename)
+            sample_rows, field_names = get_sample(filename_with_all_fields)
             return jsonify({
                 'validation': {
                     'status': 'valid',
@@ -243,7 +245,23 @@ def get_validated_result(job_key):
 
 
 def validate_async(uploaded_file_name, jurisdiction, full_filename, event_type, row_limit):
-    filename_with_all_fields = add_missing_fields(event_type, full_filename)
+    try:
+        filename_with_all_fields = add_missing_fields(event_type, full_filename)
+    except ValueError as e:
+        return {
+        'validation': {
+            'status': 'invalid',
+        },
+        'upload_result': {
+            'exampleRows': [{
+                'idFields': {'rowNumber': '1'},
+                'errors': [{
+                    'fieldName': 'delimiter',
+                    'message': str(e)
+                }]
+            }]
+        }
+    }
     validation_report = validate_file(event_type, filename_with_all_fields, row_limit)
     return {
         'validation_report': validation_report,
