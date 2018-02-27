@@ -1,4 +1,4 @@
-from flask import render_template, request, jsonify, Blueprint, url_for, send_file, make_response, g
+from flask import render_template, request, jsonify, Blueprint, url_for, send_file, make_response
 import pandas as pd
 import datetime
 import json
@@ -6,7 +6,6 @@ import copy
 from collections import OrderedDict
 import webapp.apis.query
 from webapp.apis import query
-import csv
 
 chart_api = Blueprint('chart_api', __name__, url_prefix='/api/chart')
 
