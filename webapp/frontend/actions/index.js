@@ -14,7 +14,9 @@ import {
   UPDATE_CONTROLLED_DATE,
   UPDATE_DURATION,
   UPDATE_TABLE_DATA,
-  UPDATE_SET_STATUS
+  UPDATE_SET_STATUS,
+  VALIDATED_RESULT,
+  FETCHING_RESULT
 } from '../constants/index'
 import { length, filter } from 'ramda'
 import { validJurisdictions } from '../utils/jurisdictions'
@@ -214,3 +216,35 @@ export function updateSetStatus(status) {
   }
 
 }
+
+function fetchValidatedResult(result) {
+  return {
+    type: FETCHING_RESULT,
+    payload: result
+  }
+}
+
+function showValidatedResult(result) {
+  return {
+    type: VALIDATED_RESULT,
+    payload: result
+  }
+}
+
+
+export function getValidatedResult(jobKey) {
+  return function(dispatch) {
+    return fetch('api/upload/validated_result/'+jobKey, { method: 'GET', dataType: 'json', credentials: 'include'})
+        .then((resp) => resp.json())
+        .then((result) => {
+          if (result.validation.status == "validating") {
+            dispatch(fetchValidatedResult(result))
+          } else {
+            dispatch(showValidatedResult(result))
+          }
+
+        })
+  }
+}
+
+

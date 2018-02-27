@@ -4,7 +4,6 @@ import Reactable from 'reactable'
 import { pickFile, resetEventType, resetUploadResponse, confirmUpload } from '../../actions'
 import { connect } from 'react-redux'
 
-
 function mapStateToProps(state) {
   return {
     selectedEventType: state.app.selectedEventType,

@@ -9,3 +9,6 @@ bcrypt
 smart_open==1.5.3
 sqlalchemy
 pandas
+rq
+redis
+flask-script
