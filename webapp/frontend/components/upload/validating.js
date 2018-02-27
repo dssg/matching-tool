@@ -37,7 +37,6 @@ class Validating extends React.Component {
 
   componentWillReceiveProps(nextProps) {
     if (!this.props.isFetching) {
-        console.log("start polling")
         this.startPoll()
     }
   }

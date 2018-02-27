@@ -165,7 +165,6 @@ const app = createReducer(initialState, {
     return newState
   },
   [VALIDATED_RESULT]: (state, payload) => {
-    console.log("validated_result!")
     const newState = update(state, {
       validationResponse: {
         message: {$set: payload.validation.message},
@@ -184,7 +183,6 @@ const app = createReducer(initialState, {
     return newState
   },
   [FETCHING_RESULT]: (state, payload) => {
-    console.log('fetching_result!')
     const newState = update(state, {
       validationResponse: {$set: payload.validation},
       uploadResponse: {

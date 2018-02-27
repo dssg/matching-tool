@@ -238,10 +238,8 @@ export function getValidatedResult(jobKey) {
         .then((resp) => resp.json())
         .then((result) => {
           if (result.validation.status == "validating") {
-            console.log("still validating action")
             dispatch(fetchValidatedResult(result))
           } else {
-            console.log("show validated action")
             dispatch(showValidatedResult(result))
           }
 
