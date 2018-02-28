@@ -6,14 +6,19 @@ from webapp.utils import create_statement_from_goodtables_schema, load_schema_fi
 from sqlalchemy import create_engine
 import contextlib
 import testing.postgresql
+from unittest.mock import patch
+from moto import mock_s3_deprecated
+import boto
 
 from flask_security import SQLAlchemySessionUserDatastore
 from flask_security.utils import encrypt_password
 
 import json
 import pandas as pd
-import os
-import psycopg2
+
+from fakeredis import FakeStrictRedis
+from rq import Queue
+
 
 DATA_FIELDS = {
     'hmis_service_stays': """
@@ -133,10 +138,16 @@ DATA_FIELDS = {
         matched_id              int
     """
 }
+SAMPLE_CONFIG = {
+    'raw_uploads_path': 's3://test-bucket/{jurisdiction}/{event_type}/uploaded/{date}/{upload_id}',
+    'merged_uploads_path': 's3://test-bucket/{jurisdiction}/{event_type}/merged'
+}
+
 
 def load_json_example(route):
     with open(route) as f:
         return json.load(f)
+
 
 @contextlib.contextmanager
 def rig_test_client():
@@ -150,7 +161,28 @@ def rig_test_client():
         app.config['SQLALCHEMY_DATABASE_URI'] = dburl
         app.config['WTF_CSRF_ENABLED'] = False
         init_app_with_options(app, user_datastore)
-        yield app.test_client()
+        try:
+            yield app.test_client()
+        finally:
+            db_session.remove()
+            engine.dispose()
+
+
+
+@contextlib.contextmanager
+def rig_all_the_things():
+    fake_redis_connection = FakeStrictRedis()
+    queue = Queue(async=False, connection=fake_redis_connection)
+    with patch('webapp.apis.upload.get_redis_connection', return_value=fake_redis_connection):
+        with patch('webapp.apis.upload.get_q', return_value=queue):
+            with patch.dict('webapp.utils.app_config', SAMPLE_CONFIG):
+                with rig_test_client() as app:
+                    authenticate(app)
+                    with mock_s3_deprecated():
+                        s3_conn = boto.connect_s3()
+                        s3_conn.create_bucket('test-bucket')
+                        yield app
+
 
 @contextlib.contextmanager
 def rig_test_client_with_engine():

@@ -1,4 +1,5 @@
 from copy import copy
+import json
 import re
 from datetime import datetime
 from goodtables import validate, check
@@ -39,24 +40,6 @@ CHECKS_BY_SCHEMA = {
     ],
 }
 
-
-@check('composite-primary-key', type='custom', context='body')
-def composite_primary_key(errors, cells, row_number):
-    safe_cells = copy(cells)
-    pk_cells = [cell for cell in safe_cells if cell['field'].descriptor.get('primaryKey')]
-    valid = any(cell['value'] is not None and cell['value'].strip() for cell in pk_cells)
-
-    if valid:
-        return
-
-    # Add error
-    message = 'Row number {}: One of columns {} is needed for primary key'.format(row_number, pk_cells)
-    errors.append({
-        'code': 'composite-primary-key-constraint',
-        'message': message,
-        'row-number': row_number,
-        'column-number': pk_cells[0]['number'],
-    })
 
 @check('inmate-num-or-person-id', type='custom', context='body')
 def inmate_num_or_person_id(errors, cells, row_number):
@@ -389,3 +372,56 @@ def veteran(errors, cells, row_number):
 @check('special-initiative-flag', type='custom', context='body')
 def special_initiative(errors, cells, row_number):
     return list_membership(errors, cells, row_number, 'special_initiative', BOOLS)
+
+
+@check('composite-primary-key', type='custom', context='body')
+class DuplicatePrimaryKey(object):
+
+    # Public
+
+    def __init__(self, **options):
+        self.__row_index = {}
+
+    def check_row(self, errors, cells, row_number):
+
+        # Get pointer
+        pk_cells = [cell for cell in cells if cell['field'].descriptor.get('primaryKey')]
+        all_present = any(cell['value'] is not None and cell['value'].strip() for cell in pk_cells)
+        if not all_present:
+            # Add error
+            message = 'Row number {}: One of columns {} is needed for primary key'.format(row_number, pk_cells)
+            errors.append({
+                'code': 'composite-primary-key-constraint',
+                'message': message,
+                'row-number': row_number,
+                'column-number': None,
+            })
+            return
+        try:
+            pointer = hash(json.dumps([cell['value'] for cell in pk_cells]))
+            references = self.__row_index.setdefault(pointer, [])
+        except TypeError:
+            pointer = None
+
+        # Found pointer
+        if pointer:
+
+            # Add error
+            if references:
+                message = "Row {row_number} has duplicate primary key to row(s) {row_numbers}"
+                message = message.format(
+                    row_number=row_number,
+                    row_numbers=', '.join(map(str, references)))
+                errors.append({
+                    'code': 'composite-primary-key-constraint',
+                    'message': message,
+                    'row-number': row_number,
+                    'column-number': None,
+                })
+
+            # Clear cells
+            if references:
+                del cells[:]
+
+            # Update references
+            references.append(row_number)
