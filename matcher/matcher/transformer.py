@@ -14,7 +14,7 @@ def ngram_generator(iterable:Iterable, n:int) -> List:
 
 def ngrammer(df:pd.DataFrame, to_ngrams:List, n=2) -> pd.DataFrame:
     for col in to_ngrams:
-        df[f"{col}_{n}grams"] = df[col].apply(ngram_generator, n=n).apply(list)
+        df[f"{col}_{n}grams"] = df[col].apply(ngram_generator, n=n).apply(set)
     return df
 
 def unite(df:pd.DataFrame, to_unite:Dict) -> pd.DataFrame:
