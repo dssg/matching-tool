@@ -23,6 +23,7 @@ from redis import Redis
 from rq import Queue, get_current_job
 from rq.job import Job
 
+from collections import defaultdict
 import re
 import requests
 import yaml
@@ -124,32 +125,23 @@ IDENTIFIER_COLUMNS = {
 
 
 def format_error_report(report, event_type_slug):
-    new_errors = {}
+    error_summary = defaultdict(list)
     headers = report['tables'][0]['headers']
     for error in report['tables'][0]['errors']:
-        formatted_error = {
-            'idFields': {
-                'rowNumber': error['row-number'],
-            },
-            'errors': [],
-        }
-        for identifier_column in IDENTIFIER_COLUMNS[event_type_slug]:
-            identifier_index = headers.index(identifier_column)
-            formatted_error['idFields'][identifier_column] = error['row'][identifier_index]
-        if error['row-number'] not in new_errors:
-            new_errors[error['row-number']] = formatted_error
+        message = re.sub('row \d+ and', '', re.sub('Row number \d+: ', '', error['message']))
         if error['column-number']:
             column_number = error['column-number'] - 1
             field_name = headers[column_number]
         else:
             field_name = ''
-        error_fields = {
-            'fieldName': field_name,
-            'message': re.sub('Row number \d+: ', '', error['message']),
-        }
-        new_errors[error['row-number']]['errors'].append(error_fields)
+        error_summary[(field_name, message)].append(error['row-number'])
 
-    return [row for row in new_errors.values()]
+    return [dict(
+        field_name=field_name,
+        message=message,
+        num_rows=len(row_numbers),
+        row_numbers=row_numbers,
+    ) for (field_name, message), row_numbers in error_summary.items()]
 
 
 @upload_api.route('/jurisdictional_roles.json', methods=['GET'])

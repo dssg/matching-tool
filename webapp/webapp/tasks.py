@@ -176,7 +176,10 @@ def add_missing_fields(event_type, infilename):
                         else:
                             newline[field_name] = ''
                     else:
-                        newline[field_name] = line[field_name]
+                        if field['type'] == 'string':
+                            newline[field_name] = line[field_name].strip()
+                        else:
+                            newline[field_name] = line[field_name]
                 writer.writerow(newline)
         except Exception as e:
             raise ValueError('Line %s has error: %s', reader.line_num, e)
@@ -191,6 +194,7 @@ def validate_file(event_type, filename_with_all_fields, row_limit=1000):
         checks=CHECKS_BY_SCHEMA[event_type],
         order_fields=True,
         row_limit=row_limit,
+        error_limit=1000000,
         format='csv'
     )
 
