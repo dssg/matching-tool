@@ -3,7 +3,7 @@ import RaisedButton from 'material-ui/RaisedButton'
 import {List, ListItem} from 'material-ui/List'
 import { resetUploadResponse, pickFile } from '../../actions'
 import { connect } from 'react-redux'
-import { clone, curry, flatten, map, mapObjIndexed, merge, values } from 'ramda'
+import { clone, curry, flatten, map, mapObjIndexed, merge, slice, values } from 'ramda'
 import {CSVLink} from 'react-csv'
 
 
@@ -79,7 +79,7 @@ class UploadInvalid extends React.Component {
           <RaisedButton style={styles.button} label="Download full error report" />
         </CSVLink>
         <List>
-          {map(renderBadRow, this.props.errorRows)}
+          {map(renderBadRow, slice(0, 100, this.props.errorRows))}
         </List>
       </div>
     )
