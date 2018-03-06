@@ -10,7 +10,8 @@ from webapp.utils import load_schema_file,\
     merged_file_path,\
     schema_filename,\
     lower_first,\
-    infer_delimiter
+    infer_delimiter,\
+    primary_key_statement
 from webapp.validations import CHECKS_BY_SCHEMA
 from hashlib import md5
 import logging
@@ -72,9 +73,10 @@ def copy_raw_table_to_db(
     logging.info('Assembled create table statement: %s', create_statement)
     db_engine.execute(create_statement)
     logging.info('Successfully created table')
+    primary_key = primary_key_statement(goodtables_schema['primaryKey'])
     with smart_open(full_s3_path, 'rb') as infile:
         cursor = db_engine.raw_connection().cursor()
-        copy_stmt = 'copy "{}" from stdin with csv header delimiter as \',\''.format(table_name)
+        copy_stmt = 'copy "{}" from stdin with csv force not null {}  header delimiter as \',\' '.format(table_name, primary_key)
         cursor.copy_expert(copy_stmt, infile)
     logging.info('Successfully loaded file')
     return table_name
@@ -154,25 +156,30 @@ def sync_merged_file_to_s3(jurisdiction, event_type, db_engine):
         cursor.copy_expert(copy_stmt, outfile)
 
 
-
-
 def add_missing_fields(event_type, infilename):
     goodtables_schema = load_schema_file(event_type)
-    schema_fields = [field['name'] for field in goodtables_schema['fields']]
+    schema_fields = goodtables_schema['fields']
     outfilename = infilename + '.filled'
     delimiter = infer_delimiter(infilename)
     with open(infilename, 'rb' ) as infileobj, open(outfilename, 'wb') as outfileobj:
         reader = csv.DictReader(lower_first(infileobj), delimiter=delimiter)
-        writer = csv.DictWriter(outfileobj, fieldnames=schema_fields)
+        writer = csv.DictWriter(outfileobj, fieldnames=[field['name'] for field in schema_fields], quoting=csv.QUOTE_MINIMAL)
         writer.writeheader()
-        for line in reader:
-            newline = {}
-            for field in schema_fields:
-                if field not in line:
-                    newline[field] = ''
-                else:
-                    newline[field] = line[field]
-            writer.writerow(newline)
+        try:
+            for line in reader:
+                newline = {}
+                for field in schema_fields:
+                    field_name = field['name']
+                    if field_name not in line or not line[field_name]:
+                        if field['type'] == 'integer':
+                            newline[field_name] = None
+                        else:
+                            newline[field_name] = ''
+                    else:
+                        newline[field_name] = line[field_name]
+                writer.writerow(newline)
+        except Exception as e:
+            raise ValueError('Line %s has error: %s', reader.line_num, e)
     return outfilename
 
 

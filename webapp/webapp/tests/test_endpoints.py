@@ -14,6 +14,7 @@ import pandas as pd
 
 GOOD_HMIS_FILE = 'sample_data/uploader_input/hmis_service_stays/good.csv'
 HMIS_FILE_WITH_DUPLICATES = 'sample_data/uploader_input/hmis_service_stays/duplicates.csv'
+BOOKINGS_FILE = 'sample_data/uploader_input/jail_bookings/missing-fields.csv'
 MATCHED_BOOKING_FILE = 'sample_data/matched/matched_bookings_data_20171207.csv'
 MATCHED_HMIS_FILE = 'sample_data/matched/matched_hmis_data_20171207.csv'
 
@@ -160,3 +161,49 @@ class MergeFileTestCase(unittest.TestCase):
             response = app.post('/api/upload/merge_file?uploadId={}'.format(upload_id))
             response_data = json.loads(response.get_data().decode('utf-8'))
             assert response_data['status'] == 'valid'
+
+
+class MergeBookingsFileTestCase(unittest.TestCase):
+    def do_upload(self, app, request_mock):
+        # to set up, we want a raw file to have been uploaded
+        # present in s3 and metadata in the database
+        # use the upload file endpoint as a shortcut for setting
+        # this environment up quickly, though this is not ideal
+        request_mock.get(re.compile('/match/boone/jail_bookings'), text='stuff')
+        response = app.post(
+            '/api/upload/upload_file?jurisdiction=boone&eventType=jail_bookings',
+            content_type='multipart/form-data',
+            data={'file_field': (open(BOOKINGS_FILE, 'rb'), 'myfile.csv')}
+        )
+        # parse and assert the response just in case something
+        # breaks before the merge stage it will show itself here
+        # and not make us think the merge is broken
+        response_data = json.loads(response.get_data().decode('utf-8'))
+        assert 'jobKey' in response_data, response_data
+        job_key = response_data['jobKey']
+        assert response_data['status'] == 'validating'
+        response = app.get('/api/upload/validated_result/' + job_key)
+        response_data = json.loads(response.get_data().decode('utf-8'))
+        assert response_data['validation']['status'] == 'valid'
+        upload_id = response_data['upload_result']['uploadId']
+        compiled_regex = re.compile('/match/boone/jail_bookings\?uploadId={upload_id}'.format(upload_id=upload_id))
+        request_mock.get(compiled_regex, text='stuff')
+        return upload_id
+
+    @requests_mock.mock()
+    def test_good_file(self, request_mock):
+        with rig_all_the_things() as app:
+            upload_id = self.do_upload(app, request_mock)
+            # okay, here's what we really want to test.
+            # call the merge endpoint
+            response = app.post('/api/upload/merge_file?uploadId={}'.format(upload_id))
+            response_data = json.loads(response.get_data().decode('utf-8'))
+            assert response_data['status'] == 'valid'
+            # make sure that there is a new merged file on s3
+            expected_s3_path = 's3://test-bucket/boone/jail_bookings/merged'
+            with smart_open(expected_s3_path, 'rb') as expected_s3_file:
+                reader = csv.reader(expected_s3_file)
+                assert len([row for row in reader]) == 11
+
+            # and make sure that the merge log has a record of this
+            assert db_session.query(MergeLog).filter(MergeLog.upload_id == '123-456').one

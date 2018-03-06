@@ -95,6 +95,10 @@ def create_statement_from_goodtables_schema(goodtables_schema, table_name):
     return create_statement_from_column_list(column_list, table_name, primary_key)
 
 
+def primary_key_statement(primary_key):
+    return ', '.join(["\"{}\"".format(col) for col in primary_key])
+
+
 def generate_master_table_name(jurisdiction, event_type):
     return '{jurisdiction}_{event_type}_master'.format(**locals())
 
