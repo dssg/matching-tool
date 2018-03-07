@@ -7,24 +7,10 @@ import { clone, curry, flatten, map, mapObjIndexed, merge, slice, values } from 
 import {CSVLink} from 'react-csv'
 
 
-function formatWithSingleQuotes(error) {
-  const newError = clone(error)
-  newError.message = newError.message.replace(/"/g, "'")
-  return newError
-}
-
-export function flattenErrorRows(errorRows) {
-  const mergeErrorAndIdFields = (idFields, error) => merge(idFields, error)
-  const mapErrorsToIdFields = (errorRow) => map(curry(mergeErrorAndIdFields)(errorRow.idFields), errorRow.errors)
-  const mappedErrorRows = map(mapErrorsToIdFields, errorRows)
-  return map(formatWithSingleQuotes, flatten(mappedErrorRows))
-}
-
 function mapStateToProps(state) {
   return {
     eventType: state.app.eventType,
-    errorRows: state.app.uploadResponse.exampleRows,
-    errors: flattenErrorRows(state.app.uploadResponse.exampleRows)
+    errorReport: state.app.uploadResponse.errorReport,
   }
 }
 
@@ -45,20 +31,13 @@ const styles = {
 }
 
 
-const renderIdField = (idFieldValue, idFieldName, idFieldObj) => {
-  return (<p key={idFieldName}><b>{idFieldName}</b>: {idFieldValue}</p>)
-}
-
-const renderColumnError = (error) => {
-  return (<p key={error.message}>{error.fieldName}: {error.message}</p>)
-}
-
-const renderBadRow = (badRow) => {
+const renderError = (error) => {
   return (
-    <ListItem key={badRow.idFields.rowNumber}>
-      {values(mapObjIndexed(renderIdField, badRow.idFields))}
-      Invalid Fields:
-      {map(renderColumnError, badRow.errors)}
+    <ListItem key={badRow.fieldName + badRow.message}>
+      Field: {badRow.fieldName}
+      Message: {badRow.message}
+      # rows with error: {badRow.num_rows}
+      row numbers with error: {badRow.row_numbers}
     </ListItem>
   )
 }
@@ -68,7 +47,7 @@ class UploadInvalid extends React.Component {
     return (
       <div style={styles.section}>
         <h2>Upload Failed</h2>
-        <p>Your {this.props.eventType} file had {this.props.errorRows.length} row(s) with errors.</p>
+        <p>Your {this.props.eventType} file had {this.props.errorReport.length} types of errors</p>
         <p>Please fix the rows and re-upload. If possible, fix the fields at the source so future uploads work without error.</p>
         <RaisedButton
           style={styles.button}
@@ -79,7 +58,7 @@ class UploadInvalid extends React.Component {
           <RaisedButton style={styles.button} label="Download full error report" />
         </CSVLink>
         <List>
-          {map(renderBadRow, slice(0, 100, this.props.errorRows))}
+          {map(renderError, this.props.errorReport)}
         </List>
       </div>
     )
