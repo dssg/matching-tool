@@ -42,6 +42,7 @@ const initialState = {
       status: '',
       isFetching: false,
       exampleRows: [],
+      errorReport: [],
       fieldOrder: [],
       rowCount: '',
       uploadId: ''
@@ -175,6 +176,7 @@ const app = createReducer(initialState, {
         status: {$set: payload.upload_result.status},
         isFetching: {$set: false},
         exampleRows: {$set: payload.upload_result.exampleRows},
+        errorReport: {$set: payload.upload_result.errorReport},
         fieldOrder: {$set: payload.upload_result.fieldOrder},
         rowCount: {$set: payload.upload_result.rowCount},
         uploadId: {$set: payload.upload_result.uploadId}

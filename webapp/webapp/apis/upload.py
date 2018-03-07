@@ -229,7 +229,7 @@ def get_validated_result(job_key):
                     'status': 'done',
                     'rowCount': '',
                     'fieldOrder': [],
-                    'exampleRows': format_error_report(validation_report, event_type),
+                    'errorReport': format_error_report(validation_report, event_type),
                     'upload_id': ''
                 }
             })
