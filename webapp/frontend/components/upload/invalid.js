@@ -33,11 +33,11 @@ const styles = {
 
 const renderError = (error) => {
   return (
-    <ListItem key={badRow.fieldName + badRow.message}>
-      Field: {badRow.fieldName}
-      Message: {badRow.message}
-      # rows with error: {badRow.num_rows}
-      row numbers with error: {badRow.row_numbers}
+    <ListItem key={error.fieldName + error.message}>
+      Field: {error.fieldName}
+      Message: {error.message}
+      # rows with error: {error.num_rows}
+      row numbers with error: {error.row_numbers}
     </ListItem>
   )
 }
@@ -54,7 +54,7 @@ class UploadInvalid extends React.Component {
           label="Try Again" 
           onMouseUp={this.props.retryUpload()}
         />
-        <CSVLink filename="matchingToolErrorReport.csv" data={this.props.errors}>
+        <CSVLink filename="matchingToolErrorReport.csv" data={this.props.errorReport}>
           <RaisedButton style={styles.button} label="Download full error report" />
         </CSVLink>
         <List>
