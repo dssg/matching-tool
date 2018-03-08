@@ -13,20 +13,24 @@ from Levenshtein import ratio, distance
 
 # String distances
 
+def pick_columns(df, col):    
+    return ~df.columns.str.contains("grams|distance|metric", regex=True) * df.columns.str.contains(col)
+
+
 def exact(df:pd.DataFrame, keys: List) -> pd.DataFrame:
     """
     Calculates the "exact distance" between all the selected columns
     """
 
     for col in keys:
-        df[f"exact_distance_in_{col}"] = df.loc[:, df.columns.str.startswith(col)].apply(lambda row: row[0] == row[1], axis = 1)
+        df[f"exact_distance_in_{col}"] = df.loc[:, pick_columns(df, col)].apply(lambda row: row[0] == row[1], axis = 1)
      
     return df
 
 def truncate_strings(df:pd.DataFrame, keys: List, length=4) -> pd.DataFrame:
 
     for col in keys:
-        df[f"truncate_distance_in_{col}"] = df.loc[:, df.columns.str.startswith(col)].apply(lambda row: row[0][:length] == row[1][:length], axis = 1)
+        df[f"truncate_distance_in_{col}"] = df.loc[:, pick_columns(df, col)].apply(lambda row: row[0][:length] == row[1][:length], axis = 1)
     
     return df
 
@@ -38,14 +42,14 @@ def longest_common_substring(df:pd.DataFrame, keys: List) -> pd.DataFrame:
         return match.size
     
     for col in keys:
-        df[f"LCSS_distance_in_{col}"] = df.loc[:, df.columns.str.startswith(col)].apply(lambda row: _LCSS(row[0], row[1]), axis = 1)
+        df[f"LCSS_distance_in_{col}"] = df.loc[:, pick_columns(df, col)].apply(lambda row: _LCSS(row[0], row[1]), axis = 1)
 
     return df
 
 def levenshtein(df:pd.DataFrame, keys: List) -> pd.DataFrame:
 
     for col in keys:
-        df[f"Levenshtein_distance_in_{col}"] = df.loc[:, df.columns.str.startswith(col)].apply(lambda row: distance(row[0], row[1]), axis = 1)
+        df[f"Levenshtein_distance_in_{col}"] = df.loc[:, pick_columns(df, col)].apply(lambda row: distance(row[0], row[1]), axis = 1)
 
     return df
 
@@ -54,34 +58,47 @@ def hamming(df:pd.DataFrame, keys: List, length=3) -> pd.DataFrame:
     The Hamming distance is simply the number of different characters. This means that the length of both strings should be the same
     """
     for col in keys:
-        df[f"Hamming_distance_in_{col}"] = df.loc[:, df.columns.str.startswith(col)].apply(lambda row: Levenshtein.hamming(row[0][:length], row[1][:length]), axis = 1)
+        df[f"Hamming_distance_in_{col}"] = df.loc[:, pick_columns(df, col)].apply(lambda row: Levenshtein.hamming(row[0][:length], row[1][:length]), axis = 1)
 
     return df
 
-def qgram(df:pd.DataFrame, keys: List) -> pd.DataFrame:
+def qgram_metric(df:pd.DataFrame, keys: List, n=2) -> pd.DataFrame:
     """
-    NOTE: This expects ngrams as input.
-    
-    By default it will search for columns that end in "grams" (see transforms.py)
+
+    It uses the "ngram"-columns 
     
     The number of common q-grams is divided by the number of q-grams of the shortest input string.
     """
 
-    if keys is None:
-        keys = list(df.columns[df.columns.str.endswith('grams')])
-
+    def pick_ngrams_columns(df, col, n=2):    
+        return ~df.columns.str.contains("distance|metric", regex=True)* df.columns.str.contains(f"{n}grams") * df.columns.str.contains(col)
+    
     def _similarity(s1, s2):
         min_size = min(len(s1), len(s2))
 
         return len(s1.intersection(s2))/min_size
         
     for col in keys:
-        df[f"qgram_metric_{col}"] = df.loc[:, df.columns.str.startswith(col)].apply(lambda row: _similarity(row[0], row[1]), axis = 1)
+        df[f"qgram_metric_{col}"] = df.loc[:, pick_ngrams_columns(df, col, n)].apply(lambda row: _similarity(row[0], row[1]), axis = 1)
 
-    
     return df
 
-def jaro(df:pd.DataFrame, keys: List) -> pd.DataFrame:
+def qgram(df:pd.DataFrame, keys: List, n=2) -> pd.DataFrame:
+
+    def pick_ngrams_columns(df, col, n=2):    
+        return ~df.columns.str.contains("distance|metric", regex=True)* df.columns.str.contains(f"{n}grams") * df.columns.str.contains(col)
+    
+    def _similarity(s1, s2):
+        min_size = min(len(s1), len(s2))
+
+        return len(s1.intersection(s2))/min_size
+        
+    for col in keys:
+        df[f"qgram_distance_{col}"] = df.loc[:, pick_ngrams_columns(df, col, n)].apply(lambda row: 1 - _similarity(row[0], row[1]), axis = 1)
+
+    return df
+
+def jaro_similarity(df:pd.DataFrame, keys: List) -> pd.DataFrame:
     """
     (From: https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance)
     The Jaro distance between two words is the minimum number of single-character transpositions required to change one word into the other.
@@ -96,12 +113,18 @@ def jaro(df:pd.DataFrame, keys: List) -> pd.DataFrame:
     $t$ is half the number of transpositions
     """
     for col in keys:
-        df[f"Jaro_similarity_in_{col}"] = df.loc[:, df.columns.str.startswith(col)].apply(lambda row: Levenshtein.jaro(row[0], row[1]), axis = 1)
+        df[f"Jaro_similarity_in_{col}"] = df.loc[:, pick_columns(df, col)].apply(lambda row: Levenshtein.jaro(row[0], row[1]), axis = 1)
+
+    return df
+
+def jaro(df:pd.DataFrame, keys: List) -> pd.DataFrame:
+    for col in keys:
+        df[f"Jaro_distance_in_{col}"] = df.loc[:, pick_columns(df, col)].apply(lambda row: 1 - Levenshtein.jaro(row[0], row[1]), axis = 1)
 
     return df
 
 
-def jaro_winkler(df:pd.DataFrame, keys: List) -> pd.DataFrame:
+def jaro_winkler_similarity(df:pd.DataFrame, keys: List) -> pd.DataFrame:
     """
     (From: https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance)
 
@@ -122,8 +145,12 @@ def jaro_winkler(df:pd.DataFrame, keys: List) -> pd.DataFrame:
     NOTE: THIS FUNCTION CALCULATES THE SIMILARITY
     """
     for col in keys:
-        df[f"Jaro_Winker_similarity_in_{col}"] = df.loc[:, df.columns.str.startswith(col)].apply(lambda row: Levenshtein.jaro_winkler(row[0], row[1]), axis = 1)
+        df[f"Jaro_Winkler_similarity_in_{col}"] = df.loc[:, pick_columns(df, col)].apply(lambda row: Levenshtein.jaro_winkler(row[0], row[1]), axis = 1)
 
     return df
 
+def jaro_winkler(df:pd.DataFrame, keys: List) -> pd.DataFrame:
+    for col in keys:
+        df[f"Jaro_Winkler_distance_in_{col}"] = df.loc[:, pick_columns(df, col)].apply(lambda row: 1 - Levenshtein.jaro_winkler(row[0], row[1]), axis = 1)
 
+    return df

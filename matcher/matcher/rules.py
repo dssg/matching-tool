@@ -13,3 +13,15 @@ def exact(df:pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def compactify(df:pd.DataFrame, operation='sum') -> pd.DataFrame:
+
+    if operation == 'sum':
+        df["matches"] = df.filter(like='distance').apply(lambda row: np.sum(row), axis=1)
+    elif operation == 'norm':
+        df["matches"] = df.filter(like='distance').apply(lambda row: np.linalg.norm(row), axis=1)
+    else:
+        print(f"Operation {operation} not supported")
+        df["matches"] = np.nan
+    
+    return df
+             

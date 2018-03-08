@@ -11,10 +11,10 @@ import numpy as np
 from typing import List, Callable
 from sklearn.cluster import DBSCAN
 
-from . import utils ## Any idea about how to improve this?
-from . import indexer
-from . import contraster
-
+import utils
+import indexer
+import contraster
+import transformer
 
 def select_columns(df:pd.DataFrame, keys:list) -> pd.DataFrame:
     """ 
@@ -49,7 +49,7 @@ def indexing(df:pd.DataFrame, indexer:Callable[[pd.DataFrame], pd.DataFrame]) ->
     return df
 
 
-def match(df1:pd.DataFrame, df2:pd.DataFrame, contraster:Callable[[pd.DataFrame], pd.DataFrame], keys: List) -> pd.DataFrame:
+def match(df1:pd.DataFrame, df2:pd.DataFrame, contraster:Callable[[pd.DataFrame], pd.DataFrame], **kwargs) -> pd.DataFrame:
     """
     """
     logger.info(f"Starting matching process using the strategy {contraster.__name__}")
@@ -209,5 +209,9 @@ if __name__ == "main":
     keys = None
     indexer = indexer.identity
     contraster = contraster.exact
+
+    to_ngrams = []
+    to_unite = {}
+    to_split = []
     
     run(df, keys, indexer, contraster)
