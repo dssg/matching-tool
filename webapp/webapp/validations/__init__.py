@@ -86,7 +86,7 @@ def booking_num_or_event_id(errors, cells, row_number):
 def is_good_dob(string):
     if not string:
         return True
-    regex = '[0-9X]{4}-[0-9X]{2}-[0-9X]{2}'
+    regex = '^[0-9X]{4}-[0-9X]{2}-[0-9X]{2}$'
     match = re.match(regex, string)
     if match:
         return True
@@ -290,12 +290,12 @@ def enumerable_maybe_list(errors, cells, row_number):
         else:
             value = str(value).strip()
 
-        maybe_list = value.split(', ')
+        maybe_list = value.split(',')
         for value in maybe_list:
-            valid = (value == '') or (value in enum)
+            valid = (value.strip() == '') or (value.strip() in enum)
             if not valid:
                 # Add error
-                message = 'Row number {}: {} is {} but should be in list {}'.format(row_number, cell['field'].descriptor.get('name'), value, enum)
+                message = 'Row number {}: {} is {} but should be in list {}'.format(row_number, cell['field'].descriptor.get('name'), value.strip(), enum)
                 errors.append({
                     'code': 'enum-maybe-list-constraint',
                     'message': message,

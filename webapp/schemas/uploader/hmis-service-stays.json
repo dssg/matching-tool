@@ -86,7 +86,16 @@
 		},
 		{
 			"name": "ssn_data_quality",
-			"type": "string"
+			"type": "string",
+			"constraints": {
+				"enum": [
+					"FULL SSN REPORTED",
+					"APPROXIMATE OR PARTIAL SSN REPORTED",
+					"CLIENT DOESN'T KNOW",
+					"CLIENT REFUSED",
+					"DATA NOT COLLECTED"
+				]
+			}
 		},
         {
             "name": "dmv_number",
