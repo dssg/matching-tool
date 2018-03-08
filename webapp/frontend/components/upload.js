@@ -88,14 +88,13 @@ class UploadPage extends React.Component {
               <StepLabel>Choose Data Type</StepLabel>
             </Step>
             <Step>
-              <StepLabel
-                icon={this.props.uploadProblem ? <WarningIcon color={red500} /> : 2}
-                style={this.props.uploadProblem ? {color: red500} : {}}
-              >Upload File
-              </StepLabel>
+              <StepLabel>Upload File</StepLabel>
             </Step>
             <Step>
-              <StepLabel>Validating</StepLabel>
+              <StepLabel
+                icon={this.props.uploadProblem ? <WarningIcon color={red500} /> : 3}
+                style={this.props.uploadProblem ? {color: red500} : {}}
+              >Validate File</StepLabel>
             </Step>
             <Step>
               <StepLabel>Confirm Upload</StepLabel>

@@ -125,23 +125,34 @@ IDENTIFIER_COLUMNS = {
 
 
 def format_error_report(report, event_type_slug):
-    error_summary = defaultdict(list)
+    error_summary = defaultdict(dict)
     headers = report['tables'][0]['headers']
     for error in report['tables'][0]['errors']:
-        message = re.sub('row \d+ and', '', re.sub('Row number \d+: ', '', error['message']))
+        message = re.sub('row \d+ and', '', error['message'])
+        message = re.sub('Row number \d+: ', '', message)
+        match = re.search('The value (.*) in  column \d+', message)
+        value = ''
+        if match:
+            value = match.group(1)
+            message = re.sub(re.escape(value), '', message, count=1)
         if error['column-number']:
             column_number = error['column-number'] - 1
             field_name = headers[column_number]
         else:
             field_name = ''
-        error_summary[(field_name, message)].append(error['row-number'])
+        if (field_name, message) not in error_summary:
+            error_summary[(field_name, message)] = dict(row_numbers=[], values=set())
+        error_summary[(field_name, message)]['row_numbers'].append(error['row-number'])
+        if value and value not in error_summary[(field_name, message)]:
+            error_summary[(field_name, message)]['values'].add(value)
 
     return [dict(
         field_name=field_name,
         message=message,
-        num_rows=len(row_numbers),
-        row_numbers=row_numbers,
-    ) for (field_name, message), row_numbers in error_summary.items()]
+        num_rows=len(data['row_numbers']),
+        values=list(data['values']),
+        row_numbers=data['row_numbers']
+    ) for (field_name, message), data in error_summary.items()]
 
 
 @upload_api.route('/jurisdictional_roles.json', methods=['GET'])
