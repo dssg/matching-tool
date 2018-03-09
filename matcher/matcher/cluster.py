@@ -1,6 +1,6 @@
 # coding: utf-8
 
-import contraster
+from . import contraster
 import logging
 logger = logging.getLogger('matcher')
 
@@ -76,32 +76,32 @@ def square_distances(upper_right, df1, df2):
 
 def generate_matched_ids(
     distances:pd.DataFrame,
-    df1:pd.DataFrame,
-    df2:pd.DataFrame,
+    df:pd.DataFrame,
+    # df2:pd.DataFrame,
     clustering_params:dict,
-    self_match
+    # self_match
 ) -> tuple:
     logger.info('Beginning clustering & id generation.')
-    n = len(df1)
-    m = len(df2)
+    # n = len(df1)
+    # m = len(df2)
 
-    # for clustering, the distances must be a square matrix with all possible
-    # pairs. if we are doing a self-match, this is what we have, but if we are
-    # matching different data sources, we only have the upper right portion of
-    # the matrix (the distances between elements in the different sets), and we
-    # need to complete the square with the self-matches for each matrix, plus
-    # the transpose of the distances we have (for the lower left portion)
-    if not self_match:
-        distances = square_distances(distances, df1, df2)
+    # # for clustering, the distances must be a square matrix with all possible
+    # # pairs. if we are doing a self-match, this is what we have, but if we are
+    # # matching different data sources, we only have the upper right portion of
+    # # the matrix (the distances between elements in the different sets), and we
+    # # need to complete the square with the self-matches for each matrix, plus
+    # # the transpose of the distances we have (for the lower left portion)
+    # if not self_match:
+    #     distances = square_distances(distances, df1, df2)
 
     ids = cluster(
         distances, **clustering_params
     )
 
-    df1['matched_id'] = ids.head(n)
-    df2['matched_id'] = ids.tail(m)
+    df['matched_id'] = ids
+    # df2['matched_id'] = ids.tail(m)
 
     logger.info('Matched ids generated')
 
-    return (df1, df2)
+    return (df)
 

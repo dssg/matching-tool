@@ -10,24 +10,11 @@ import numpy as np
 
 from typing import List, Callable
 
-import utils
-import indexer
-import contraster
-import transformer
-import cluster
-
-def select_columns(df:pd.DataFrame, keys:list) -> pd.DataFrame:
-    """ 
-    Reduces the dataframe to the columns selected for matching.
-    
-    We always expect at least two columns: source and source_id
-    """
-    
-    columns_to_select = ['source', 'source_id', 'row_id']
-    if keys:
-        columns_to_select = columns_to_select + keys
-    
-    return df.loc[:,columns_to_select]
+from . import utils
+from . import indexer
+from . import contraster
+from . import transformer
+from . import cluster
 
 
 def indexing(df:pd.DataFrame, indexer:Callable[[pd.DataFrame], pd.DataFrame]) -> pd.DataFrame:
@@ -49,12 +36,12 @@ def indexing(df:pd.DataFrame, indexer:Callable[[pd.DataFrame], pd.DataFrame]) ->
     return df
 
 
-def match(df1:pd.DataFrame, df2:pd.DataFrame, contraster:Callable[[pd.DataFrame], pd.DataFrame], **kwargs) -> pd.DataFrame:
+def match(df:pd.DataFrame, contraster:Callable[[pd.DataFrame], pd.DataFrame], **kwargs) -> pd.DataFrame:
     """
     """
     logger.info(f"Starting matching process using the strategy {contraster.__name__}")
 
-    df = contraster(df1, df2, keys)
+    df = contraster(df, keys)
 
     logger.info(f"Matching {contraster.__name__} done")
 
@@ -62,50 +49,46 @@ def match(df1:pd.DataFrame, df2:pd.DataFrame, contraster:Callable[[pd.DataFrame]
 
 
 def run(
-    df1:pd.DataFrame,
+    df:pd.DataFrame,
     keys:List,
     indexer:Callable[[pd.DataFrame],
     pd.DataFrame],
     contraster:Callable[[pd.DataFrame],pd.DataFrame],
     clustering_params:dict,
-    df2:pd.DataFrame=None
+    # df2:pd.DataFrame=None
 ) -> pd.DataFrame:
     
     df1 = utils.generate_row_ids(df1)
     df1['source_id'] = utils.get_source_id(df1)
     
-    if df2 is None:
-        df2 = df1.copy()
-        self_match = True
-    else:
-        df2 = utils.generate_row_ids(df2)
-        df2['source_id'] = utils.get_source_id(df2)
-        self_match = False
+    # if df2 is None:
+    #     df2 = df1.copy()
+    #     self_match = True
+    # else:
+    #     df2 = utils.generate_row_ids(df2)
+    #     df2['source_id'] = utils.get_source_id(df2)
+    #     self_match = False
 
     distances =  utils.version(
         match(
-            df1=indexing(
-                select_columns(df1, keys),
-                indexer=indexer
-            ),
-            df2=indexing(
-                select_columns(df2, keys),
-                indexer=indexer
-            ),
+            df=indexing(indexer=indexer),
+            # df2=indexing(
+            #     select_columns(df2, keys),
+            #     indexer=indexer
+            # ),
             contraster=contraster,
             keys=keys
         )
     )
 
-    df1, df2 =cluster. generate_matched_ids(
+    df = cluster.generate_matched_ids(
         distances=distances.pivot(index='row_id_left', columns='row_id_right', values='matches'),
-        df1=df1,
-        df2=df2,
-        clustering_params=clustering_params,
-        self_match=self_match
+        df=df,
+        # df2=df2,
+        clustering_params=clustering_params
     )
 
-    return (df1.drop('row_id', axis=1), df2.drop('row_id', axis=1))
+    return (df.drop('row_id', axis=1))
 
 
 if __name__ == "main":

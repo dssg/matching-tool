@@ -130,8 +130,62 @@ DATA_FIELDS = {
     """
 }
 
+INDEXES = {
+    'jail_bookings': ['internal_event_id', 'booking_number', 'location_date'],
+    'booking_aka': ['internal_event_id', 'booking_number'],
+    'booking_charges': ['internal_event_id', 'internal_charge_id', 'booking_number', 'charge_position', 'charge_date'],
+    'case_charges': ['internal_event_id', 'internal_charge_id', 'case_number', 'charge_position', 'charge_date'],
+    'hmis_service_stays': ['internal_event_id', 'client_location_start_date'],
+    'hmis_aka': ['internal_event_id', 'project_start_date'],
+    'by_name': ['internal_event_id', 'full_name', 'first_name', 'middle_name', 'last_name', 'list_entry_date']
+}
 
-def read_matched_data_from_postgres(table_name, pg_keys):
+def read_merged_data_from_s3(jurisdiction:str, event_type:str, s3_bucket:str) -> pd.DataFrame:
+    # Read the data in and select the necessary columns
+    app.logger.info(f"Reading data from {S3_BUCKET}/{jurisdiction}/{event_type}")
+    merged_key = f'csh/matcher/{jurisdiction}/{event_type}/merged'
+    df=pd.read_csv(f's3://{s3_bucket}/{merged_key}', sep='|').set_index(INDEXES[event_type], drop=False)
+
+    return df
+
+
+def load_data_for_matching(jurisdiction:str, event_type:str, s3_bucket:str, keys:list) -> pd.DataFrame:
+    df = select_columns(
+        df=read_merged_data_from_s3(jurisdiction, event_type, s3_bucket),
+        keys=keys
+    )
+    df['event_type'] = event_type
+
+    return df
+
+
+def write_matched_data(df:pd.DataFrame, jurisdiction:str, event_type:str, s3_bucket:str, pg_keys:dict):
+    df = df[df.event_type == event_type]
+    df = df['matched_id'].merge(
+        right=read_merged_data_from_s3(jurisdiction, event_type, s3_bucket),
+        left_index=True,
+        right_index=True
+    )
+    key = f'csh/matcher/{jurisdiction}/{event_type}/matched'
+    table_name = f'{jurisdiction}_{event_type}_matched'
+    write_to_s3(df, s3_bucket, key)
+    write_matched_data_to_postgres(s3_bucket, key, table_name, pg_keys)
+
+
+def select_columns(df:pd.DataFrame, keys:list) -> pd.DataFrame:
+    """ 
+    Reduces the dataframe to the columns selected for matching.
+    
+    We always expect at least two columns: source and source_id
+    """
+    columns_to_select = ['source', 'source_id']
+    if keys:
+        columns_to_select = columns_to_select + keys
+    
+    return df.loc[:,columns_to_select]
+
+
+def read_matched_data_from_postgres(table_name:str, pg_keys:dict):
     conn = psycopg2.connect(**pg_keys)
     cur = conn.cursor()
 
