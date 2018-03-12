@@ -156,13 +156,13 @@ def do_match(jurisdiction, event_type):
     indexer_func = getattr(indexer, INDEXER)
     contraster_func = getattr(contraster, CONTRASTER)
 
-    df = pd.concat([load_data_for_matching(jurisdiction, event_type, S3_BUCKET, keys) for event_type in EVENT_TYPES])
+    df = pd.concat([utils.load_data_for_matching(jurisdiction, event_type, S3_BUCKET, keys) for event_type in EVENT_TYPES])
 
     app.logger.info(f"Running matcher({KEYS},{INDEXER},{CONTRASTER})")
     df = matcher.run(df, KEYS, indexer_func, contraster_func, CLUSTERING_PARAMS)
 
     for event_type in EVENT_TYPES:
-        write_matched_data(df, jurisdiction, event_type, S3_BUCKET, PG_CONNECTION)
+        utils.write_matched_data(df, jurisdiction, event_type, S3_BUCKET, PG_CONNECTION)
 
     return {
         'status': 'done',
