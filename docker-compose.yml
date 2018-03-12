@@ -71,7 +71,7 @@ services:
     worker:
         image: csh_matcher
         container_name: matcher_worker
-        command: python manage.py runworker
+        command: python manage.py
         volumes:
             - '.:/csh'
         depends_on:

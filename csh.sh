@@ -92,7 +92,7 @@ case "$1" in
 		shift
         ;;
     build)
-        build_images
+        build_images ${2}
 		shift
         ;;
     rebuild)
