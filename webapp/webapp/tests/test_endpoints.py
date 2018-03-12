@@ -184,6 +184,7 @@ class MergeBookingsFileTestCase(unittest.TestCase):
         assert response_data['status'] == 'validating'
         response = app.get('/api/upload/validated_result/' + job_key)
         response_data = json.loads(response.get_data().decode('utf-8'))
+        print(response_data)
         assert response_data['validation']['status'] == 'valid'
         upload_id = response_data['upload_result']['uploadId']
         compiled_regex = re.compile('/match/boone/jail_bookings\?uploadId={upload_id}'.format(upload_id=upload_id))
