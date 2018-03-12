@@ -146,8 +146,8 @@ def read_merged_data_from_s3(jurisdiction:str, event_type:str, s3_bucket:str) ->
     # Read the data in and select the necessary columns
     logger.info(f"Reading data from {s3_bucket}/{jurisdiction}/{event_type}")
     merged_key = f'csh/matcher/{jurisdiction}/{event_type}/merged'
-    df=pd.read_csv(f's3://{s3_bucket}/{merged_key}', sep='|').set_index(INDEXES[event_type], drop=False)
-
+    df=pd.read_csv(f's3://{s3_bucket}/{merged_key}', sep='|')
+ 
     return df
 
 
@@ -193,7 +193,7 @@ def select_columns(df:pd.DataFrame, keys:list, event_type:str) -> pd.DataFrame:
     We always expect at least two columns: source and source_id
     """
     logger.info(f'Selecting columns for matching.')
-    columns_to_select = ['source', 'source_id', 'internal_person_id']
+    columns_to_select = ['source', 'source_id', 'internal_person_id'] + INDEXES[event_type]
     if keys:
         columns_to_select = columns_to_select + keys
     
