@@ -34,7 +34,7 @@ function singleQuote(string) {
   return string.replace(/"/g, "'")
 }
 
-function formatWithSingleQuotes(error) {
+export function formatWithSingleQuotes(error) {
     const newError = clone(error)
     newError.message = singleQuote(newError.message)
     newError.values = map(singleQuote, newError.values)
@@ -61,7 +61,7 @@ class UploadInvalid extends React.Component {
         <p>Please fix the rows and re-upload. If possible, fix the fields at the source so future uploads work without error.</p>
         <RaisedButton
           style={styles.button}
-          label="Try Again" 
+          label="Try Again"
           onMouseUp={this.props.retryUpload()}
         />
         <CSVLink filename="matchingToolErrorReport.csv" data={slice(0, 1000, map(formatWithSingleQuotes, this.props.errorReport))}>
