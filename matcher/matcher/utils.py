@@ -187,7 +187,8 @@ def write_matched_data(df:pd.DataFrame, jurisdiction:str, event_type:str, s3_buc
         bucket=s3_bucket, 
         key=key, 
         table_name=table_name, 
-        pg_keys=pg_keys
+        pg_keys=pg_keys,
+        event_type=event_type
     )
     logger.info(f'Written data for {jurisdiction} {event_type} to postgres.')
 
@@ -218,7 +219,7 @@ def read_matched_data_from_postgres(table_name:str, pg_keys:dict):
     return dat
 
 
-def write_matched_data_to_postgres(bucket, key, table_name, pg_keys):
+def write_matched_data_to_postgres(bucket, key, table_name, pg_keys, event_type):
     conn = psycopg2.connect(**pg_keys)
     cur = conn.cursor()
 
@@ -227,7 +228,7 @@ def write_matched_data_to_postgres(bucket, key, table_name, pg_keys):
         CREATE SCHEMA IF NOT EXISTS matched;
         DROP TABLE IF EXISTS matched.{table_name};
         CREATE TABLE matched.{table_name} (
-            {DATA_FIELDS[table_name]}
+            {DATA_FIELDS[event_type]}
         );
     """
     logger.warning(create_table_query)
