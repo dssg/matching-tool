@@ -140,9 +140,10 @@ INDEXES = {
     'by_name': ['internal_event_id', 'full_name', 'first_name', 'middle_name', 'last_name', 'list_entry_date']
 }
 
+
 def read_merged_data_from_s3(jurisdiction:str, event_type:str, s3_bucket:str) -> pd.DataFrame:
     # Read the data in and select the necessary columns
-    app.logger.info(f"Reading data from {S3_BUCKET}/{jurisdiction}/{event_type}")
+    logger.info(f"Reading data from {S3_BUCKET}/{jurisdiction}/{event_type}")
     merged_key = f'csh/matcher/{jurisdiction}/{event_type}/merged'
     df=pd.read_csv(f's3://{s3_bucket}/{merged_key}', sep='|').set_index(INDEXES[event_type], drop=False)
 
@@ -150,16 +151,25 @@ def read_merged_data_from_s3(jurisdiction:str, event_type:str, s3_bucket:str) ->
 
 
 def load_data_for_matching(jurisdiction:str, event_type:str, s3_bucket:str, keys:list) -> pd.DataFrame:
-    df = select_columns(
-        df=read_merged_data_from_s3(jurisdiction, event_type, s3_bucket),
-        keys=keys
-    )
-    df['event_type'] = event_type
-
-    return df
+    logger.info(f'Loading {jurisdiction} {event_type} data for matching.')
+    try:
+        df = select_columns(
+            df=read_merged_data_from_s3(jurisdiction, event_type, s3_bucket),
+            keys=keys
+        )
+        df['event_type'] = event_type
+        logger.info(f'{jurisdiction} {event_type} data loaded from S3.')
+        return df
+    except botocore.exceptions.ClientError as e:
+        if e.response['Error']['Code'] == "404":
+            logger.info(f'No merged file found for {jurisdiction} {event_type}. Skipping.')
+            pass
+        else:
+            raise
 
 
 def write_matched_data(df:pd.DataFrame, jurisdiction:str, event_type:str, s3_bucket:str, pg_keys:dict):
+    logger.info(f'Writing matched data for {jurisdiction} {event_type}')
     df = df[df.event_type == event_type]
     df = df['matched_id'].merge(
         right=read_merged_data_from_s3(jurisdiction, event_type, s3_bucket),
@@ -169,7 +179,9 @@ def write_matched_data(df:pd.DataFrame, jurisdiction:str, event_type:str, s3_buc
     key = f'csh/matcher/{jurisdiction}/{event_type}/matched'
     table_name = f'{jurisdiction}_{event_type}_matched'
     write_to_s3(df, s3_bucket, key)
+    logger.info(f'Written data for {jurisdiction} {event_type} to S3.')
     write_matched_data_to_postgres(s3_bucket, key, table_name, pg_keys)
+    logger.info(f'Written data for {jurisdiction} {event_type} to postgres.')
 
 
 def select_columns(df:pd.DataFrame, keys:list) -> pd.DataFrame:
@@ -178,6 +190,7 @@ def select_columns(df:pd.DataFrame, keys:list) -> pd.DataFrame:
     
     We always expect at least two columns: source and source_id
     """
+    logger.info(f'Selecting columns for matching.')
     columns_to_select = ['source', 'source_id']
     if keys:
         columns_to_select = columns_to_select + keys
@@ -229,6 +242,7 @@ def write_matched_data_to_postgres(bucket, key, table_name, pg_keys):
 
 
 def write_to_s3(df, bucket, key):
+    logger.info(f'Writing data to s3://{bucket}/{key}')
     csv_buffer = StringIO()
     df.to_csv(csv_buffer, sep='|', index=False)
     s3_resource = boto3.resource('s3')
