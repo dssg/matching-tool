@@ -173,7 +173,7 @@ def load_data_for_matching(jurisdiction:str, event_type:str, s3_bucket:str, keys
 def write_matched_data(df:pd.DataFrame, jurisdiction:str, event_type:str, s3_bucket:str, pg_keys:dict):
     logger.info(f'Writing matched data for {jurisdiction} {event_type}')
     df = df[df.event_type == event_type]
-    df = df.loc['matched_id'].merge(
+    df = df.loc[:,'matched_id'].merge(
         right=read_merged_data_from_s3(jurisdiction, event_type, s3_bucket),
         on=INDEXES[event_type]
     )
