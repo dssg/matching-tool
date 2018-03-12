@@ -2,7 +2,7 @@
 
 import subprocess
 import logging
-logger = logging.getLogger('matcher')
+logger = logging.getLogger('utils')
 
 import pandas as pd
 from io import StringIO
@@ -272,16 +272,20 @@ def cartesian(df1:pd.DataFrame, df2:pd.DataFrame=None) -> pd.DataFrame:
     If only one dataset is specified, this function returns a self cross join
     """
 
+    logger.debug("Cartesian called")
+
+    logger.debug(f"Size of the first dataframe: {df1.shape}")
+    logger.debug(f"Indexes of df1 are {df1.index}")
+    logger.debug(f"Columns of df1 are {df1.columns}")
+    
     #suffixes = ['_'+s for s in sources]
 
     if df2 is None:
+        logger.debug(f"Second dataframe not specified, copying from df1")
         df2=df1.copy()
-
 
     df1['_tmpkey'] = 1
     df2['_tmpkey'] = 1
-
-
 
     df = pd.merge(df1, df2, on='_tmpkey', suffixes=['_left', '_right']).drop('_tmpkey', axis=1)
     df.index = pd.MultiIndex.from_product((df1.index, df2.index))

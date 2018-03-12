@@ -1,6 +1,10 @@
 # coding: utf-8
 
 
+import logging
+logger = logging.getLogger('distances')
+
+
 import pandas as pd
 import numpy as np
 
@@ -22,6 +26,8 @@ def exact(df:pd.DataFrame, keys: List) -> pd.DataFrame:
     Calculates the "exact distance" between all the selected columns
     """
 
+    logger.debug(f"Exact distances called on {keys} as keys")
+    
     for col in keys:
         df[f"exact_distance_in_{col}"] = df.loc[:, pick_columns(df, col)].apply(lambda row: row[0] == row[1], axis = 1)
      

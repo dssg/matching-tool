@@ -4,6 +4,9 @@
 Module for encapsulating the matching process
 """
 
+import logging
+logger = logging.getLogger('contraster')
+
 import numpy as np
 import pandas as pd
 import itertools
@@ -18,13 +21,16 @@ def exact(df:pd.DataFrame, keys:List) -> pd.DataFrame:
     """
     Applies the *exact* rule. The distance used is an exact match too.
     """
+
+    logger.debug("Exact contraster called")
+    
     return rules.exact(
         distances.exact(
             utils.cartesian(df, df),
             keys
         )
     )
-    
+
 
 
 def generic(df:pd.DataFrame, rule:Callable[[pd.DataFrame, str],pd.DataFrame], dist:Dict) -> pd.DataFrame:
