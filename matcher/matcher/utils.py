@@ -173,10 +173,9 @@ def load_data_for_matching(jurisdiction:str, event_type:str, s3_bucket:str, keys
 def write_matched_data(df:pd.DataFrame, jurisdiction:str, event_type:str, s3_bucket:str, pg_keys:dict):
     logger.info(f'Writing matched data for {jurisdiction} {event_type}')
     df = df[df.event_type == event_type]
-    df = df['matched_id'].merge(
+    df = df.loc['matched_id'].merge(
         right=read_merged_data_from_s3(jurisdiction, event_type, s3_bucket),
-        left_index=True,
-        right_index=True
+        on=INDEXES[event_type]
     )
     key = f'csh/matcher/{jurisdiction}/{event_type}/matched'
     table_name = f'{jurisdiction}_{event_type}_matched'
@@ -289,8 +288,8 @@ def cartesian(df1:pd.DataFrame, df2:pd.DataFrame=None) -> pd.DataFrame:
 
     df = pd.merge(df1, df2, on='_tmpkey', suffixes=['_left', '_right']).drop('_tmpkey', axis=1)
     df.index = pd.MultiIndex.from_product((df1.index, df2.index))
-    df1.drop("_tmpkey", axis=1, inplace=True)
-    df2.drop("_tmpkey", axis=1, inplace=True)
+    # df1.drop("_tmpkey", axis=1, inplace=True)
+    # df2.drop("_tmpkey", axis=1, inplace=True)
 
     return df
 
