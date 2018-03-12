@@ -183,7 +183,12 @@ def write_matched_data(df:pd.DataFrame, jurisdiction:str, event_type:str, s3_buc
     table_name = f'{jurisdiction}_{event_type}_matched'
     write_to_s3(df, s3_bucket, key)
     logger.info(f'Written data for {jurisdiction} {event_type} to S3.')
-    write_matched_data_to_postgres(s3_bucket, key, table_name, pg_keys)
+    write_matched_data_to_postgres(
+        bucket=s3_bucket, 
+        key=key, 
+        table_name=table_name, 
+        pg_keys=pg_keys
+    )
     logger.info(f'Written data for {jurisdiction} {event_type} to postgres.')
 
 
