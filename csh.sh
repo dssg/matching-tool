@@ -3,10 +3,6 @@
 set -e -u
 
 PROJECT="$(cat .project-name)"
-PROJECT_HOME="$( cd "$( dirname "$0" )" && pwd )"
-INFRASTRUCTURE_HOME="${PROJECT_HOME}"
-
-cd $INFRASTRUCTURE_HOME
 
 function help_menu () {
 cat << EOF
@@ -130,4 +126,3 @@ case "$1" in
 esac
 shift
 
-cd - > /dev/null
