@@ -174,9 +174,9 @@ def write_matched_data(df:pd.DataFrame, jurisdiction:str, event_type:str, s3_buc
     logger.info(f'Writing matched data for {jurisdiction} {event_type}')
     df = df[df.event_type == event_type]
     right_df=read_merged_data_from_s3(jurisdiction, event_type, s3_bucket)
-    cols_to_use = right_df.columns.difference(df.columns)
+    cols_to_use = right_df.columns.difference(df.columns) + INDEXES[event_type]
     df = df.merge(
-        right=right_df[cols_to_use + INDEXES[event_type]],
+        right=right_df[cols_to_use],
         on=INDEXES[event_type],
         copy=False,
         validate='one_to_one'
