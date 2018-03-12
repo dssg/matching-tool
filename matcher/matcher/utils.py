@@ -176,7 +176,7 @@ def write_matched_data(df:pd.DataFrame, jurisdiction:str, event_type:str, s3_buc
     right_df=read_merged_data_from_s3(jurisdiction, event_type, s3_bucket)
     cols_to_use = right_df.columns.difference(df.columns)
     df = df.merge(
-        right=right_df[cols_to_use],
+        right=right_df[cols_to_use + INDEXES[event_type]],
         on=INDEXES[event_type],
         copy=False,
         validate='one_to_one'
