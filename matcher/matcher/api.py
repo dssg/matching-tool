@@ -159,7 +159,13 @@ def do_match(jurisdiction, event_type):
     df = pd.concat([utils.load_data_for_matching(jurisdiction, event_type, S3_BUCKET, KEYS) for event_type in EVENT_TYPES])
 
     app.logger.info(f"Running matcher({KEYS},{INDEXER},{CONTRASTER})")
-    df = matcher.run(df, KEYS, indexer_func, contraster_func, CLUSTERING_PARAMS)
+    df = matcher.run(
+        df=df,
+        keys=KEYS,
+        indexer=indexer_func,
+        contraster=contraster_func,
+        clustering_params=CLUSTERING_PARAMS
+    )
 
     for event_type in EVENT_TYPES:
         utils.write_matched_data(df, jurisdiction, event_type, S3_BUCKET, PG_CONNECTION)

@@ -41,7 +41,7 @@ def match(df:pd.DataFrame, contraster:Callable[[pd.DataFrame], pd.DataFrame], **
     """
     logger.info(f"Starting matching process using the strategy {contraster.__name__}")
 
-    df = contraster(df, keys)
+    df = contraster(df, kwargs['keys'])
 
     logger.info(f"Matching {contraster.__name__} done")
 
@@ -58,8 +58,8 @@ def run(
     # df2:pd.DataFrame=None
 ) -> pd.DataFrame:
     
-    df1 = utils.generate_row_ids(df1)
-    df1['source_id'] = utils.get_source_id(df1)
+    df = utils.generate_row_ids(df)
+    df['source_id'] = utils.get_source_id(df)
     
     # if df2 is None:
     #     df2 = df1.copy()
@@ -71,7 +71,7 @@ def run(
 
     distances =  utils.version(
         match(
-            df=indexing(indexer=indexer),
+            df=indexing(indexer=indexer, df=df),
             # df2=indexing(
             #     select_columns(df2, keys),
             #     indexer=indexer

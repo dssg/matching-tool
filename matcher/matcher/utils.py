@@ -144,7 +144,7 @@ INDEXES = {
 
 def read_merged_data_from_s3(jurisdiction:str, event_type:str, s3_bucket:str) -> pd.DataFrame:
     # Read the data in and select the necessary columns
-    logger.info(f"Reading data from {S3_BUCKET}/{jurisdiction}/{event_type}")
+    logger.info(f"Reading data from {s3_bucket}/{jurisdiction}/{event_type}")
     merged_key = f'csh/matcher/{jurisdiction}/{event_type}/merged'
     df=pd.read_csv(f's3://{s3_bucket}/{merged_key}', sep='|').set_index(INDEXES[event_type], drop=False)
 
@@ -156,7 +156,8 @@ def load_data_for_matching(jurisdiction:str, event_type:str, s3_bucket:str, keys
     try:
         df = select_columns(
             df=read_merged_data_from_s3(jurisdiction, event_type, s3_bucket),
-            keys=keys
+            keys=keys,
+            event_type=event_type
         )
         df['event_type'] = event_type
         logger.info(f'{jurisdiction} {event_type} data loaded from S3.')
@@ -185,14 +186,14 @@ def write_matched_data(df:pd.DataFrame, jurisdiction:str, event_type:str, s3_buc
     logger.info(f'Written data for {jurisdiction} {event_type} to postgres.')
 
 
-def select_columns(df:pd.DataFrame, keys:list) -> pd.DataFrame:
+def select_columns(df:pd.DataFrame, keys:list, event_type:str) -> pd.DataFrame:
     """ 
     Reduces the dataframe to the columns selected for matching.
     
     We always expect at least two columns: source and source_id
     """
     logger.info(f'Selecting columns for matching.')
-    columns_to_select = ['source', 'source_id']
+    columns_to_select = ['source', 'source_id', 'internal_person_id']
     if keys:
         columns_to_select = columns_to_select + keys
     
