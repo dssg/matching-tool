@@ -173,8 +173,10 @@ def load_data_for_matching(jurisdiction:str, event_type:str, s3_bucket:str, keys
 def write_matched_data(df:pd.DataFrame, jurisdiction:str, event_type:str, s3_bucket:str, pg_keys:dict):
     logger.info(f'Writing matched data for {jurisdiction} {event_type}')
     df = df[df.event_type == event_type]
+    right_df=read_merged_data_from_s3(jurisdiction, event_type, s3_bucket)
+    cols_to_use = right_df.columns.difference(df.columns)
     df = df.merge(
-        right=read_merged_data_from_s3(jurisdiction, event_type, s3_bucket),
+        right=right_df[cols_to_use],
         on=INDEXES[event_type],
         copy=False,
         validate='one_to_one'
@@ -188,7 +190,7 @@ def write_matched_data(df:pd.DataFrame, jurisdiction:str, event_type:str, s3_buc
         key=key, 
         table_name=table_name, 
         pg_keys=pg_keys,
-        event_type=event_type
+        column_names=df.columns.values
     )
     logger.info(f'Written data for {jurisdiction} {event_type} to postgres.')
 
@@ -219,16 +221,17 @@ def read_matched_data_from_postgres(table_name:str, pg_keys:dict):
     return dat
 
 
-def write_matched_data_to_postgres(bucket, key, table_name, pg_keys, event_type):
+def write_matched_data_to_postgres(bucket, key, table_name, pg_keys, column_names):
     conn = psycopg2.connect(**pg_keys)
     cur = conn.cursor()
 
     logger.info(f'Creating table matched.{table_name}')
+    col_list = ['{col} varchar' for col in column_names]
     create_table_query = f"""
         CREATE SCHEMA IF NOT EXISTS matched;
         DROP TABLE IF EXISTS matched.{table_name};
         CREATE TABLE matched.{table_name} (
-            {DATA_FIELDS[event_type]}
+            {', '.join(col_list)}
         );
     """
     logger.warning(create_table_query)
