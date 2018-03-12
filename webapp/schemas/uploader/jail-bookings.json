@@ -102,7 +102,7 @@
 			"name": "hair_color",
 			"type": "string",
 			"constraints": {
-				"enum_maybe_list": ["BLD", "BLK", "BLN", "BLU", "BRO", "GRY", "GRN", "ONG", "PNK", "PLE", "RED", "SDY", "WHI", "XXX"]
+				"enum_maybe_list": ["BLD", "BLK", "BLN", "BLU", "BRO", "GRY", "GRN", "ONG", "PNK", "PLE", "RED", "SDY", "WHI", "XXX", "S/P", "OTH", "BLE"]
 			}
 		},
 		{
