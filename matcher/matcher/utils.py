@@ -131,6 +131,13 @@ DATA_FIELDS = {
     """
 }
 
+
+# these are the columns that, in combination, are the unique row index for each data type
+# we need to be able to match back to the source data on these columns.
+# i think the best way to do this may be to concatenate them as a single 
+# string as a new column 'source_index' or something every time the data are loaded.
+# this way. we can reconnect the matched data to all the columns in the source data
+# when we go to write the data.
 INDEXES = {
     'jail_bookings': ['internal_event_id', 'booking_number', 'location_date'],
     'booking_aka': ['internal_event_id', 'booking_number'],
