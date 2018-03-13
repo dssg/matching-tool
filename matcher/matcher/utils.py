@@ -4,6 +4,7 @@ import subprocess
 import logging
 logger = logging.getLogger('utils')
 
+import numpy as np
 import pandas as pd
 from io import StringIO
 import boto3
@@ -149,6 +150,12 @@ INDEXES = {
 }
 
 
+def concatenate_source_index(df:pd.DataFrame, event_type:str) -> pd.Series:
+    index_column_names = INDEXES[event_type]
+    index_columns = df[index_column_names]
+    return index_columns.apply(lambda x: ''.join(x.map(str)), axis=1)
+
+
 def read_merged_data_from_s3(jurisdiction:str, event_type:str, s3_bucket:str) -> pd.DataFrame:
     # Read the data in and select the necessary columns
     logger.info(f"Reading data from {s3_bucket}/{jurisdiction}/{event_type}")
@@ -161,8 +168,10 @@ def read_merged_data_from_s3(jurisdiction:str, event_type:str, s3_bucket:str) ->
 def load_data_for_matching(jurisdiction:str, event_type:str, s3_bucket:str, keys:list) -> pd.DataFrame:
     logger.info(f'Loading {jurisdiction} {event_type} data for matching.')
     try:
+        df = read_merged_data_from_s3(jurisdiction, event_type, s3_bucket)
+        df['source_index'] = concatenate_source_index(df, event_type)
         df = select_columns(
-            df=read_merged_data_from_s3(jurisdiction, event_type, s3_bucket),
+            df=df,
             keys=keys,
             event_type=event_type
         )
@@ -181,10 +190,11 @@ def write_matched_data(df:pd.DataFrame, jurisdiction:str, event_type:str, s3_buc
     logger.info(f'Writing matched data for {jurisdiction} {event_type}')
     df = df[df.event_type == event_type]
     right_df=read_merged_data_from_s3(jurisdiction, event_type, s3_bucket)
-    cols_to_use = right_df.columns.difference(df.columns) + INDEXES[event_type]
+    right_df['source_index'] = concatenate_source_index(right_df, event_type)
+    cols_to_use = np.append(right_df.columns.difference(df.columns).values, 'source_index')
     df = df.merge(
         right=right_df[cols_to_use],
-        on=INDEXES[event_type],
+        on='source_index',
         copy=False,
         validate='one_to_one'
     )
@@ -209,7 +219,7 @@ def select_columns(df:pd.DataFrame, keys:list, event_type:str) -> pd.DataFrame:
     We always expect at least two columns: source and source_id
     """
     logger.info(f'Selecting columns for matching.')
-    columns_to_select = ['source', 'source_id', 'internal_person_id'] + INDEXES[event_type]
+    columns_to_select = ['source', 'source_id', 'internal_person_id', 'source_index']
     if keys:
         columns_to_select = columns_to_select + keys
     
