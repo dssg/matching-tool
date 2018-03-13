@@ -79,7 +79,6 @@
             "name": "race",
             "type": "string",
             "constraints": {
-                "required": true,
 				"enum_maybe_list": ["W", "B", "A", "I", "P", "H", "O", "D", "R", "N"]
             }
         },
@@ -94,7 +93,6 @@
 			"name": "sex",
 			"type": "string",
             "constraints": {
-                "required": true,
 				"enum": ["F", "M", "MT", "FT", "O", "D", "R", "N"]
             }
 		},
@@ -154,7 +152,10 @@
 		},
         {
             "name": "jail_entry_date",
-            "type": "string"
+            "type": "string",
+            "constraints": {
+            	"required": true
+            }
         },
         {
             "name": "jail_exit_date",
@@ -234,7 +235,10 @@
 		},
         {
             "name": "location_date",
-            "type": "string"
+            "type": "string",
+            "constraints": {
+            	"required": true
+            }
         },
 		{
 			"name": "case_number",
