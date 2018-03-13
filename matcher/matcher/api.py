@@ -106,7 +106,12 @@ def get_match_results(job_key):
     job = Job.fetch(job_key, connection=redis_connection)
     app.logger.info(job.result)
     if job.is_finished:
-        df = utils.read_matched_data_from_postgres(job.result['event_type'], PG_CONNECTION)
+        df = utils.read_matched_data_from_postgres(
+            utils.get_matched_table_name(
+                event_type=job.result['event_type'],
+                jurisdiction=job.result['jurisdiction']
+            ),
+            PG_CONNECTION)
 
         response = make_response(jsonify(df.to_json(orient='records')))
         response.headers["Content-Type"] = "text/json"

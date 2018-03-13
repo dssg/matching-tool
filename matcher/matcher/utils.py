@@ -186,6 +186,9 @@ def load_data_for_matching(jurisdiction:str, event_type:str, s3_bucket:str, keys
             raise
 
 
+def get_matched_table_name(jurisdiction:str, event_type:str) -> str:
+    return f'{jurisdiction}_{event_type}_matched'
+
 def write_matched_data(df:pd.DataFrame, jurisdiction:str, event_type:str, s3_bucket:str, pg_keys:dict):
     logger.info(f'Writing matched data for {jurisdiction} {event_type}')
     df = df[df.event_type == event_type]
@@ -199,13 +202,12 @@ def write_matched_data(df:pd.DataFrame, jurisdiction:str, event_type:str, s3_buc
         validate='one_to_one'
     )
     key = f'csh/matcher/{jurisdiction}/{event_type}/matched'
-    table_name = f'{jurisdiction}_{event_type}_matched'
     write_to_s3(df, s3_bucket, key)
     logger.info(f'Written data for {jurisdiction} {event_type} to S3.')
     write_matched_data_to_postgres(
         bucket=s3_bucket, 
         key=key, 
-        table_name=table_name, 
+        table_name=get_matched_table_name(jurisdiction, event_type), 
         pg_keys=pg_keys,
         column_names=df.columns.values
     )
@@ -243,12 +245,13 @@ def write_matched_data_to_postgres(bucket, key, table_name, pg_keys, column_name
     cur = conn.cursor()
 
     logger.info(f'Creating table matched.{table_name}')
-    col_list = ['{col} varchar' for col in column_names]
+    col_list = [f'{col} varchar' for col in column_names]
+    col_type_list = ', '.join(col_list)
     create_table_query = f"""
         CREATE SCHEMA IF NOT EXISTS matched;
         DROP TABLE IF EXISTS matched.{table_name};
         CREATE TABLE matched.{table_name} (
-            {', '.join(col_list)}
+            {col_type_list}
         );
     """
     logger.warning(create_table_query)
