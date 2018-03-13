@@ -64,7 +64,7 @@ class UploadInvalid extends React.Component {
           label="Try Again"
           onMouseUp={this.props.retryUpload()}
         />
-        <CSVLink filename="matchingToolErrorReport.csv" data={slice(0, 1000, map(formatWithSingleQuotes, this.props.errorReport))}>
+        <CSVLink filename="matchingToolErrorReport.csv" data={map(formatWithSingleQuotes, this.props.errorReport)}>
           <RaisedButton style={styles.button} label="Download full error report" />
         </CSVLink>
         <List>
