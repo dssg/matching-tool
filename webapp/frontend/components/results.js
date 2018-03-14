@@ -182,9 +182,13 @@ class Results extends React.Component {
       var id = "#hmisbarchart"
     }
     html2canvas(document.querySelector(id)).then(canvas => {
-    var dataURL = canvas.toDataURL()
-    downloadURI(canvas.toDataURL(), "barchart.png");
-    });
+      var dataURL = canvas.toDataURL()
+      downloadURI(canvas.toDataURL(), "barchart.png")
+    })
+  }
+
+  handleDownloadList = () => {
+    downloadURI("/api/chart/download_list")
   }
 
   intersectionPercentage = () => {
@@ -381,7 +385,7 @@ class Results extends React.Component {
                   label={ this.state.barFlag ? "Download Charts" : "Download List" }
                   labelStyle={{fontSize: '10px',}}
                   secondary={true}
-                  onClick={this.handleDownloadChart}
+                  onClick={ this.state.barFlag? this.handleDownloadChart : this.handleDownloadList}
                   style={styles.button} />
               </div>
           </Drawer>
