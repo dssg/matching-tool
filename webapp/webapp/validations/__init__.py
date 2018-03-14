@@ -4,66 +4,57 @@ import re
 from datetime import datetime
 from goodtables import check
 
+STANDARD_CHECKS = [
+    'composite-primary-key',
+    'partial-dob',
+    'type-or-format-error',
+    'enumerable-constraint',
+    'pattern-constraint',
+    'enumerable-maybe-list',
+    'maximum-length-constraint',
+    'required-ignoring-pk',
+    'datetime-maybe-with-tz',
+    'lname-or-fullname'
+]
+
 CHECKS_BY_SCHEMA = {
-    'jail_bookings': [
-        'composite-primary-key',
-        'ssn-or-hashed',
+    'jail_bookings': STANDARD_CHECKS + [
         'inmate-num-or-person-id',
         'booking-num-or-event-id',
-        'partial-dob',
-        'datetime-with-tz',
-        'type-or-format-error',
-        'enumerable-constraint',
-        'enumerable-maybe-list',
-        'maximum-length-constraint',
-        'required-ignoring-pk'
     ],
-    'hmis_service_stays': [
-        'composite-primary-key',
-        'ssn-or-hashed',
-        'partial-dob',
-        'enumerable-constraint',
-        'enumerable-maybe-list',
-        'type-or-format-error',
-        'maximum-length-constraint',
-        'required-ignoring-pk'
+    'hmis_service_stays': STANDARD_CHECKS,
+    'by_name_list': STANDARD_CHECKS,
+    'hmis_aliases': STANDARD_CHECKS,
+    'jail_booking_aliases': STANDARD_CHECKS,
+    'jail_booking_charges': STANDARD_CHECKS + [
+        'inmate-num-or-person-id',
+        'booking-num-or-event-id',
     ],
+    'case_charges': STANDARD_CHECKS,
 }
 
 
 @check('inmate-num-or-person-id', type='custom', context='body')
-def inmate_num_or_person_id(errors, cells, row_number):
-    """One of the inmate number or internal_person_id columns must be present and with a value"""
-    safe_cells = copy(cells)
-    required_cells = [
-        cell for cell in safe_cells
-        if cell['field'].descriptor.get('name') in ['inmate_number', 'internal_person_id']
-    ]
-    valid = any(cell['value'] is not None and cell['value'].strip() for cell in required_cells)
-
-    if valid:
-        return
-
-    # Add error
-    message = 'Row number {}: One of columns {} is needed'.format(
-        row_number,
-        ', '.join([cell['field'].descriptor.get('name') for cell in required_cells])
-    )
-    errors.append({
-        'code': 'inmate-num-or-person-id-constraint',
-        'message': message,
-        'row-number': row_number,
-        'column-number': required_cells[0]['number'],
-    })
+def inmate_num_or_person_id(*args, **kwargs):
+    return one_of_group(['inmate_number', 'internal_person_id'], *args, **kwargs)
 
 
 @check('booking-num-or-event-id', type='custom', context='body')
-def booking_num_or_event_id(errors, cells, row_number):
-    """One of the booking number or internal_event_id columns must be present and with a value"""
+def booking_num_or_event_id(*args, **kwargs):
+    return one_of_group(['booking_number', 'internal_event_id'], *args, **kwargs)
+
+
+@check('lname-or-fullname', type='custom', context='body')
+def last_name_or_full_name(*args, **kwargs):
+    return one_of_group(['last_name', 'full_name'], *args, **kwargs)
+
+
+def one_of_group(columns_in_group, errors, cells, row_number):
+    """One of a list of columns should be present and populated"""
     safe_cells = copy(cells)
     required_cells = [
         cell for cell in safe_cells
-        if cell['field'].descriptor.get('name') in ['booking_number', 'internal_event_id']
+        if cell['field'].descriptor.get('name') in columns_in_group
     ]
     valid = any(cell['value'] is not None and cell['value'].strip() for cell in required_cells)
 
@@ -71,12 +62,12 @@ def booking_num_or_event_id(errors, cells, row_number):
         return
 
     # Add error
-    message = 'Row number {}: One of columns {} is needed'.format(
+    message = 'Row number {}: One of columns {} is needed to be both present and populated'.format(
         row_number,
-        ', '.join([cell['field'].descriptor.get('name') for cell in required_cells])
+        columns_in_group
     )
     errors.append({
-        'code': 'booking-num-or-event-id-constraint',
+        'code': 'one-of-group-constraint',
         'message': message,
         'row-number': row_number,
         'column-number': required_cells[0]['number'],
@@ -92,69 +83,6 @@ def is_good_dob(string):
         return True
     else:
         return False
-
-
-def is_good_ssn(string):
-    if not string:
-        return True
-    regex = '[0-9X]{9}'
-    match = re.match(regex, string)
-    if match:
-        return True
-    else:
-        return False
-
-
-def is_good_hash(string):
-    if not string:
-        return True
-    regex = '[0-9a-f]{40}$'
-    match = re.match(regex, string)
-    if match:
-        return True
-    else:
-        return False
-
-
-def is_good_bigrams(string):
-    if not string:
-        return True
-    bigrams = string.split(',')
-    if len(bigrams) != 10:
-        return False
-    return all(is_good_hash(bigram) for bigram in bigrams)
-
-
-@check('ssn-or-hashed', type='custom', context='body')
-def ssn_or_hashed(errors, cells, row_number):
-    """Check the variety of SSN columns with their appropriate checks"""
-    safe_cells = copy(cells)
-    field_checkers = {
-        'ssn': is_good_ssn,
-        'ssn_hash': is_good_hash,
-        'ssn_bigrams': is_good_bigrams,
-    }
-    required_cells = [
-        cell for cell in safe_cells
-        if cell['field'].descriptor.get('name') in field_checkers
-    ]
-
-    valid = any(
-        field_checkers[cell['field'].descriptor.get('name')](cell['value'])
-        for cell in required_cells
-    )
-
-    if valid:
-        return
-
-    # Add error
-    message = 'Row number {}: One of columns {} is needed'.format(row_number, list(field_checkers.keys()))
-    errors.append({
-        'code': 'ssn-or-hashed',
-        'message': message,
-        'row-number': row_number,
-        'column-number': required_cells[0]['number'],
-    })
 
 
 @check('required-ignoring-pk', type='custom', context='body')
@@ -186,29 +114,35 @@ def partial_dob(errors, cells, row_number):
     """Check that the DOB is valid (it is nullable, and missing digits can be filled with Xs"""
     safe_cells = copy(cells)
 
-    dob_cell = [
-        cell for cell in safe_cells
-        if cell['field'].descriptor.get('name') == 'dob'
-    ][0]
+    affected_cells = [
+        cell
+        for cell in safe_cells
+        if cell['field'].descriptor.get('constraints', {}).get('partial_dob', False)
+    ]
 
-    value = dob_cell.get('value', '')
-    if not value:
-        value = ''
-    else:
-        value = value.strip()
-    valid = is_good_dob(value)
+    for affected_cell in affected_cells:
+        value = affected_cell.get('value', '')
+        if not value:
+            value = ''
+        else:
+            value = value.strip()
+        valid = is_good_dob(value)
 
-    if valid:
-        return
+        if valid:
+            return
 
-    # Add error
-    message = 'Row number {}: dob should be in format 1982-01-01 (fill in any missing digits with Xs)'.format(row_number)
-    errors.append({
-        'code': 'partial-dob',
-        'message': message,
-        'row-number': row_number,
-        'column-number': dob_cell['number'],
-    })
+        # Add error
+        message = 'Row number {}: The value {} in  column {} is not in format YYYY-MM-DD (fill in any missing digits with Xs)'.format(
+            row_number,
+            value,
+            affected_cell['number']
+        )
+        errors.append({
+            'code': 'partial-dob',
+            'message': message,
+            'row-number': row_number,
+            'column-number': affected_cell['number'],
+        })
 
 
 DATE_FORMAT = '%Y-%m-%d'
@@ -219,57 +153,61 @@ def is_good_date(string):
     except ValueError:
         return False
 
-DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S%z'
+
+
+SUPPORTED_DATETIME_FORMATS = [
+    '%Y-%m-%dT%H:%M:%S',
+    '%Y-%m-%d %H:%M:%S',
+    DATE_FORMAT,
+]
 def is_good_datetime_with_timezone(string):
-    try:
-        # our format is non-conformant, we expect only hour but
-        # python expects the minutes too, so add the minutes
-        datetime.strptime(string + '00', DATETIME_FORMAT)
-        return True
-    except ValueError:
-        return False
+    for dt_format in SUPPORTED_DATETIME_FORMATS:
+        try:
+            datetime.strptime(string[0:19], dt_format)
+            return True
+        except ValueError:
+            continue
+    return False
 
 
-def is_good_datetime_with_tzname(string):
-    # this is very tough to check for, as the time zone abbreviations
-    # aren't easily available. just check the first part
-    try: 
-        datetime.strptime(string[0:19], '%Y-%m-%dT%H:%M:%S')
-        return True
-    except ValueError:
-        return False
 
 
-@check('datetime-with-tz', type='custom', context='body')
-def datetime_with_tz(errors, cells, row_number):
+@check('datetime-maybe-with-tz', type='custom', context='body')
+def datetime_maybe_with_tz(errors, cells, row_number):
     """Check a datetime with a timezone offset. We use a slightly different format than is expressible in Python datetime formats, so we can't use the built in datetime format check for this.
     """
     safe_cells = copy(cells)
 
-    field_names = ['jail_entry_date', 'jail_exit_date', 'relocation_date', 'date_created', 'date_updated']
-    not_nullable_fields = ['jail_entry_date']
-    my_cells = [
-        cell for cell in safe_cells
-        if cell['field'].descriptor.get('name') in field_names 
+    affected_cells = [
+        cell
+        for cell in safe_cells
+        if cell['field'].descriptor.get('constraints', {}).get('datetime_with_timezone_hour_only', False)
     ]
-        
-    for cell in my_cells:
+
+    for cell in affected_cells:
         value = cell.get('value', '')
         if not value:
             val = ''
         else:
             val = value.strip()
-        nullable = cell['field'].descriptor.get('name') not in not_nullable_fields
-        if nullable and not val:
+        # assume fields are nullable. required constraint should be covered by another check
+        if not val:
             return
 
         if not is_good_datetime_with_timezone(val):
             errors.append({
-                'code': 'datetime-with-tz',
-                'message': 'Row number {}: col {}: datetime {} not in format {}'.format(row_number, cell['field'].descriptor.get('name'), cell['value'], 'YYYY-MM-DDTHH:MM:SS+TZ'),
+                'code': 'datetime-maybe-with-tz',
+                'message': 'Row number {}: The value {} in  column {} should be either formats {} or {}'.format(
+                    row_number,
+                    cell['value'],
+                    cell['number'],
+                    'YYYY-MM-DDTHH:MM:SS+TZ',
+                    'YYYY-MM-DDTHH:MM:SS'
+                ),
                 'row-number': row_number,
                 'column-number': cell['number'],
             })
+
 
 @check('enumerable-maybe-list', type='custom', context='body')
 def enumerable_maybe_list(errors, cells, row_number):

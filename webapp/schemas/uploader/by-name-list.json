@@ -1,0 +1,203 @@
+{
+    "name": "By-Name List",
+    "fields": [
+        {
+            "name": "internal_person_id",
+            "type": "string"
+        },
+        {
+            "name": "internal_event_id",
+            "type": "string"
+        },
+        {
+            "name": "full_name",
+            "type": "string"
+        },
+        {
+            "name": "prefix",
+            "type": "string"
+        },
+        {
+            "name": "first_name",
+            "type": "string"
+        },
+        {
+            "name": "middle_name",
+            "type": "string"
+        },
+        {
+            "name": "last_name",
+            "type": "string"
+        },
+        {
+            "name": "suffix",
+            "type": "string"
+        },
+        {
+            "name": "dob",
+            "type": "date",
+            "format": "%Y-%m-%d"
+        },
+        {
+            "name": "ssn",
+            "type": "string",
+            "constraints": {
+                "pattern": "[0-9X]{9}"
+            }
+        },
+        {
+            "name": "ssn_last_4",
+            "type": "string",
+            "constraints": {
+                "pattern": "[0-9]{4}"
+            }
+        },
+        {
+            "name": "ssn_hash",
+            "type": "string",
+            "constraints": {
+                "pattern": "[0-9a-f]*$"
+            }
+        },
+        {
+            "name": "ssn_bigrams",
+            "type": "string",
+            "constraints": {
+                "pattern": "([0-9a-f]*,){9}[0-9a-f]*"
+            }
+        },
+        {
+            "name": "dmv_number",
+            "type": "string"
+        },
+        {
+            "name": "dmv_state",
+            "type": "string"
+        },
+        {
+            "name": "additional_id_name",
+            "type": "string"
+        },
+        {
+            "name": "additional_id_number",
+            "type": "string"
+        },
+        {
+            "name": "race",
+            "type": "string"
+        },
+        {
+            "name": "ethnicity",
+            "type": "string",
+            "constraints": {
+                "enum": [
+                    "HISPANIC",
+                    "NOT HISPANIC",
+                    "PERSON DOESN'T KNOW",
+                    "PERSON REFUSED",
+                    "DATA NOT COLLECTED"
+                ]
+            }
+        },
+        {
+            "name": "sex",
+            "type": "string",
+            "constraints": {
+                "enum": [
+                    "F",
+                    "M",
+                    "MT",
+                    "FT",
+                    "O",
+                    "D",
+                    "R",
+                    "N"
+                ]
+            }
+        },
+        {
+            "name": "list_entry_date",
+            "type": "date",
+            "constraints": {
+                "required": true
+            },
+            "format": "%Y-%m-%d"
+        },
+        {
+            "name": "inactive_date",
+            "type": "date",
+            "constraints": {
+                "required": true
+            },
+            "format": "%Y-%m-%d"
+        },
+        {
+            "name": "unsheltered",
+            "type": "string",
+            "constraints": {
+                "enum": [
+                    "N",
+                    "Y",
+                    ""
+                ]
+            }
+        },
+        {
+            "name": "disability",
+            "type": "string",
+            "constraints": {
+                "enum": [
+                    "N",
+                    "Y",
+                    ""
+                ]
+            }
+        },
+        {
+            "name": "veteran",
+            "type": "string",
+            "constraints": {
+                "enum": [
+                    "N",
+                    "Y",
+                    ""
+                ]
+            }
+        },
+        {
+            "name": "cat_date",
+            "type": "date",
+            "format": "%Y-%m-%d"
+        },
+        {
+            "name": "cat_score",
+            "type": "string"
+        },
+        {
+            "name": "source_name",
+            "type": "string"
+        },
+        {
+            "name": "created_date",
+            "type": "string",
+            "constraints": {
+                "datetime_with_timezone_hour_only": true
+            }
+        },
+        {
+            "name": "updated_date",
+            "type": "string",
+            "constraints": {
+                "datetime_with_timezone_hour_only": true
+            }
+        }
+    ],
+    "primaryKey": [
+        "internal_event_id",
+        "full_name",
+        "first_name",
+        "middle_name",
+        "last_name",
+        "list_entry_date"
+    ]
+}
