@@ -3,7 +3,7 @@ import RaisedButton from 'material-ui/RaisedButton'
 import { selectEventType } from '../../actions'
 import { connect } from 'react-redux'
 import { validEventTypes } from '../../utils/event-types'
-import { map } from 'ramda'
+import { map, sortBy, prop } from 'ramda'
 
 
 function mapStateToProps(state) {
@@ -29,7 +29,7 @@ function mapDispatchToProps(dispatch) {
 
 const styles = {
   button: { margin: 12, },
-  step: { marginLeft: 75 }
+  eventTypeList: { marginLeft: 75, width: '50%' }
 }
 
 class PickDataType extends React.Component {
@@ -45,11 +45,11 @@ class PickDataType extends React.Component {
         />
       )
     }
-    return map(renderProviderButton, this.props.availableeventTypes)
+    return map(renderProviderButton, sortBy(prop('slug'), this.props.availableeventTypes))
   }
   render() {
     return (
-      <div style={styles.step}><h4>What type of data do you want to upload?</h4>
+      <div style={styles.eventTypeList}><h4>What type of data do you want to upload?</h4>
         {this.renderEventTypeButtons()}
       </div>
     )
