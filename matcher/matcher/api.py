@@ -17,10 +17,7 @@ from dotenv import load_dotenv
 import pandas as pd
 
 import matcher.matcher as matcher
-import matcher.contraster as contraster
-import matcher.indexer as indexer
 import matcher.utils as utils
-
 
 # load dotenv
 APP_ROOT = os.path.join(os.path.dirname(__file__), '..')
@@ -28,24 +25,8 @@ dotenv_path = os.path.join(APP_ROOT, '.env')
 load_dotenv(dotenv_path)
 
 # load environment variables
-S3_BUCKET = os.getenv('S3_BUCKET')
 KEYS = ast.literal_eval(os.getenv('KEYS'))
-INDEXER = os.getenv('INDEXER')
-CONTRASTER = os.getenv('CONTRASTER')
-CLUSTERING_PARAMS = {
-    'eps': float(os.getenv('EPS')),
-    'min_samples': int(os.getenv('MIN_SAMPLES')),
-    'algorithm': os.getenv('ALGORITHM'),
-    'leaf_size': int(os.getenv('LEAF_SIZE')),
-    'n_jobs': int(os.getenv('N_JOBS')),
-}
-PG_CONNECTION = {
-    'host': os.getenv('PGHOST'),
-    'user': os.getenv('PGUSER'),
-    'dbname': os.getenv('PGDATABASE'),
-    'password': os.getenv('PGPASSWORD'),
-    'port': os.getenv('PGPORT')
-}
+
 
 # Lookups
 EVENT_TYPES = [
@@ -61,9 +42,7 @@ redis_connection = Redis(host='redis', port=6379)
 app.config.from_object(__name__)
 app.config.from_envvar('FLASK_SETTINGS', silent=True)
 
-
 q = Queue(connection=redis_connection)
-
 
 @app.before_first_request
 def setup_logging():
@@ -73,18 +52,10 @@ def setup_logging():
         app.logger.setLevel(logging.DEBUG)
 
 
-@app.route('/poke', methods=['GET'])
-def poke():
-    app.logger.info("I'm being poked!")
-    return jsonify({
-        'status': 'success',
-        'message': 'Stop poking me!'
-    })
-
 
 @app.route('/match/<jurisdiction>/<event_type>', methods=['GET'])
 def match(jurisdiction, event_type):
-    upload_id = request.args.get('uploadId', None)
+    upload_id = request.args.get('uploadId', None)   ## QUESTION: Why is this a request arg and is not in the route? Also, Why in CamelCase?
     if not upload_id:
         return jsonify(status='invalid', reason='uploadId not present')
 
@@ -92,7 +63,7 @@ def match(jurisdiction, event_type):
 
     job = q.enqueue_call(
         func=do_match,
-        args=(jurisdiction, event_type),
+        args=(jurisdiction, event_type, upload_id),
         result_ttl=5000
     )
 
@@ -110,8 +81,7 @@ def get_match_results(job_key):
             utils.get_matched_table_name(
                 event_type=job.result['event_type'],
                 jurisdiction=job.result['jurisdiction']
-            ),
-            PG_CONNECTION)
+            ))
 
         response = make_response(jsonify(df.to_json(orient='records')))
         response.headers["Content-Type"] = "text/json"
@@ -137,44 +107,25 @@ def get_match_finished(job_key):
         })
 
 
-@app.route('/list/<jurisdiction>', methods=['POST'])
-def get_list(jurisdiction):
-    app.logger.debug(f"Retrieving the list for the county {county}")
-    if request.method == 'POST':
-        try:
-            data = request.get_json()
-            start_date = data.get('start_date', '')
-            end_date = data.get('end_date', '')
-        except ValueError:
-            return jsonify(f"Invalid date: ({start_date}, {end_date})")
-
-        app.logger.debug(f"Filtering the list between dates {start_date} and {end_date}")
-
-    return jsonify({
-        'status': 'not implemented',
-        'message': 'nice try, but we are still working on it'
-    })
-
-
-def do_match(jurisdiction, event_type):
+def do_match(jurisdiction, event_type, upload_id):
     app.logger.info("Matching process started!")
-    indexer_func = getattr(indexer, INDEXER)
-    contraster_func = getattr(contraster, CONTRASTER)
+    
+    df = pd.concat([utils.load_data_for_matching(jurisdiction, event_type, upload_id, KEYS) for event_type in EVENT_TYPES])
 
-    df = pd.concat([utils.load_data_for_matching(jurisdiction, event_type, S3_BUCKET, KEYS) for event_type in EVENT_TYPES])
+    app.logger.info(f"Running matcher({KEYS})")
+    app.logger.debug(f"The dataframe has the following columns: {df.columns}")
+    app.logger.debug(f"The dimensions of the dataframe is: {df.shape}")
+    app.logger.debug(f"The indices are {df.index}")
+        
+    df = matcher.run(df=df, keys=KEYS)
 
-    app.logger.info(f"Running matcher({KEYS},{INDEXER},{CONTRASTER})")
-    df = matcher.run(
-        df=df,
-        keys=KEYS,
-        indexer=indexer_func,
-        contraster=contraster_func,
-        clustering_params=CLUSTERING_PARAMS
-    )
+    # for event_type in EVENT_TYPES:
+    #     utils.write_matched_data(df, jurisdiction, event_type)
 
-    for event_type in EVENT_TYPES:
-        utils.write_matched_data(df, jurisdiction, event_type, S3_BUCKET, PG_CONNECTION)
-
+    app.logger.debug(f"Returned dataframe has the following columns: {df.columns}")
+    app.logger.debug(f"The dimensions of the returned dataframe is: {df.shape}")
+    app.logger.debug(f"The indices are {df.index}")    
+    
     return {
         'status': 'done',
         'event_type': event_type,
