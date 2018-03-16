@@ -12,9 +12,10 @@ import recordlinkage as rl
 
 def run(df:pd.DataFrame, keys:List) -> pd.DataFrame:
     
-    indexer = rl.FullIndex()
+    indexer = rl.BlockIndex(on='first_name')
     pairs = indexer.index(df)
 
+    print(len(pairs))
     c = rl.Compare()
 
     for key in keys:
@@ -22,6 +23,13 @@ def run(df:pd.DataFrame, keys:List) -> pd.DataFrame:
 
     distances = c.compute(pairs, df)
 
-    return distances
+    
+    #kmeans = rl.KMeansClassifier()
+    #results = kmeans.learn(distances, return_type='series')
 
+    #ecm = rl.ECMClassifier()
+    #result = ecm.learn((distances > 0.8).astype(int))
+
+    #return results 
+    return distances
 

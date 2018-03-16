@@ -19,6 +19,9 @@ import pandas as pd
 import matcher.matcher as matcher
 import matcher.utils as utils
 
+
+import recordlinkage as rl
+
 # load dotenv
 APP_ROOT = os.path.join(os.path.dirname(__file__), '..')
 dotenv_path = os.path.join(APP_ROOT, '.env')
@@ -109,26 +112,48 @@ def get_match_finished(job_key):
 
 def do_match(jurisdiction, event_type, upload_id):
     app.logger.info("Matching process started!")
-    
+
+    # We will frame the record linkage problem as a deduplication problem
     df = pd.concat([utils.load_data_for_matching(jurisdiction, event_type, upload_id, KEYS) for event_type in EVENT_TYPES])
 
     app.logger.info(f"Running matcher({KEYS})")
     app.logger.debug(f"The dataframe has the following columns: {df.columns}")
     app.logger.debug(f"The dimensions of the dataframe is: {df.shape}")
     app.logger.debug(f"The indices are {df.index}")
-        
-    df = matcher.run(df=df, keys=KEYS)
+
+
+    try:
+        app.logger.debug("Block Indexing")
+        indexer = rl.RandomIndex(n=100)
+        app.logger.debug(f"Created: {indexer}")
+        app.logger.debug("Starting indexing")
+        pairs = indexer.index(df)
+        app.logger.debug("Done")
+
+        app.logger.debug(f"Number of pairs {len(pairs)}")
+
+    except Exception as ex:
+        app.logger.error(f"{type(ex)}")
+        app.logger.error(f"{ex.args}")
+        app.logger.error(f"{ex}")
+
+    
+    #df = matcher.run(df=df, keys=KEYS)
 
     # for event_type in EVENT_TYPES:
     #     utils.write_matched_data(df, jurisdiction, event_type)
 
-    app.logger.debug(f"Returned dataframe has the following columns: {df.columns}")
-    app.logger.debug(f"The dimensions of the returned dataframe is: {df.shape}")
-    app.logger.debug(f"The indices are {df.index}")    
+    #app.logger.debug(f"Type of returned result: {type(df)}")
+    #app.logger.debug(f"Size of returned result: {len(df)}")
+    #app.logger.debug(f"{df[df.sum(axis=1) > 0]}")
+    #app.logger.debug(f"Returned dataframe has the following columns: {df.columns}")
+    #app.logger.debug(f"The dimensions of the returned dataframe is: {df.shape}")
+    #app.logger.debug(f"The indices are {df.index}")    
     
     return {
         'status': 'done',
         'event_type': event_type,
         'jurisdiction': jurisdiction,
+        'upload_id': upload_id,
         'message': 'matching proccess is done! check out the result!'
     }
