@@ -19,9 +19,6 @@ import pandas as pd
 import matcher.matcher as matcher
 import matcher.utils as utils
 
-
-import recordlinkage as rl
-
 # load dotenv
 APP_ROOT = os.path.join(os.path.dirname(__file__), '..')
 dotenv_path = os.path.join(APP_ROOT, '.env')
@@ -53,8 +50,6 @@ def setup_logging():
         # In production mode, add log handler to sys.stderr.
         app.logger.addHandler(logging.StreamHandler())
         app.logger.setLevel(logging.DEBUG)
-
-
 
 @app.route('/match/<jurisdiction>/<event_type>', methods=['GET'])
 def match(jurisdiction, event_type):
@@ -121,37 +116,16 @@ def do_match(jurisdiction, event_type, upload_id):
     app.logger.debug(f"The dimensions of the dataframe is: {df.shape}")
     app.logger.debug(f"The indices are {df.index}")
 
-
     try:
-        app.logger.debug("Block Indexing")
-        indexer = rl.RandomIndex(n=100)
-        app.logger.debug(f"Created: {indexer}")
-        app.logger.debug("Starting indexing")
-        pairs = indexer.index(df)
-        app.logger.debug("Done")
-
-        app.logger.debug(f"Number of pairs {len(pairs)}")
-
+        matches = matcher.run(df=df)
     except Exception as ex:
         app.logger.error(f"{type(ex)}")
         app.logger.error(f"{ex.args}")
         app.logger.error(f"{ex}")
-
-    
-    #df = matcher.run(df=df, keys=KEYS)
-
-    # for event_type in EVENT_TYPES:
-    #     utils.write_matched_data(df, jurisdiction, event_type)
-
-    #app.logger.debug(f"Type of returned result: {type(df)}")
-    #app.logger.debug(f"Size of returned result: {len(df)}")
-    #app.logger.debug(f"{df[df.sum(axis=1) > 0]}")
-    #app.logger.debug(f"Returned dataframe has the following columns: {df.columns}")
-    #app.logger.debug(f"The dimensions of the returned dataframe is: {df.shape}")
-    #app.logger.debug(f"The indices are {df.index}")    
     
     return {
         'status': 'done',
+        'number_of_matches_found': len(matches),
         'event_type': event_type,
         'jurisdiction': jurisdiction,
         'upload_id': upload_id,

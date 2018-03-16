@@ -82,12 +82,10 @@ def load_data_for_matching(jurisdiction:str, event_type:str, upload_id:str, keys
     logger.info(f'Loading {jurisdiction} {event_type} data for matching.')
     
     try:
-        
         df = read_merged_data_from_s3(jurisdiction, event_type)
 
-        ## Creating and index
         df['source_index'] = concatenate_source_index(df, event_type)
-        df.set_index(keys=['source_index'], drop=True, inplace=True)
+        df.set_index('source_index', drop=True)
 
         ## Dropping columns that we don't need for matching
         df = select_columns(df=df,keys=keys)
@@ -98,6 +96,9 @@ def load_data_for_matching(jurisdiction:str, event_type:str, upload_id:str, keys
         ## and the upload_id
         df['upload_id'] = upload_id
 
+        ## TODO: Check the definition of keys
+        df = df.drop_duplicates(subset=keys)
+        
         logger.info(f'{jurisdiction} {event_type} data loaded from S3.')
 
         return df
@@ -150,7 +151,7 @@ def select_columns(df:pd.DataFrame, keys:list) -> pd.DataFrame:
     if keys:
         columns_to_select = columns_to_select + keys
     
-    return df.loc[:,columns_to_select]
+    return df.reindex(keys, axis="columns")
 
 
 def read_matched_data_from_postgres(table_name:str):
