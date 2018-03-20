@@ -71,7 +71,7 @@ services:
     matcher_worker:
         image: csh_matcher
         container_name: matcher_worker
-        command: python manage.py runworker
+        command: python manage.py
         volumes:
             - '.:/csh'
         depends_on:
@@ -128,3 +128,5 @@ services:
             - MATCHER_PORT=5000
     redis:
        image: redis
+       ports:
+         - 6379:6379

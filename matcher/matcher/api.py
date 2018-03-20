@@ -48,10 +48,10 @@ PG_CONNECTION = {
 }
 
 # Lookups
-NEXT_EVENT_TYPES = {
-    'hmis_service_stays': 'jail_bookings',
-    'jail_bookings': 'hmis_service_stays'
-}
+EVENT_TYPES = [
+    'hmis_service_stays', 
+    'jail_bookings'
+]
 
 # Initialize the app
 app = Flask(__name__)
@@ -106,7 +106,12 @@ def get_match_results(job_key):
     job = Job.fetch(job_key, connection=redis_connection)
     app.logger.info(job.result)
     if job.is_finished:
-        df = utils.read_matched_data_from_postgres(job.result['event_type'], PG_CONNECTION)
+        df = utils.read_matched_data_from_postgres(
+            utils.get_matched_table_name(
+                event_type=job.result['event_type'],
+                jurisdiction=job.result['jurisdiction']
+            ),
+            PG_CONNECTION)
 
         response = make_response(jsonify(df.to_json(orient='records')))
         response.headers["Content-Type"] = "text/json"
@@ -156,52 +161,23 @@ def do_match(jurisdiction, event_type):
     indexer_func = getattr(indexer, INDEXER)
     contraster_func = getattr(contraster, CONTRASTER)
 
-    # Read the data in and start the self-match process
-    app.logger.info(f"Reading data from {S3_BUCKET}/{jurisdiction}/{event_type}")
+    df = pd.concat([utils.load_data_for_matching(jurisdiction, event_type, S3_BUCKET, KEYS) for event_type in EVENT_TYPES])
 
-    merged_key = f'csh/matcher/{jurisdiction}/{event_type}/merged'
-    df1 = pd.read_csv(f's3://{S3_BUCKET}/{merged_key}', sep='|')
+    app.logger.info(f"Running matcher({KEYS},{INDEXER},{CONTRASTER})")
+    df = matcher.run(
+        df=df,
+        keys=KEYS,
+        indexer=indexer_func,
+        contraster=contraster_func,
+        clustering_params=CLUSTERING_PARAMS
+    )
 
-    app.logger.info(f"Running matcher({KEYS},{INDEXER},{CONTRASTER}) for self-match")
-    df1, df2 = matcher.run(df1, KEYS, indexer_func, contraster_func, CLUSTERING_PARAMS)
-
-    app.logger.info('Self-matching complete. Writing data to disk.')
-
-    matched_key_1 = f'csh/matcher/{jurisdiction}/{event_type}/matched'
-    utils.write_to_s3(df1, S3_BUCKET, matched_key_1)
-
-    app.logger.info('Self-matches written to disk. Writing to database.')
-    utils.write_matched_data_to_postgres(S3_BUCKET, matched_key_1, event_type, PG_CONNECTION)
-
-    # Check if there is matched data available from the other source. If so,
-    # match the two sets.
-    app.logger.debug("Self-matching stored. Trying to match to other data source.")
-
-    event_type_2 = NEXT_EVENT_TYPES[event_type]
-    matched_key_2 = f'csh/matcher/{jurisdiction}/{event_type_2}/matched'
-
-    try:
-        app.logger.info(f"Trying to read data from {S3_BUCKET}/{jurisdiction}/{event_type_2}")
-        df2 = pd.read_csv(f's3://{S3_BUCKET}/{matched_key_2}', sep='|')
-
-        app.logger.info(f"Running matcher({KEYS},{INDEXER},{CONTRASTER}) to match two sources")
-        df1, df2 = matcher.run(df1, KEYS, indexer_func, contraster_func, CLUSTERING_PARAMS, df2)
-
-        app.logger.info('Matching between sources complete. Writing data to disk.')
-        utils.write_to_s3(df1, S3_BUCKET, matched_key_1)
-        utils.write_to_s3(df2, S3_BUCKET, matched_key_2)
-
-        app.logger.info('Matches between sources written to disk. Writing to database.')
-        utils.write_matched_data_to_postgres(S3_BUCKET, matched_key_1, event_type, PG_CONNECTION)
-        utils.write_matched_data_to_postgres(S3_BUCKET, matched_key_2, event_type_2, PG_CONNECTION)
-
-        app.logger.debug("Matching to other data scource done.")
-    except FileNotFoundError:
-        app.logger.debug("Matched data not available for other data source.")
-
+    for event_type in EVENT_TYPES:
+        utils.write_matched_data(df, jurisdiction, event_type, S3_BUCKET, PG_CONNECTION)
 
     return {
         'status': 'done',
         'event_type': event_type,
+        'jurisdiction': jurisdiction,
         'message': 'matching proccess is done! check out the result!'
     }
