@@ -9,8 +9,9 @@ from flask import make_response
 
 
 from redis import Redis
-from rq import Queue
+from rq import Queue, get_current_job
 from rq.job import Job
+from rq.registry import StartedJobRegistry
 
 from dotenv import load_dotenv
 
@@ -63,6 +64,7 @@ app.config.from_envvar('FLASK_SETTINGS', silent=True)
 
 
 q = Queue('matching', connection=redis_connection)
+registry = StartedJobRegistry('matching', connection=redis_connection)
 
 
 @app.before_first_request
@@ -81,6 +83,34 @@ def poke():
         'message': 'Stop poking me!'
     })
 
+
+@app.route('/match/get_jobs')
+def list_jobs():
+    queued_job_ids = q.job_ids
+    queued_jobs = q.jobs
+    # job = get_current_job()
+    app.logger.info(f"queue: {queued_jobs}")
+
+    # app.logger.info(f"current: {job.id}")
+    return jsonify({
+        'q': len(q),
+        'job_ids': queued_job_ids,
+        'current_job': registry.get_job_ids(),
+        'expired_job_id':  registry.get_expired_job_ids(),
+        'enqueue_at': [job.enqueued_at for job in queued_jobs]
+    })
+
+@app.route('/match/current_job')
+def get_current_job():
+    return jsonify({'current_job': registry.get_job_ids()})
+
+@app.route('/match/job_in_q')
+def get_jobs_in_q():
+    queued_job_ids = q.job_ids
+    queued_jobs = q.jobs
+    q_time = [job.enqueued_at for job in queued_jobs]
+    jobs_in_q = [{'job_id': job_id, 'created_time': time} for (job_id, time) in zip(q.job_ids, q_time)]
+    return jsonify(jobs_in_q)
 
 @app.route('/match/<jurisdiction>/<event_type>', methods=['GET'])
 def match(jurisdiction, event_type):

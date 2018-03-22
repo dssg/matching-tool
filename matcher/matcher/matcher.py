@@ -17,22 +17,22 @@ from . import contraster
 
 
 def select_columns(df:pd.DataFrame, keys:list) -> pd.DataFrame:
-    """ 
+    """
     Reduces the dataframe to the columns selected for matching.
-    
+
     We always expect at least two columns: source and source_id
     """
-    
+
     columns_to_select = ['source', 'source_id', 'row_id']
     if keys:
         columns_to_select = columns_to_select + keys
-    
+
     return df.loc[:,columns_to_select]
 
 
 def indexing(df:pd.DataFrame, indexer:Callable[[pd.DataFrame], pd.DataFrame]) -> pd.DataFrame:
     """
-    Creates a subsets of the data frame using a function. This subset will be 
+    Creates a subsets of the data frame using a function. This subset will be
     formed by the *candidate record pairs*
 
     `func` is an indexing technique as: *blocking*, *sorted neighbourhood indexing* and *q-grams* or simply *identity*
@@ -165,10 +165,10 @@ def run(
     clustering_params:dict,
     df2:pd.DataFrame=None
 ) -> pd.DataFrame:
-    
+
     df1 = utils.generate_row_ids(df1)
     df1['source_id'] = utils.get_source_id(df1)
-    
+
     if df2 is None:
         df2 = df1.copy()
         self_match = True
@@ -205,9 +205,9 @@ def run(
 
 if __name__ == "main":
     df = None
-    
+
     keys = None
     indexer = indexer.identity
     contraster = contraster.exact
-    
+
     run(df, keys, indexer, contraster)

@@ -17,11 +17,14 @@ from webapp.tasks import \
     validate_file
 from webapp.utils import unique_upload_id, s3_upload_path, schema_filename, notify_matcher, infer_delimiter
 
+from webapp.apis import query
+
 from werkzeug.utils import secure_filename
 
 from redis import Redis
 from rq import Queue, get_current_job
 from rq.job import Job
+from rq.registry import StartedJobRegistry
 
 from collections import defaultdict
 import re
@@ -49,7 +52,6 @@ PRETTY_PROVIDER_MAP = {
     'jail_bookings': 'Jail Bookings',
     'other': 'Other',
 }
-
 
 
 def get_q(redis_connection):
@@ -374,3 +376,24 @@ def merge_file():
         logging.error('Error merging: ', e)
         db_session.rollback()
         return make_response(jsonify(status='error'), 500)
+
+
+@upload_api.route('/upload_log/<upload_id>', methods=['GET'])
+def get_upload_log(upload_id):
+    df = query.get_upload_log(upload_id)
+    try:
+        output = df.to_dict('records')
+        return jsonify(output)
+    except:
+        return "something is wrong", 500
+
+
+@upload_api.route('/merge_log/<upload_id>', methods=['GET'])
+def get_merge_log(upload_id):
+    df = query.get_merge_log(upload_id)
+    try:
+        output = df.to_dict('records')
+        return jsonify(output)
+    except:
+        return "something is wrong", 500
+
