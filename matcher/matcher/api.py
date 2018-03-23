@@ -8,6 +8,7 @@ from flask import Flask, jsonify, request
 from flask import make_response
 
 
+from rq.registry import StartedJobRegistry
 from redis import Redis
 from rq import Queue
 from rq.job import Job
@@ -17,6 +18,7 @@ from dotenv import load_dotenv
 import pandas as pd
 
 import matcher.matcher as matcher
+import matcher.preprocess as preprocess
 import matcher.utils as utils
 
 # load dotenv
@@ -26,7 +28,13 @@ load_dotenv(dotenv_path)
 
 # load environment variables
 KEYS = ast.literal_eval(os.getenv('KEYS'))
-
+CLUSTERING_PARAMS = {
+    'eps': float(os.getenv('EPS')),
+    'min_samples': int(os.getenv('MIN_SAMPLES')),
+    'algorithm': os.getenv('ALGORITHM'),
+    'leaf_size': int(os.getenv('LEAF_SIZE')),
+    'n_jobs': int(os.getenv('N_JOBS')),
+}
 
 # Lookups
 EVENT_TYPES = [
@@ -42,7 +50,23 @@ redis_connection = Redis(host='redis', port=6379)
 app.config.from_object(__name__)
 app.config.from_envvar('FLASK_SETTINGS', silent=True)
 
-q = Queue(connection=redis_connection)
+
+q = Queue('matching', connection=redis_connection)
+registry = StartedJobRegistry('matching', connection=redis_connection)
+
+@app.route('/match/get_jobs')
+def list_jobs():
+    queued_job_ids = q.job_ids
+    queued_jobs = q.jobs
+    app.logger.info(f"queue: {queued_jobs}")
+
+    return jsonify({
+        'q': len(q),
+        'job_ids': queued_job_ids,
+        'current_job': registry.get_job_ids(),
+        'expired_job_id':  registry.get_expired_job_ids(),
+        'enqueue_at': [job.enqueued_at for job in queued_jobs]
+    })
 
 @app.before_first_request
 def setup_logging():
@@ -109,20 +133,29 @@ def do_match(jurisdiction, event_type, upload_id):
     app.logger.info("Matching process started!")
 
     # We will frame the record linkage problem as a deduplication problem
+    app.logger.info('Loading data for matching.')
     df = pd.concat([utils.load_data_for_matching(jurisdiction, event_type, upload_id, KEYS) for event_type in EVENT_TYPES])
+
+    app.logger.info('Doing some preprocessing on the columns')
+    df = preprocess.preprocess(df)
+    app.logger.info(f"Races observed in preprocessed df: {df['race']}")
 
     app.logger.info(f"Running matcher({KEYS})")
     app.logger.debug(f"The dataframe has the following columns: {df.columns}")
     app.logger.debug(f"The dimensions of the dataframe is: {df.shape}")
     app.logger.debug(f"The indices are {df.index}")
+    app.logger.debug(f'df has {len(df)} rows and {len(df.index.unique())} unique indices')
+    app.logger.debug(f'The dataframe has the following duplicate indices: {df[df.index.duplicated()].index.values}')
 
-    try:
-        matches = matcher.run(df=df)
-    except Exception as ex:
-        app.logger.error(f"{type(ex)}")
-        app.logger.error(f"{ex.args}")
-        app.logger.error(f"{ex}")
-    
+    matches = matcher.run(df=df, clustering_params=CLUSTERING_PARAMS)
+    app.logger.debug('Matching done!')
+    app.logger.debug(f'Index of matches: {matches.index.values})')
+    app.logger.debug(f'Columns of matches: {matches.columns.values}')
+
+    app.logger.info('Writing matched results!')
+    for e_type in EVENT_TYPES:
+        utils.write_matched_data(df, jurisdiction, e_type)
+
     return {
         'status': 'done',
         'number_of_matches_found': len(matches),

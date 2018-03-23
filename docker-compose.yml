@@ -53,7 +53,7 @@ services:
             - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
             # Matcher distance calculation configuration
             - INDEXER=identity
-            - KEYS=["first_name","last_name"]
+            - KEYS=['first_name', 'middle_name', 'last_name', 'dob', 'ssn', 'dmv_number', 'dmv_state', 'race', 'ethnicity', 'sex']
             - CONTRASTER=exact
             # Matcher clustering configuration
             - EPS=0.5
@@ -84,7 +84,7 @@ services:
             - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
             # Matcher distance calculation configuration
             - INDEXER=identity
-            - KEYS=["first_name","last_name"]
+            - KEYS=['first_name', 'middle_name', 'last_name', 'dob', 'ssn', 'dmv_number', 'dmv_state', 'race', 'ethnicity', 'sex']
             - CONTRASTER=exact
             # Matcher clustering configuration
             - EPS=0.5

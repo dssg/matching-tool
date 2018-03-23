@@ -1,4 +1,5 @@
 # coding: utf-8
+import ast
 import os
 import subprocess
 
@@ -29,9 +30,8 @@ PG_CONNECTION = {
     'password': os.getenv('PGPASSWORD'),
     'port': os.getenv('PGPORT')
 }
+KEYS = ast.literal_eval(os.getenv('KEYS'))
 
-
-# these are the columns that, in combination, are the unique row index for each data type
 # we need to be able to match back to the source data on these columns.
 # i think the best way to do this may be to concatenate them as a single 
 # string as a new column 'source_index' or something every time the data are loaded.
@@ -64,7 +64,8 @@ def get_source_id(df):
 
 
 def concatenate_source_index(df:pd.DataFrame, event_type:str) -> pd.Series:
-    index_column_names = INDEXES[event_type]
+    # index_column_names = INDEXES[event_type]
+    index_column_names = KEYS
     index_columns = df[index_column_names]
     return index_columns.apply(lambda x: ''.join(x.map(str)), axis=1)
 
@@ -75,6 +76,9 @@ def read_merged_data_from_s3(jurisdiction:str, event_type:str) -> pd.DataFrame:
     merged_key = f'csh/matcher/{jurisdiction}/{event_type}/merged'
     df=pd.read_csv(f's3://{S3_BUCKET}/{merged_key}', sep='|')
  
+    df['source_index'] = concatenate_source_index(df, event_type)
+    df.set_index('source_index', drop=True, inplace=True)
+
     return df
 
 
@@ -83,9 +87,6 @@ def load_data_for_matching(jurisdiction:str, event_type:str, upload_id:str, keys
     
     try:
         df = read_merged_data_from_s3(jurisdiction, event_type)
-
-        df['source_index'] = concatenate_source_index(df, event_type)
-        df.set_index('source_index', drop=True)
 
         ## Dropping columns that we don't need for matching
         df = select_columns(df=df,keys=keys)
@@ -118,15 +119,15 @@ def write_matched_data(df:pd.DataFrame, jurisdiction:str, event_type:str):
     df = df[df.event_type == event_type]
 
     right_df=read_merged_data_from_s3(jurisdiction, event_type)
-    right_df['source_index'] = concatenate_source_index(right_df, event_type)
 
-    cols_to_use = np.append(right_df.columns.difference(df.columns).values, 'source_index')
+    cols_to_use = right_df.columns.difference(df.columns).values
 
     df = df.merge(
         right=right_df[cols_to_use],
-        on='source_index',
+        left_index=True,
+        right_index=True,
         copy=False,
-        validate='one_to_one'
+        validate='one_to_many'
     )
     
     key = f'csh/matcher/{jurisdiction}/{event_type}/matched'
@@ -204,6 +205,6 @@ def write_to_s3(df, key):
     csv_buffer = StringIO()
     df.to_csv(csv_buffer, sep='|', index=False)
     s3_resource = boto3.resource('s3')
-    s3_resource.Object(bucket, key).put(Body=csv_buffer.getvalue())
+    s3_resource.Object(S3_BUCKET, key).put(Body=csv_buffer.getvalue())
 
 
