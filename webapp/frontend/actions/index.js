@@ -16,7 +16,8 @@ import {
   UPDATE_TABLE_DATA,
   UPDATE_SET_STATUS,
   VALIDATED_RESULT,
-  FETCHING_RESULT
+  FETCHING_RESULT,
+  SHOW_JOBS
 } from '../constants/index'
 import { length, filter } from 'ramda'
 import { validJurisdictions } from '../utils/jurisdictions'
@@ -247,4 +248,21 @@ export function getValidatedResult(jobKey) {
   }
 }
 
+function showAllJobs(result) {
+  return {
+    type: SHOW_JOBS,
+    payload: result
+  }
+}
 
+export function getAllJobs() {
+  return function(dispatch) {
+    return fetch('api/match/job_in_q', { method: 'GET', dataType: 'json', credentials: 'include'})
+      .then((resp) => {
+        return resp.json()
+      })
+      .then((data) => {
+        dispatch(showAllJobs(data))
+      })
+  }
+}

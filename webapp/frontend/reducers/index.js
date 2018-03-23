@@ -16,7 +16,8 @@ import {
   UPDATE_TABLE_DATA,
   UPDATE_SET_STATUS,
   VALIDATED_RESULT,
-  FETCHING_RESULT
+  FETCHING_RESULT,
+  SHOW_JOBS
 } from '../constants/index'
 
 import resetAppState from './reset-app-state'
@@ -37,6 +38,10 @@ const initialState = {
       message: '',
       status: '',
       jobKey: '',
+    },
+    allJobs: {
+      current: [],
+      q: []
     },
     uploadResponse: {
       status: '',
@@ -190,6 +195,12 @@ const app = createReducer(initialState, {
       uploadResponse: {
         isFetching: {$set: true}
       }
+    })
+    return newState
+  },
+  [SHOW_JOBS]: (state, payload) => {
+    const newState = update(state, {
+      allJobs: {$set: payload}
     })
     return newState
   }
