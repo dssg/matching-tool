@@ -12,7 +12,11 @@ import {
   SAVE_MERGE_RESULTS,
   SET_ERROR_MESSAGE,
   MATCHING_RESULTS,
+  MATCHING_IS_LOADING,
   UPDATE_CONTROLLED_DATE,
+  UPDATE_TABLE_SORT,
+  NEXT_TABLE_PAGE,
+  PREV_TABLE_PAGE,
   UPDATE_TABLE_DATA,
   UPDATE_SET_STATUS,
   VALIDATED_RESULT,
@@ -22,6 +26,7 @@ import {
 } from '../constants/index'
 
 import resetAppState from './reset-app-state'
+import { nextTablePage, prevTablePage } from './update-table-page'
 
 import { combineReducers } from 'redux'
 import { routerReducer } from 'react-router-redux'
@@ -30,6 +35,7 @@ import update from 'immutability-helper'
 
 const initialState = {
   app: {
+    serverError: null,
     selectedEventType: {
       name: '',
       slug: ''
@@ -63,15 +69,21 @@ const initialState = {
       slug: ''
     },
     availableJurisdictionalRoles: [],
+    matchingFilters: {
+      controlledDate: '',
+      startDate: '',
+      endDate: '',
+      limit: 20,
+      offset: 0,
+      orderColumn: 'matched_id',
+      order: 'asc',
+      eventTypes: ['jail', 'hmis', 'intersection'],
+      setStatus: 'All'
+    },
+    matchingIsLoading: false,
     matchingResults: {
-      filters: {
-        controlledDate: '',
-        startDate: '',
-        endDate: '',
-        eventTypes: ['jail', 'hmis', 'intersection'],
-        setStatus: 'All'
-      },
       vennDiagramData: [{sets: [''], size: null}, {sets: [''], size: null}, {sets: [''], size: null}],
+      totalTableRows: null,
       filteredData: {
         tableData: [],
         jailDurationBarData: [],
@@ -127,6 +139,12 @@ const app = createReducer(initialState, {
       validationResponse: {$set: initialState.app.validationResponse}
     })
   },
+  [MATCHING_IS_LOADING]: (state, payload) => {
+    const newState = update(state, {
+      matchingIsLoading: {$set: payload}
+    })
+    return newState
+  },
   [MATCHING_RESULTS]: (state, payload) => {
     return Object.assign({}, state, {
       matchingResults: payload
@@ -134,10 +152,19 @@ const app = createReducer(initialState, {
   },
   [UPDATE_CONTROLLED_DATE]: (state, payload) => {
     const newState = update(state, {
-      matchingResults: {
-        filters: {
-          controlledDate: {$set: payload}
-        }
+      matchingFilters: {
+        controlledDate: {$set: payload.endDate},
+        startDate: {$set: payload.startDate},
+        endDate: {$set: payload.endDate}
+      }
+    })
+    return newState
+  },
+  [UPDATE_TABLE_SORT]: (state, payload) => {
+    const newState = update(state, {
+      matchingFilters: {
+        orderColumn: {$set: payload.orderColumn},
+        order: {$set: payload.order},
       }
     })
     return newState
@@ -152,6 +179,8 @@ const app = createReducer(initialState, {
     return newState
   },
   [RESET_APP_STATE]: resetAppState,
+  [NEXT_TABLE_PAGE]: nextTablePage,
+  [PREV_TABLE_PAGE]: prevTablePage,
   [UPDATE_TABLE_DATA]: (state, payload) => {
     const newState = update(state, {
       matchingResults: {
@@ -164,10 +193,8 @@ const app = createReducer(initialState, {
   },
   [UPDATE_SET_STATUS]: (state, payload) => {
     const newState = update(state, {
-      matchingResults: {
-        filters: {
-          setStatus: {$set: payload}
-        }
+      matchingFilters: {
+        setStatus: {$set: payload}
       }
     })
     return newState
@@ -209,6 +236,12 @@ const app = createReducer(initialState, {
   [SHOW_HISTORY]: (state, payload) => {
     const newState = update(state, {
       history: {$set: payload}
+    })
+    return newState
+  },
+  [SET_ERROR_MESSAGE]: (state, payload) => {
+    const newState = update(state, {
+      serverError: {$set: payload}
     })
     return newState
   }

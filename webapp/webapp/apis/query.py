@@ -1,165 +1,47 @@
+import logging
 import pandas as pd
+<<<<<<< HEAD
 from webapp import db, app
+=======
+from webapp import db
+from webapp.utils import generate_matched_table_name, table_exists
+>>>>>>> a95ed1e0... Bootstrapping matched table with uploaded data [Resolves #189] [Resolves #182], server-side pagination [Resolves #233]
 from collections import OrderedDict
 
-def get_table_data(filtered_bookings, filtered_hmis, unique_ids):
-    table_data = []
-    for unique_id in unique_ids:
-        if unique_id in list(filtered_bookings.matched_id):
-            last_jail_contact = filtered_bookings[filtered_bookings.matched_id == unique_id].jail_entry_date.sort_values(ascending=False).iloc[0].strftime('%Y-%m-%d')
-            cumu_jail_days = filtered_bookings[filtered_bookings.matched_id == unique_id].days.sum()
-            first_name = filtered_bookings[filtered_bookings.matched_id == unique_id].first_name.unique()[0]
-            last_name = filtered_bookings[filtered_bookings.matched_id == unique_id].last_name.unique()[0]
-        else:
-            last_jail_contact = None
-            cumu_jail_days = 0
+logging.basicConfig(
+    format='%(asctime)s %(process)d %(levelname)s: %(message)s',
+    level=logging.INFO
+)
 
-        if unique_id in list(filtered_hmis.matched_id):
-            last_hmis_contact = filtered_hmis[filtered_hmis.matched_id == unique_id].client_location_start_date.sort_values(ascending=False).iloc[0].strftime('%Y-%m-%d')
-            cumu_homeless_days = filtered_hmis[filtered_hmis.matched_id == unique_id].days.sum()
-            first_name = filtered_hmis[filtered_hmis.matched_id == unique_id].first_name.unique()[0]
-            last_name = filtered_hmis[filtered_hmis.matched_id == unique_id].last_name.unique()[0]
-        else:
-            last_hmis_contact = None
-            cumu_homeless_days = 0
-
-        jail_contact = len(filtered_bookings[filtered_bookings.matched_id == unique_id])
-        homeless_contact = len(filtered_hmis[filtered_hmis.matched_id == unique_id])
-
-        person_data = OrderedDict({
-            "matched_id": int(unique_id),
-            "booking_id": ','.join(map(str,list(filtered_bookings[filtered_bookings.matched_id == unique_id].internal_event_id))),
-            "hmis_id": ','.join(map(str,list(filtered_hmis[filtered_hmis.matched_id == unique_id].internal_person_id))),
-            "first_name": first_name,
-            "last_name": last_name,
-            "last_jail_contact": last_jail_contact,
-            "last_hmis_contact": last_hmis_contact,
-            "jail_contact": int(jail_contact),
-            "hmis_contact": int(homeless_contact),
-            "total_contact": int(jail_contact + homeless_contact),
-            "cumu_jail_days": int(cumu_jail_days),
-            "cumu_hmis_days": int(cumu_homeless_days)
-        })
-        table_data.append(person_data)
-    return table_data
-
-
-def get_duration_bar_chart_data(data, shared_ids, data_name):
+def get_histogram_bar_chart_data(data, distribution_function, shared_ids, data_name):
     intersection_data = data[data.matched_id.isin(shared_ids)]
-    days_distribution = get_days_distribution(data)
-    days_distribution_intersection = get_days_distribution(intersection_data)
+    distribution = distribution_function(data)
+    distribution_intersection = distribution_function(intersection_data)
 
-    return [
-        [
-            {
+    bins = []
+    for bin_index in range(0, 5):
+        try:
+            of_status = {
                 "x": data_name,
-                "y": int(days_distribution.iloc[0])/len(data.matched_id.unique())*100
-            },
-            {
-                "x": "Jail & Homeless",
-                "y": int(days_distribution_intersection.iloc[0])/len(intersection_data.matched_id.unique())*100
+                "y": int(distribution.iloc[bin_index])/len(data.matched_id.unique())*100
             }
-        ],
-        [
-            {
+        except ZeroDivisionError:
+            of_status = {
                 "x": data_name,
-                "y": int(days_distribution.iloc[1])/len(data.matched_id.unique())*100
-            },
-            {
-                "x": "Jail & Homeless",
-                "y": int(days_distribution_intersection.iloc[1])/len(intersection_data.matched_id.unique())*100
+                "y": 0
             }
-        ],
-        [
-            {
-                "x": data_name,
-                "y": int(days_distribution.iloc[2])/len(data.matched_id.unique())*100
-            },
-            {
+        try:
+            all_status = {
                 "x": "Jail & Homeless",
-                "y": int(days_distribution_intersection.iloc[2])/len(intersection_data.matched_id.unique())*100
+                "y": int(distribution_intersection.iloc[bin_index])/len(intersection_data.matched_id.unique())*100
             }
-        ],
-        [
-            {
-                "x": data_name,
-                "y": int(days_distribution.iloc[3])/len(data.matched_id.unique())*100
-            },
-            {
+        except ZeroDivisionError:
+            all_status = {
                 "x": "Jail & Homeless",
-                "y": int(days_distribution_intersection.iloc[3])/len(intersection_data.matched_id.unique())*100
+                "y": 0
             }
-        ],
-        [
-            {
-                "x": data_name,
-                "y": int(days_distribution.iloc[4])/len(data.matched_id.unique())*100
-            },
-            {
-                "x": "Jail & Homeless",
-                "y": int(days_distribution_intersection.iloc[4])/len(intersection_data.matched_id.unique())*100
-            }
-        ]
-    ]
-
-
-def get_contact_bar_chart_data(data, shared_ids, data_name):
-    intersection_data = data[data.matched_id.isin(shared_ids)]
-    contacts_distribution = get_contacts_distribution(data)
-    contacts_distribution_intersection = get_contacts_distribution(intersection_data)
-
-    return [
-        [
-            {
-                "x": data_name,
-                "y": int(contacts_distribution.iloc[0])/len(data.matched_id.unique())*100
-            },
-            {
-                "x": "Jail & Homeless",
-                "y": int(contacts_distribution_intersection.iloc[0])/len(intersection_data.matched_id.unique())*100
-            }
-        ],
-        [
-            {
-                "x": data_name,
-                "y": int(contacts_distribution.iloc[1])/len(data.matched_id.unique())*100
-            },
-            {
-                "x": "Jail & Homeless",
-                "y": int(contacts_distribution_intersection.iloc[1])/len(intersection_data.matched_id.unique())*100
-            }
-        ],
-        [
-            {
-                "x": data_name,
-                "y": int(contacts_distribution.iloc[2])/len(data.matched_id.unique())*100
-            },
-            {
-                "x": "Jail & Homeless",
-                "y": int(contacts_distribution_intersection.iloc[2])/len(intersection_data.matched_id.unique())*100
-            }
-        ],
-        [
-            {
-                "x": data_name,
-                "y": int(contacts_distribution.iloc[3])/len(data.matched_id.unique())*100
-            },
-            {
-                "x": "Jail & Homeless",
-                "y": int(contacts_distribution_intersection.iloc[3])/len(intersection_data.matched_id.unique())*100
-            }
-        ],
-        [
-            {
-                "x": data_name,
-                "y": int(contacts_distribution.iloc[4])/len(data.matched_id.unique())*100
-            },
-            {
-                "x": "Jail & Homeless",
-                "y": int(contacts_distribution_intersection.iloc[4])/len(intersection_data.matched_id.unique())*100
-            }
-        ]
-    ]
+        bins.append((of_status, all_status))
+    return bins
 
 
 def get_days_distribution(data):
@@ -177,23 +59,143 @@ def get_contacts_distribution(data):
         right=False
     ).value_counts(sort=False)
 
-def get_records_by_time(start_time, end_time):
+def get_records_by_time(
+    start_time,
+    end_time,
+    jurisdiction,
+    limit,
+    offset,
+    order_column,
+    order,
+    set_status
+):
     query = """
-    SELECT *,
+    SELECT
+    *,
     DATE_PART('day', {exit}::timestamp - {start}::timestamp) as days
-    FROM matched."{table_name}"
-    EXCEPT
-    SELECT *,
-    DATE_PART('day', {exit}::timestamp - {start}::timestamp) as days
-    FROM matched."{table_name}"
+    FROM {table_name}
     WHERE
-        ({start} < %(start_time)s AND {exit} < %(start_time)s) OR
-        ({start} > %(end_time)s AND {exit} > %(end_time)s)
+        not ({start} < %(start_time)s AND {exit} < %(start_time)s) and
+        not ({start} > %(end_time)s AND {exit} > %(end_time)s)
     """
+    matched_hmis_table = generate_matched_table_name(jurisdiction, 'hmis_service_stays')
+    matched_bookings_table = generate_matched_table_name(jurisdiction, 'jail_bookings')
+    hmis_exists = table_exists(matched_hmis_table, db.engine)
+    bookings_exists = table_exists(matched_bookings_table, db.engine)
+    if not hmis_exists:
+        raise ValueError('HMIS matched table {} does not exist. Please try again later.'.format(matched_hmis_table))
+    if not bookings_exists:
+        raise ValueError('Bookings matched table {} does not exist. Please try again later.'.format(matched_bookings_table))
 
+    hmis_query = query.format(
+        table_name=matched_hmis_table,
+        start="client_location_start_date",
+        exit="client_location_end_date"
+    )
+    bookings_query = query.format(
+        table_name=matched_bookings_table,
+        start="jail_entry_date",
+        exit="jail_exit_date"
+    )
+    logging.info('Querying table records')
+    columns = [
+        ("matched_id", 'matched_id'),
+        ("string_agg(coalesce(bookings.internal_person_id, bookings.inmate_number)::text, ',')", 'booking_id'),
+        ("string_agg(hmis.internal_person_id::text, ',')", 'hmis_id'),
+        ("coalesce(max(bookings.first_name), max(hmis.first_name))", 'first_name'),
+        ("coalesce(max(bookings.last_name), max(hmis.last_name))", 'last_name'),
+        ("to_char(max(jail_entry_date::timestamp), 'YYYY-MM-DD')", 'last_jail_contact'),
+        ("to_char(max(client_location_start_date), 'YYYY-MM-DD')", 'last_hmis_contact'),
+        ("count(bookings.internal_event_id)",  'jail_contact'),
+        ("count(hmis.internal_event_id)", 'hmis_contact'),
+        ("coalesce(sum(date_part('day', client_location_end_date::timestamp - client_location_start_date::timestamp)), 0)::int", 'cumu_hmis_days'),
+        ("coalesce(sum(date_part('day', jail_exit_date::timestamp - jail_entry_date::timestamp)), 0)::int", 'cumu_jail_days'),
+        ("count(bookings.internal_event_id) + count(hmis.internal_event_id)", 'total_contact'),
+    ]
+    if not any(order_column for expression, alias in columns):
+        raise ValueError('Given order column expression does not match any alias in query. Exiting to avoid SQL injection attacks')
+    if order not in {'asc', 'desc'}:
+        raise ValueError('Given order direction is not valid. Exiting to avoid SQL injection attacks')
+    if not isinstance(limit, int) and not limit.isdigit() and limit != 'ALL':
+        raise ValueError('Given limit is not valid. Existing to avoid SQL injection attacks')
+    filter_by_status = {
+        'Jail': 'bookings.matched_id is not null',
+        'HMIS': 'hmis.matched_id is not null',
+        'HMIS & Jail': 'hmis.matched_id = bookings.matched_id'
+    } 
+    status_filter = filter_by_status.get(set_status, 'true')
+    rows_to_show = [dict(row) for row in db.engine.execute("""
+        select
+        {}
+        from
+        ({}) hmis 
+        full outer join ({}) bookings using (matched_id)
+        where {}
+        group by matched_id
+        order by {} {}
+        limit {} offset %(offset)s""".format(
+            ",\n".join("{} as {}".format(expression, alias) for expression, alias in columns),
+            hmis_query,
+            bookings_query,
+            status_filter,
+            order_column,
+            order,
+            limit
+        ), 
+        start_time=start_time,
+        end_time=end_time,
+        offset=offset,
+    )]
+    logging.info('Done querying table records')
+    logging.info('Querying venn diagram stats')
+    venn_diagram_stats = next(db.engine.execute('''select
+        count(distinct(hmis.matched_id)) as hmis_size,
+        count(distinct(bookings.matched_id)) as bookings_size,
+        count(hmis.matched_id = bookings.matched_id) as shared_size,
+        count(*) as total_size
+        from ({}) hmis
+        full outer join ({}) bookings using (matched_id)
+    '''.format(hmis_query, bookings_query),
+                                start_time=start_time,
+                                end_time=end_time))
+
+    logging.info('Done querying venn diagram stats')
+
+    venn_diagram_data = [
+        {
+            "sets": [
+                "Jail"
+            ],
+            "size": venn_diagram_stats[1]
+        },
+        {
+            "sets": [
+                "Homeless"
+            ],
+            "size": venn_diagram_stats[0]
+        },
+        {
+            "sets": [
+                "Jail",
+                "Homeless"
+            ],
+            "size": venn_diagram_stats[2]
+        }
+    ]
+    logging.info('Retrieving bar data from database')
+    filtered_data = retrieve_bar_data(query, matched_hmis_table, matched_bookings_table, start_time, end_time)
+    logging.info('Done retrieving bar data from database')
+    filtered_data['tableData'] = rows_to_show
+    return {
+        "vennDiagramData": venn_diagram_data,
+        "totalTableRows": venn_diagram_stats[3],
+        "filteredData": filtered_data
+    }
+
+def retrieve_bar_data(query, matched_hmis_table, matched_bookings_table, start_time, end_time):
     filtered_hmis = pd.read_sql(
         query.format(
-            table_name="hmis_service_stays",
+            table_name=matched_hmis_table,
             start="client_location_start_date",
             exit="client_location_end_date"),
         con=db.engine,
@@ -205,7 +207,7 @@ def get_records_by_time(start_time, end_time):
 
     filtered_bookings = pd.read_sql(
         query.format(
-            table_name="jail_bookings",
+            table_name=matched_bookings_table,
             start="jail_entry_date",
             exit="jail_exit_date"),
         con=db.engine,
@@ -213,71 +215,20 @@ def get_records_by_time(start_time, end_time):
             "start_time": start_time,
             "end_time": end_time
     })
-
-
     shared_ids = filtered_hmis[filtered_hmis.matched_id.isin(filtered_bookings.matched_id)].matched_id.unique()
 
     if len(shared_ids) == 0:
         app.logger.warning("No matched between two services")
 
-    table_data = get_table_data(filtered_bookings, filtered_hmis, list(set(list(filtered_bookings.matched_id.unique())+list(filtered_hmis.matched_id.unique()))))
-
-
-    filters = {
-        "controlledDate": end_time,
-        "startDate": start_time,
-        "endDate": end_time,
-        "service": "jail_hmis",
-        "flag_homeless_in_jail": True,
-        "flag_veteran": False,
-        "flag_disability": False,
-        "flag_mental_illness": False,
-        "setStatus": "All"
-    }
-
-    venn_diagram_data = [
-        {
-            "sets": [
-                "Jail"
-            ],
-            "size": len(filtered_bookings.matched_id.unique())
-        },
-        {
-            "sets": [
-                "Homeless"
-            ],
-            "size": len(filtered_hmis.matched_id.unique())
-        },
-        {
-            "sets": [
-                "Jail",
-                "Homeless"
-            ],
-            "size": len(shared_ids)
-        }
-    ]
     # Handle the case that empty query results in ZeroDivisionError
-    try:
-        filtered_data = {
-            "jailDurationBarData": get_duration_bar_chart_data(filtered_bookings, shared_ids, 'Jail'),
-            "homelessDurationBarData": get_duration_bar_chart_data(filtered_hmis, shared_ids, 'Homeless'),
-            "jailContactBarData": get_contact_bar_chart_data(filtered_bookings, shared_ids, 'Jail'),
-            "homelessContactBarData": get_contact_bar_chart_data(filtered_hmis, shared_ids, 'Homeless'),
-            "tableData": get_table_data(filtered_bookings, filtered_hmis, list(set(list(filtered_bookings.matched_id.unique())+list(filtered_hmis.matched_id.unique()))))
-        }
-    except:
-        filtered_data = {
-            "jailDurationBarData": None,
-            "homelessDurationBarData": None,
-            "jailContactBarData": None,
-            "homelessContactBarData": None,
-            "tableData": get_table_data(filtered_bookings, filtered_hmis, list(set(list(filtered_bookings.matched_id.unique())+list(filtered_hmis.matched_id.unique()))))
-        }
-    return {
-        "filters": filters,
-        "vennDiagramData": venn_diagram_data,
-        "filteredData": filtered_data
+    bar_data = {
+        "jailDurationBarData": get_histogram_bar_chart_data(filtered_bookings, get_days_distribution, shared_ids, 'Jail'),
+        "homelessDurationBarData": get_histogram_bar_chart_data(filtered_hmis, get_days_distribution, shared_ids, 'Homeless'),
+        "jailContactBarData": get_histogram_bar_chart_data(filtered_bookings, get_contacts_distribution, shared_ids, 'Jail'),
+        "homelessContactBarData": get_histogram_bar_chart_data(filtered_hmis, get_contacts_distribution, shared_ids, 'Homeless'),
     }
+
+    return bar_data
 
 
 def get_task_uplaod_id(n):

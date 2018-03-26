@@ -8,8 +8,8 @@ import RaisedButton from 'material-ui/RaisedButton'
 
 function mapStateToProps(state) {
   return {
-    matchingResults: state.app.matchingResults,
     tableData: state.app.matchingResults.filteredData.tableData,
+    filters: state.app.matchingFilters
   }
 }
 
@@ -29,7 +29,7 @@ class Venn extends React.Component {
 	constructor(props) {
 		super(props)
     this.state = {
-      allTableData: props.matchingResults.filteredData.tableData,
+      allTableData: props.tableData,
     }
 	}
 
@@ -43,8 +43,8 @@ class Venn extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (this.props.matchingResults.filters.startDate != nextProps.matchingResults.filters.startDate) {
-      this.setState({ allTableData: nextProps.matchingResults.filteredData.tableData})
+    if (this.props.filters.startDate != nextProps.filters.startDate) {
+      this.setState({ allTableData: nextProps.tableData})
     }
   }
 

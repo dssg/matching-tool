@@ -7,11 +7,16 @@ from webapp.utils import load_schema_file,\
     column_list_from_goodtables_schema,\
     create_statement_from_column_list,\
     generate_master_table_name,\
+    master_table_column_list,\
     merged_file_path,\
     schema_filename,\
     lower_first,\
     infer_delimiter,\
-    primary_key_statement
+    primary_key_statement,\
+    table_exists,\
+    table_has_column,\
+    split_table,\
+    generate_matched_table_name
 from webapp.validations import CHECKS_BY_SCHEMA
 from hashlib import md5
 import logging
@@ -82,6 +87,16 @@ def copy_raw_table_to_db(
     return table_name
 
 
+def create_merged_table(jurisdiction, event_type, db_session):
+    master_table_name = generate_master_table_name(jurisdiction, event_type)
+    goodtables_schema = load_schema_file(event_type)
+    full_column_list = master_table_column_list(goodtables_schema)
+    create = create_statement_from_column_list(full_column_list, master_table_name, goodtables_schema['primaryKey'])
+    # create table if it does not exist
+    logging.info('Assembled create-if-not-exists table statement: %s', create)
+    db_session.execute(create)
+
+
 def upsert_raw_table_to_master(
     raw_table_name,
     jurisdiction,
@@ -89,15 +104,10 @@ def upsert_raw_table_to_master(
     upload_id,
     db_session
 ):
+    create_merged_table(jurisdiction, event_type, db_session)
     master_table_name = generate_master_table_name(jurisdiction, event_type)
     goodtables_schema = load_schema_file(event_type)
     base_column_list = column_list_from_goodtables_schema(goodtables_schema)
-    # mutate column list
-    full_column_list = base_column_list + [('inserted_ts', 'timestamp'), ('updated_ts', 'timestamp')]
-    create = create_statement_from_column_list(full_column_list, master_table_name, goodtables_schema['primaryKey'])
-    # create table if it does not exist
-    logging.info('Assembled create-if-not-exists table statement: %s', create)
-    db_session.execute(create)
     # use new postgres 'on conflict' functionality to upsert
     update_statements = [
         ' "{column}" = EXCLUDED."{column}"'.format(column=column_def[0])
@@ -130,6 +140,40 @@ def upsert_raw_table_to_master(
     db_session.add(merge_log)
     db_session.commit()
     return merge_log.id
+
+def bootstrap_matched_tables(jurisdiction, db_session):
+    bootstrap_matched_table_with_merged(jurisdiction, 'jail_bookings', db_session)
+    bootstrap_matched_table_with_merged(jurisdiction, 'hmis_service_stays', db_session)
+
+def bootstrap_matched_table_with_merged(jurisdiction, event_type, db_session):
+    matched_table_name = generate_matched_table_name(jurisdiction, event_type)
+    matched_schema, _ = split_table(matched_table_name)
+    merged_table_name = generate_master_table_name(jurisdiction, event_type)
+    create_merged_table(jurisdiction, event_type, db_session)
+    if not table_exists(matched_table_name, db_session.bind):
+        db_session.execute('create schema if not exists {}'.format(matched_schema))
+        logging.info('Bootstrapping matched table with merged table')
+        db_session.execute('''
+create table {} as
+select *,
+internal_person_id as source_id,
+row_number() over () as matched_id from {}
+        '''.format(matched_table_name, merged_table_name))
+        columns_to_index = [
+            'matched_id',
+            'jail_entry_date',
+            'jail_exit_date',
+            'client_location_start_date',
+            'client_location_end_date',
+        ]
+        for column in columns_to_index:
+            if table_has_column(matched_table_name, db_session.bind, column):
+                db_session.execute('create index on {} ({})'.format(column))
+        db_session.commit()
+        if table_has_column(matched_table_name, db_session.bind, 'inmate_num'):
+            db_session.execute('update {} set source_id = coalesce(internal_person_id, inmate_num)'.format(matched_table_name))
+            db_session.commit()
+        db_session.commit()
 
 def new_unique_rows(master_table_name, new_ts, db_session):
     return [
@@ -194,7 +238,7 @@ def validate_file(event_type, filename_with_all_fields, row_limit=1000):
         checks=CHECKS_BY_SCHEMA[event_type],
         order_fields=True,
         row_limit=row_limit,
-        error_limit=1000000,
+        error_limit=100000000,
         format='csv'
     )
 
