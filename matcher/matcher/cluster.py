@@ -1,6 +1,7 @@
 # coding: utf-8
 
 from . import contraster
+
 import logging
 logger = logging.getLogger('matcher')
 
@@ -11,8 +12,10 @@ import numpy as np
 from sklearn.cluster import DBSCAN
 
 
+from . import api
+
 def cluster(
-    df:pd.DataFrame,
+    distances:pd.DataFrame,
     eps:float=0.5,
     min_samples:int=1,
     algorithm:str='auto',
@@ -23,8 +26,8 @@ def cluster(
     indexed with the source row_id.
     """
 
-    logger.info('Beginning clustering.')
-    df = 1 - df
+    api.app.logger.info('Beginning clustering.')
+
     clusterer = DBSCAN(
         eps=eps,
         min_samples=min_samples,
@@ -36,29 +39,32 @@ def cluster(
         n_jobs=n_jobs
     )
 
-    clusterer.fit(X=df)
-    logger.info('Clustering done! Assigning matched ids.')
+    clusterer.fit(X=distances)
+    api.app.logger.info('Clustering done! Assigning matched ids.')
 
     return pd.Series(
-        index=df.index,
+        index=distances.index,
         data=clusterer.labels_
     )
 
 
 def generate_matched_ids(
     distances:pd.DataFrame,
-    df:pd.DataFrame,
+    DF:pd.DataFrame,
     clustering_params:dict
 ) -> pd.DataFrame:
-    logger.info('Beginning clustering & id generation.')
+    
+    api.app.logger.info('Beginning clustering & id generation.')
 
     ids = cluster(
         distances, **clustering_params
     )
 
+    df = DF.copy()
+    
     df['matched_id'] = ids
 
-    logger.info('Matched ids generated')
+    api.app.logger.info('Matched ids generated')
 
     return (df)
 

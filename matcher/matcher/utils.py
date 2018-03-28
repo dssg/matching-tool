@@ -89,7 +89,7 @@ def load_data_for_matching(jurisdiction:str, event_type:str, upload_id:str, keys
         df = read_merged_data_from_s3(jurisdiction, event_type)
 
         ## Dropping columns that we don't need for matching
-        df = select_columns(df=df,keys=keys)
+        df = select_columns(df=df, keys=keys)
 
         ## keeping track of the event_type
         df['event_type'] = event_type
