@@ -86,7 +86,8 @@ def match(jurisdiction, event_type):
     job = q.enqueue_call(
         func=do_match,
         args=(jurisdiction, event_type, upload_id),
-        result_ttl=5000
+        result_ttl=5000,
+        timeout=100000
     )
 
     app.logger.info(f"Job id {job.get_id()}")
