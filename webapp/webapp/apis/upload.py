@@ -15,7 +15,7 @@ from webapp.tasks import \
     sync_merged_file_to_s3,\
     add_missing_fields,\
     validate_file
-from webapp.utils import unique_upload_id, s3_upload_path, schema_filename, notify_matcher, infer_delimiter
+from webapp.utils import unique_upload_id, s3_upload_path, schema_filename, notify_matcher, infer_delimiter, load_schema_file
 
 from werkzeug.utils import secure_filename
 
@@ -44,13 +44,6 @@ PRETTY_JURISDICTION_MAP = {
     'test': 'Test County',
 }
 
-PRETTY_PROVIDER_MAP = {
-    'hmis_service_stays': 'HMIS Service Stays',
-    'jail_bookings': 'Jail Bookings',
-    'other': 'Other',
-}
-
-
 
 def get_q(redis_connection):
     return Queue('webapp', connection=redis_connection)
@@ -73,11 +66,16 @@ def get_jurisdiction_roles():
             )
             continue
         jurisdiction, event_type = parts
+        try:
+            schema_file = load_schema_file(event_type)
+        except FileNotFoundError:
+            logging.warning('User belongs to event_type %s that has no schema file', event_type)
+            continue
         jurisdiction_roles.append({
             'jurisdictionSlug': jurisdiction,
             'jurisdiction': PRETTY_JURISDICTION_MAP.get(jurisdiction, jurisdiction),
             'eventTypeSlug': event_type,
-            'eventType': PRETTY_PROVIDER_MAP.get(event_type, event_type)
+            'eventType': schema_file.get('name')
         })
     return jurisdiction_roles
 
@@ -118,12 +116,6 @@ def can_access_file(upload_id):
     return can_upload_file(upload.jurisdiction_slug, upload.event_type_slug)
 
 
-IDENTIFIER_COLUMNS = {
-    'hmis_service_stays': ['internal_person_id', 'internal_event_id'],
-    'jail_bookings': ['internal_person_id', 'internal_event_id'],
-}
-
-
 def format_error_report(report, event_type_slug):
     error_summary = defaultdict(dict)
     headers = report['tables'][0]['headers']
@@ -150,7 +142,7 @@ def format_error_report(report, event_type_slug):
         field_name=field_name,
         message=message,
         num_rows=len(data['row_numbers']),
-        values=list(data['values']),
+        values=list(data['values'])[0:100],
         row_numbers=data['row_numbers']
     ) for (field_name, message), data in error_summary.items()]
 
@@ -267,13 +259,17 @@ def validate_async(uploaded_file_name, jurisdiction, full_filename, event_type, 
             'status': 'invalid',
         },
         'upload_result': {
-            'exampleRows': [{
-                'idFields': {'rowNumber': ''},
-                'errors': [{
-                    'fieldName': '',
-                    'message': str(e)
-                }]
-            }]
+            'status': 'done',
+            'rowCount': '',
+            'fieldOrder': [],
+            'errorReport': [{
+                'field_name': 'unknown',
+                'message': str(e),
+                'num_rows': 1,
+                'values':'',
+                'row_numbers': ''
+            }],
+            'upload_id': ''
         }
     }
     validation_report = validate_file(event_type, filename_with_all_fields, row_limit)
