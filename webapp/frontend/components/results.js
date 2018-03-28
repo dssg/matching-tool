@@ -182,9 +182,13 @@ class Results extends React.Component {
       var id = "#hmisbarchart"
     }
     html2canvas(document.querySelector(id)).then(canvas => {
-    var dataURL = canvas.toDataURL()
-    downloadURI(canvas.toDataURL(), "barchart.png");
-    });
+      var dataURL = canvas.toDataURL()
+      downloadURI(canvas.toDataURL(), "barchart.png")
+    })
+  }
+
+  handleDownloadList = () => {
+    downloadURI("/api/chart/download_list")
   }
 
   intersectionPercentage = () => {
@@ -222,7 +226,7 @@ class Results extends React.Component {
         id='hmisbarchart'>
         <GridTile>
           <Card  style={styles.bar_chart}>
-            <CardTitle style={styles.cardTitle} title="Homeless Duration Bar Chart" titleStyle={{'fontSize': 18}} />
+            <CardTitle style={styles.cardTitle} title="Homeless: number of shelter days" titleStyle={{'fontSize': 18}} />
             <DurationBarChart
               data={this.props.matchingResults.filteredData.homelessDurationBarData}
               legendItemList={["0 day", "1 day", "2-9 days", "10-89 days", "90+ days"]} />
@@ -230,7 +234,7 @@ class Results extends React.Component {
         </GridTile>
         <GridTile>
           <Card style={styles.bar_chart}>
-            <CardTitle style={styles.cardTitle} title="Homeless # of Contact Bar Chart" titleStyle={{'fontSize': 18}} />
+            <CardTitle style={styles.cardTitle} title="Homeless: number of contacts" titleStyle={{'fontSize': 18}} />
             <DurationBarChart
               data={this.props.matchingResults.filteredData.homelessContactBarData}
               legendItemList={["1 contacts", "2-9 contacts", "10-99 contacts", "100-499 contacts", "500+ contacts"]} />
@@ -249,7 +253,7 @@ class Results extends React.Component {
         id='jailbarchart'>
         <GridTile>
           <Card style={styles.bar_chart}>
-            <CardTitle style={styles.cardTitle} title="Jail Duration Bar Chart" titleStyle={{'fontSize': 18}} />
+            <CardTitle style={styles.cardTitle} title={"Jail: number of days"}  titleStyle={{'fontSize': 18}} />
             <DurationBarChart
               data={this.props.matchingResults.filteredData.jailDurationBarData}
               legendItemList={["0 day", "1 day", "2-9 days", "10-89 days", "90+ days"]} />
@@ -257,10 +261,10 @@ class Results extends React.Component {
         </GridTile>
         <GridTile>
           <Card style={styles.bar_chart}>
-            <CardTitle style={styles.cardTitle} title="Jail # of Contact Bar Chart" titleStyle={{'fontSize': 18}} />
+            <CardTitle style={styles.cardTitle} title="Jail: number of contacts" titleStyle={{'fontSize': 18}} />
             <DurationBarChart
               data={this.props.matchingResults.filteredData.jailContactBarData}
-              legendItemList={["1 contacts", "2-9 contacts", "10-99 contacts", "100-499 contacts", "500+ contacts"]} />
+              legendItemList={["1 contact", "2-9 contacts", "10-99 contacts", "100-499 contacts", "500+ contacts"]} />
           </Card>
         </GridTile>
       </GridList>
@@ -381,7 +385,7 @@ class Results extends React.Component {
                   label={ this.state.barFlag ? "Download Charts" : "Download List" }
                   labelStyle={{fontSize: '10px',}}
                   secondary={true}
-                  onClick={this.handleDownloadChart}
+                  onClick={ this.state.barFlag? this.handleDownloadChart : this.handleDownloadList}
                   style={styles.button} />
               </div>
           </Drawer>
@@ -392,7 +396,7 @@ class Results extends React.Component {
             <h5 style={styles.h5}>
                 Total: <strong>{this.props.totalCount}</strong>&nbsp;
                 Jail: <strong>{this.props.jailCount}</strong>&nbsp;
-                Homeless: <strong>{this.props.homelessCount}</strong>&nbsp;
+                HMIS: <strong>{this.props.homelessCount}</strong>&nbsp;
                 Intersection: <strong>{this.props.bothCount}</strong> ({this.intersectionPercentage()})&nbsp;
             </h5>
             <hr style={styles.hr}/>

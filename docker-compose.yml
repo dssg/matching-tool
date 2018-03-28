@@ -53,7 +53,7 @@ services:
             - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
             # Matcher distance calculation configuration
             - INDEXER=identity
-            - KEYS=["first_name","last_name"]
+            - KEYS=['first_name', 'middle_name', 'last_name', 'dob', 'ssn', 'dmv_number', 'dmv_state', 'race', 'ethnicity', 'sex']
             - CONTRASTER=exact
             # Matcher clustering configuration
             - EPS=0.5
@@ -68,7 +68,7 @@ services:
             - PGDATABASE=csh
             - PGPASSWORD=csh
 
-    worker:
+    matcher_worker:
         image: csh_matcher
         container_name: matcher_worker
         command: python manage.py
@@ -84,7 +84,7 @@ services:
             - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
             # Matcher distance calculation configuration
             - INDEXER=identity
-            - KEYS=["first_name","last_name"]
+            - KEYS=['first_name', 'middle_name', 'last_name', 'dob', 'ssn', 'dmv_number', 'dmv_state', 'race', 'ethnicity', 'sex']
             - CONTRASTER=exact
             # Matcher clustering configuration
             - EPS=0.5
@@ -98,7 +98,34 @@ services:
             - PGUSER=csh
             - PGDATABASE=csh
             - PGPASSWORD=csh
-
+    webapp_worker:
+        image: csh_webapp
+        container_name: webapp_worker
+        command: python manage.py runworker
+        volumes:
+            - '.:/csh'
+        depends_on:
+            - redis
+            - webapp
+        environment:
+            # Flask
+            - SECRET_KEY=dev
+            - DEBUG=True
+            - SECURITY_PASSWORD_SALT=abcdefg
+            # S3 Configuration
+            - RAW_UPLOADS_PATH=s3://dsapp-criminal-justice/csh/matcher/{jurisdiction}/{event_type}/uploaded/{date}/{upload_id}
+            - MERGED_UPLOADS_PATH=s3://dsapp-criminal-justice/csh/matcher/{jurisdiction}/{event_type}/merged
+            - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+            - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+            # Database connection
+            - PGHOST=csh_db
+            - PGPORT=5432
+            - PGUSER=csh
+            - PGDATABASE=csh
+            - PGPASSWORD=csh
+            # Matcher connection
+            - MATCHER_LOCATION=matcher
+            - MATCHER_PORT=5000
     redis:
        image: redis
        ports:

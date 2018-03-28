@@ -1,5 +1,6 @@
 from webapp.validations import is_good_ssn, is_good_hash, is_good_bigrams
 from webapp import tasks
+from unittest import TestCase
 
 # HMIS FILES
 HMIS_GOOD = 'sample_data/uploader_input/hmis_service_stays/good.csv'
@@ -8,6 +9,8 @@ HMIS_PARTIAL_DOB_BLANKS = 'sample_data/uploader_input/hmis_service_stays/partial
 HMIS_NAME_DATA_QUALITY = 'sample_data/uploader_input/hmis_service_stays/name-data-quality.csv'
 HMIS_DMV_STATE = 'sample_data/uploader_input/hmis_service_stays/dmv-state.csv'
 HMIS_PROJECT_DATES = 'sample_data/uploader_input/hmis_service_stays/project-dates.csv'
+HMIS_COMMA_DELIMITER = 'sample_data/uploader_input/hmis_service_stays/comma-delimited.csv'
+HMIS_BAD_DELIMITER = 'sample_data/uploader_input/hmis_service_stays/bad-delimiter.csv'
 
 # BOOKINGS FILES
 BOOKINGS_FILE_BOOKING_NUM = 'sample_data/uploader_input/jail_bookings/no-event-id.csv'
@@ -17,6 +20,9 @@ BOOKINGS_FILE_NO_PERSON_ID = 'sample_data/uploader_input/jail_bookings/no-person
 BOOKINGS_FILE_SSN = 'sample_data/uploader_input/jail_bookings/ssn.csv'
 BOOKINGS_FILE_HASHED_SSN = 'sample_data/uploader_input/jail_bookings/hashed-ssn.csv'
 BOOKINGS_FILE_BAD_HAIR_COLOR = 'sample_data/uploader_input/jail_bookings/bad-hair-color.csv'
+BOOKINGS_FILE_MULTI_RACE = 'sample_data/uploader_input/jail_bookings/multi-race.csv'
+
+assert_raises = TestCase().assertRaises
 
 
 def fill_and_validate(event_type, filename):
@@ -52,7 +58,7 @@ def test_some_booking_id_is_needed():
         report=report,
         expected_error_count=8,
         error_count_invalid_msg='Either internal event id or booking number is needed',
-        expected_code='composite-primary-key-constraint',
+        expected_code='booking-num-or-event-id-constraint',
         expected_substring="booking_number"
     )
 
@@ -98,8 +104,15 @@ def test_hair_color():
         report=report,
         expected_error_count=1,
         error_count_invalid_msg='All but one row should have hair color check out',
-        expected_code='hair-color-list',
+        expected_code='enum-maybe-list-constraint',
         expected_substring="BROWN"
+    )
+
+def test_multi_race():
+    report = fill_and_validate('jail_bookings', BOOKINGS_FILE_MULTI_RACE)
+    assert_report_errors(
+        report=report,
+        expected_error_count=0,
     )
 
 
@@ -140,7 +153,7 @@ def test_hmis_name_data_quality():
         report=report,
         expected_error_count=2,
         error_count_invalid_msg='Two rows should have bad name-data-qualities',
-        expected_code='name-data-quality-list',
+        expected_code='enumerable-constraint',
         expected_substring="CLIENT DOES NOT KNOW"
     )
 
@@ -166,6 +179,18 @@ def test_project_dates():
         expected_substring="10:10:10"
     )
 
+
+def test_comma_delimiter():
+    report = fill_and_validate('hmis_service_stays', HMIS_COMMA_DELIMITER)
+    assert_report_errors(
+        report=report,
+        expected_error_count=0,
+    )
+
+
+def test_tab_delimiter():
+    with assert_raises(ValueError):
+        fill_and_validate('hmis_service_stays', HMIS_BAD_DELIMITER)
 
 # TESTS OF UNDERLYING FUNCTIONS
 

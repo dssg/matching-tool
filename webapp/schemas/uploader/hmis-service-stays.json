@@ -44,7 +44,16 @@
         },
         {
             "name": "name_data_quality",
-            "type": "string"
+            "type": "string",
+			"constraints": {
+				"enum": [
+					"FULL NAME REPORTED",
+					"PARTIAL, STREET NAME, OR CODE NAME REPORTED",
+					"CLIENT DOESN'T KNOW",
+					"CLIENT REFUSED",
+					"DATA NOT COLLECTED"
+				]
+			}
         },
         {
             "name": "dob",
@@ -52,7 +61,16 @@
         },
         {
             "name": "dob_type",
-            "type": "string"
+            "type": "string",
+			"constraints": {
+				"enum": [
+					"FULL DOB REPORTED",
+					"APPROXIMATE OR PARTIAL DOB REPORTED",
+					"CLIENT DOESN'T KNOW",
+					"CLIENT REFUSED",
+					"DATA NOT COLLECTED"
+				]
+			}
         },
 		{
 			"name": "ssn",
@@ -68,7 +86,16 @@
 		},
 		{
 			"name": "ssn_data_quality",
-			"type": "string"
+			"type": "string",
+			"constraints": {
+				"enum": [
+					"FULL SSN REPORTED",
+					"APPROXIMATE OR PARTIAL SSN REPORTED",
+					"CLIENT DOESN'T KNOW",
+					"CLIENT REFUSED",
+					"DATA NOT COLLECTED"
+				]
+			}
 		},
         {
             "name": "dmv_number",
@@ -91,15 +118,24 @@
         },
         {
             "name": "race",
-            "type": "string"
+            "type": "string",
+            "constraints": {
+				"enum_maybe_list": ["W", "B", "A", "I", "P", "H", "O", "D", "R", "N"]
+            }
         },
         {
             "name": "secondary_race",
-            "type": "string"
+            "type": "string",
+            "constraints": {
+				"enum_maybe_list": ["W", "B", "A", "I", "P", "H", "O", "D", "R", "N"]
+            }
         },
         {
             "name": "ethnicity",
-            "type": "string"
+            "type": "string",
+			"constraints": {
+				"enum": ["HISPANIC", "NOT HISPANIC", "CLIENT DOESN'T KNOW", "CLIENT REFUSED", "DATA NOT COLLECTED"]
+			}
         },
 		{
 			"name": "sex",
@@ -134,15 +170,43 @@
 		},
 		{
 			"name": "address_data_quality",
-			"type": "string"
+			"type": "string",
+			"constraints": {
+				"enum": [
+					"FULL ADDRESS REPORTED",
+					"FULL OR PARTIAL ZIP CODE REPORTED",
+					"INCOMPLETE OR ESTIMATED ADDRESS REPORTED",
+					"CLIENT DOESN'T KNOW",
+					"CLIENT REFUSED",
+					"DATA NOT COLLECTED"
+				]
+			}
 		},
 		{
 			"name": "veteran_status",
-			"type": "string"
+			"type": "string",
+			"constraints": {
+				"enum": [
+					"NO",
+					"YES",
+					"CLIENT DOESN'T KNOW",
+					"CLIENT REFUSED",
+					"DATA NOT COLLECTED"
+				]
+			}
 		},
 		{
 			"name": "disabling_condition",
-			"type": "string"
+			"type": "string",
+			"constraints": {
+				"enum": [
+					"NO",
+					"YES",
+					"CLIENT DOESN'T KNOW",
+					"CLIENT REFUSED",
+					"DATA NOT COLLECTED"
+				]
+			}
 		},
         {
             "name": "project_start_date",
@@ -171,7 +235,43 @@
 		},
 		{
 			"name": "destination",
-			"type": "integer"
+			"type": "string",
+			"constraints": {
+				"enum": [
+					"CLIENT DOESN'T KNOW",
+					"CLIENT REFUSED",
+					"DATA NOT COLLECTED",
+					"DECEASED",
+					"EMERGENCY SHELTER, INCLUDING HOTEL OR MOTEL PAID FOR WITH EMERGENCY SHELTER VOUCHER",
+					"FOSTER CARE HOME OR FOSTER CARE GROUP HOME",
+					"HOSPITAL OR OTHER RESIDENTIAL NON-PSYCHIATRIC MEDICAL FACILITY",
+					"HOTEL OR MOTEL PAID FOR WITHOUT EMERGENCY SHELTER VOUCHER",
+					"JAIL, PRISON OR JUVENILE DETENTION FACILITY",
+					"LONG-TERM CARE FACILITY OR NURSING HOME",
+					"MOVED FROM ONE HOPWA FUNDED PROJECT TO HOPWA PH",
+					"MOVED FROM ONE HOPWA FUNDED PROJECT TO HOPWA TH",
+					"NO EXIT INTERVIEW COMPLETED",
+					"OTHER",
+					"OWNED BY CLIENT, NO ONGOING HOUSING SUBSIDY",
+					"OWNED BY CLIENT, WITH ONGOING HOUSING SUBSIDY",
+					"PERMANENT HOUSING (OTHER THAN RRH) FOR FORMERLY HOMELESS PERSONS",
+					"PLACE NOT MEANT FOR HABITATION (E.G., A VEHICLE, AN ABANDONED BUILDING, BUS/TRAIN/SUBWAY STATION/AIRPORT OR ANYWHERE OUTSIDE)",
+					"PSYCHIATRIC HOSPITAL OR OTHER PSYCHIATRIC FACILITY",
+					"RENTAL BY CLIENT, NO ONGOING HOUSING SUBSIDY",
+					"RENTAL BY CLIENT, WITH GPD TIP HOUSING SUBSIDY",
+					"RENTAL BY CLIENT, WITH OTHER ONGOING HOUSING SUBSIDY",
+					"RENTAL BY CLIENT, WITH RRH OR EQUIVALENT SUBSIDY",
+					"RENTAL BY CLIENT, WITH VASH HOUSING SUBSIDY",
+					"RESIDENTIAL PROJECT OR HALFWAY HOUSE WITH NO HOMELESS CRITERIA",
+					"SAFE HAVEN",
+					"STAYING OR LIVING WITH FAMILY, PERMANENT TENURE",
+					"STAYING OR LIVING WITH FAMILY, TEMPORARY TENURE (E.G. ROOM, APARTMENT OR HOUSE)",
+					"STAYING OR LIVING WITH FRIENDS, PERMANENT TENURE",
+					"STAYING OR LIVING WITH FRIENDS, TEMPORARY TENURE (E.G. ROOM APARTMENT OR HOUSE)",
+					"SUBSTANCE ABUSE TREATMENT FACILITY OR DETOX CENTER",
+					"TRANSITIONAL HOUSING FOR HOMELESS PERSONS (INCLUDING HOMELESS YOUTH)"
+				]
+			}
 		},
 		{
 			"name": "household_id",
@@ -179,19 +279,73 @@
 		},
 		{
 			"name": "household_relationship",
-			"type": "integer"
+			"type": "string",
+			"constraints": {
+				"enum": [
+					"SELF",
+					"HEAD OF HOUSEHOLD'S CHILD",
+					"HEAD OF HOUSEHOLD'S SPOUSE OR PARTNER",
+					"HEAD OF HOUSEHOLD'S OTHER RELATION MEMBER (OTHER RELATION TO HEAD OF HOUSEHOLD)",
+					"OTHER: NON-RELATION MEMBER"
+				]
+			}
 		},
 		{
 			"name": "move_in_date",
-            "type": "string"
+            "type": "date",
+			"format": "%Y-%m-%d"
 		},
 		{
 			"name": "living_situation_type",
-			"type": "string"
+			"type": "string",
+			"constraints": {
+				"enum": [
+					"CLIENT DOESN'T KNOW",
+					"CLIENT REFUSED",
+					"DATA NOT COLLECTED",
+					"EMERGENCY SHELTER, INCLUDING HOTEL OR MOTEL PAID FOR WITH EMERGENCY SHELTER VOUCHER",
+					"FOSTER CARE HOME OR FOSTER CARE GROUP HOME",
+					"HOSPITAL OR OTHER RESIDENTIAL NON-PSYCHIATRIC MEDICAL FACILITY",
+					"HOTEL OR MOTEL PAID FOR WITHOUT EMERGENCY SHELTER VOUCHER",
+					"INTERIM HOUSING",
+					"JAIL, PRISON OR JUVENILE DETENTION FACILITY",
+					"LONG-TERM CARE FACILITY OR NURSING HOME",
+					"OTHER",
+					"OWNED BY CLIENT, NO ONGOING HOUSING SUBSIDY",
+					"OWNED BY CLIENT, WITH ONGOING HOUSING SUBSIDY",
+					"PERMANENT HOUSING (OTHER THAN RRH) FOR FORMERLY HOMELESS PERSONS",
+					"PLACE NOT MEANT FOR HABITATION",
+					"PSYCHIATRIC HOSPITAL OR OTHER PSYCHIATRIC FACILITY",
+					"RENTAL BY CLIENT, NO ONGOING HOUSING SUBSIDY",
+					"RENTAL BY CLIENT, WITH GPD TIP SUBSIDY",
+					"RENTAL BY CLIENT, WITH OTHER HOUSING SUBSIDY (INCLUDING RRH)",
+					"RENTAL BY CLIENT, WITH VASH SUBSIDY",
+					"RESIDENTIAL PROJECT OR HALFWAY HOUSE WITH NO HOMELESS CRITERIA",
+					"SAFE HAVEN",
+					"STAYING OR LIVING IN A FAMILY MEMBER'S ROOM, APARTMENT OR HOUSE",
+					"STAYING OR LIVING IN A FRIEND'S ROOM, APARTMENT OR HOUSE",
+					"SUBSTANCE ABUSE TREATMENT FACILITY OR DETOX CENTER",
+					"TRANSITIONAL HOUSING FOR HOMELESS PERSONS (INCLUDING HOMELESS YOUTH)"
+				]
+			}
+
 		},
 		{
 			"name": "living_situation_length",
-			"type": "string"
+			"type": "string",
+			"constraints": {
+				"enum": [
+					"90 DAYS OR MORE, BUT LESS THAN ONE YEAR",
+					"CLIENT DOESN'T KNOW",
+					"CLIENT REFUSED",
+					"DATA NOT COLLECTED",
+					"ONE MONTH OR MORE, BUT LESS THAN 90 DAYS",
+					"ONE NIGHT OR LESS",
+					"ONE WEEK OR MORE, BUT LESS THAN ONE MONTH",
+					"ONE YEAR OR LONGER",
+					"TWO TO SIX NIGHTS"
+				]
+			}
 		},
 		{
 			"name": "living_situation_start_date",
@@ -200,11 +354,42 @@
 		},
 		{
 			"name": "times_on_street",
-			"type": "string"
+			"type": "string",
+			"constraints": {
+				"enum": [
+					"CLIENT DOESN'T KNOW",
+					"CLIENT REFUSED",
+					"DATA NOT COLLECTED",
+					"FOUR OR MORE TIMES",
+					"ONE TIME",
+					"THREE TIMES",
+					"TWO TIMES"
+				]
+			}
 		},
 		{
 			"name": "months_homeless",
-			"type": "string"
+			"type": "string",
+			"constraints": {
+				"enum": [
+					"10",
+					"11",
+					"12",
+					"2",
+					"3",
+					"4",
+					"5",
+					"6",
+					"7",
+					"8",
+					"9",
+					"CLIENT DOESN'T KNOW",
+					"CLIENT REFUSED",
+					"DATA NOT COLLECTED",
+					"MORE THAN 12 MONTHS",
+					"ONE MONTH (THIS TIME IS THE FIRST MONTH)"
+				]
+			}
 		},
 		{
 			"name": "client_location_start_date",

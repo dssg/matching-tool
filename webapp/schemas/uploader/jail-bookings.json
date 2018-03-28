@@ -2,10 +2,7 @@
     "fields": [
         {
             "name": "internal_person_id",
-            "type": "string",
-            "constraints": {
-                "required": true
-            }
+            "type": "string"
         },
         {
             "name": "internal_event_id",
@@ -82,27 +79,36 @@
             "name": "race",
             "type": "string",
             "constraints": {
-                "required": true
+				"enum_maybe_list": ["W", "B", "A", "I", "P", "H", "O", "D", "R", "N"]
             }
         },
         {
             "name": "ethnicity",
-            "type": "string"
+            "type": "string",
+			"constraints": {
+				"enum": ["HISPANIC", "NOT HISPANIC", "INMATE DOESN'T KNOW", "INMATE REFUSED", "DATA NOT COLLECTED"]
+			}
         },
 		{
 			"name": "sex",
 			"type": "string",
             "constraints": {
-                "required": true
+				"enum": ["F", "M", "MT", "FT", "O", "D", "R", "N"]
             }
 		},
 		{
 			"name": "hair_color",
-			"type": "string"
+			"type": "string",
+			"constraints": {
+				"enum_maybe_list": ["BLD", "BLK", "BLN", "BLU", "BRO", "GRY", "GRN", "ONG", "PNK", "PLE", "RED", "SDY", "WHI", "XXX", "S/P", "OTH", "BLE"]
+			}
 		},
 		{
 			"name": "eye_color",
-			"type": "string"
+			"type": "string",
+			"constraints": {
+				"enum_maybe_list": ["BLK", "BRO", "GRN", "MAR", "PNK", "BLU", "GRY", "HAZ", "MUL", "XXX"]
+			}
 		},
 		{
 			"name": "height",
@@ -146,7 +152,10 @@
 		},
         {
             "name": "jail_entry_date",
-            "type": "string"
+            "type": "string",
+            "constraints": {
+            	"required": true
+            }
         },
         {
             "name": "jail_exit_date",
@@ -154,19 +163,31 @@
         },
 		{
 			"name": "homeless",
-			"type": "string"
+			"type": "string",
+			"constraints": {
+				"enum": ["Y", "N", ""]
+			}
 		},
 		{
 			"name": "mental_health",
-			"type": "string"
+			"type": "string",
+			"constraints": {
+				"enum": ["Y", "N", ""]
+			}
 		},
 		{
 			"name": "veteran",
-			"type": "string"
+			"type": "string",
+			"constraints": {
+				"enum": ["Y", "N", ""]
+			}
 		},
 		{
 			"name": "special_initiative",
-			"type": "string"
+			"type": "string",
+			"constraints": {
+				"enum": ["Y", "N", ""]
+			}
 		},
 		{
 			"name": "bond_amount",
@@ -213,8 +234,11 @@
 			"type": "string"
 		},
         {
-            "name": "relocation_date",
-            "type": "string"
+            "name": "location_date",
+            "type": "string",
+            "constraints": {
+            	"required": true
+            }
         },
 		{
 			"name": "case_number",
@@ -233,7 +257,7 @@
             "type": "string"
         }
     ],
-	"primaryKey": ["booking_number", "internal_event_id"],
+	"primaryKey": ["booking_number", "internal_event_id", "location_date"],
     "trueValues": [ "Y", "true" ],
     "falseValues": [ "N", "false" ]
 }

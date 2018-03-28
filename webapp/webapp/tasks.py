@@ -9,7 +9,9 @@ from webapp.utils import load_schema_file,\
     generate_master_table_name,\
     merged_file_path,\
     schema_filename,\
-    lower_first
+    lower_first,\
+    infer_delimiter,\
+    primary_key_statement
 from webapp.validations import CHECKS_BY_SCHEMA
 from hashlib import md5
 import logging
@@ -18,8 +20,8 @@ import unicodecsv as csv
 
 
 def upload_to_s3(full_s3_path, local_filename):
-    with smart_open(full_s3_path, 'w') as outfile:
-        with smart_open(local_filename) as infile:
+    with smart_open(full_s3_path, 'wb') as outfile:
+        with smart_open(local_filename, 'rb') as infile:
             outfile.write(infile.read())
 
 
@@ -71,9 +73,10 @@ def copy_raw_table_to_db(
     logging.info('Assembled create table statement: %s', create_statement)
     db_engine.execute(create_statement)
     logging.info('Successfully created table')
-    with smart_open(full_s3_path) as infile:
+    primary_key = primary_key_statement(goodtables_schema['primaryKey'])
+    with smart_open(full_s3_path, 'rb') as infile:
         cursor = db_engine.raw_connection().cursor()
-        copy_stmt = 'copy "{}" from stdin with csv header delimiter as \',\''.format(table_name)
+        copy_stmt = 'copy "{}" from stdin with csv force not null {}  header delimiter as \',\' '.format(table_name, primary_key)
         cursor.copy_expert(copy_stmt, infile)
     logging.info('Successfully loaded file')
     return table_name
@@ -147,31 +150,41 @@ def total_unique_rows(raw_table_name, primary_key, db_engine):
 def sync_merged_file_to_s3(jurisdiction, event_type, db_engine):
     full_s3_path = merged_file_path(jurisdiction, event_type)
     table_name = generate_master_table_name(jurisdiction, event_type)
-    with smart_open(full_s3_path, 'w') as outfile:
+    with smart_open(full_s3_path, 'wb') as outfile:
         cursor = db_engine.raw_connection().cursor()
         copy_stmt = 'copy "{}" to stdout with csv header delimiter as \'|\''.format(table_name)
         cursor.copy_expert(copy_stmt, outfile)
 
 
-
-
 def add_missing_fields(event_type, infilename):
     goodtables_schema = load_schema_file(event_type)
-    schema_fields = [field['name'] for field in goodtables_schema['fields']]
+    schema_fields = goodtables_schema['fields']
     outfilename = infilename + '.filled'
+    delimiter = infer_delimiter(infilename)
     with open(infilename, 'rb' ) as infileobj, open(outfilename, 'wb') as outfileobj:
-        reader = csv.DictReader(lower_first(infileobj), delimiter='|')
-        writer = csv.DictWriter(outfileobj, fieldnames=schema_fields)
+        reader = csv.DictReader(lower_first(infileobj), delimiter=delimiter)
+        writer = csv.DictWriter(outfileobj, fieldnames=[field['name'] for field in schema_fields], quoting=csv.QUOTE_MINIMAL)
         writer.writeheader()
-        for line in reader:
-            newline = {}
-            for field in schema_fields:
-                if field not in line:
-                    newline[field] = ''
-                else:
-                    newline[field] = line[field]
-            writer.writerow(newline)
+        try:
+            for line in reader:
+                newline = {}
+                for field in schema_fields:
+                    field_name = field['name']
+                    if field_name not in line or not line[field_name]:
+                        if field['type'] == 'integer':
+                            newline[field_name] = None
+                        else:
+                            newline[field_name] = ''
+                    else:
+                        if field['type'] == 'string':
+                            newline[field_name] = line[field_name].strip()
+                        else:
+                            newline[field_name] = line[field_name]
+                writer.writerow(newline)
+        except Exception as e:
+            raise ValueError('Line %s has error: %s', reader.line_num, e)
     return outfilename
+
 
 def validate_file(event_type, filename_with_all_fields, row_limit=1000):
     report = validate(
@@ -181,6 +194,7 @@ def validate_file(event_type, filename_with_all_fields, row_limit=1000):
         checks=CHECKS_BY_SCHEMA[event_type],
         order_fields=True,
         row_limit=row_limit,
+        error_limit=1000000,
         format='csv'
     )
 

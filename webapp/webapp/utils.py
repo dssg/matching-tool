@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-import csv
+import unicodecsv as csv
 import itertools
 import json
 import tempfile
@@ -41,7 +41,7 @@ def merged_file_path(jurisdiction, event_type):
 @contextmanager
 def makeNamedTemporaryCSV(content, separator='|'):
     tf = tempfile.NamedTemporaryFile(delete=False)
-    with open(tf.name, 'w') as write_stream:
+    with open(tf.name, 'wb') as write_stream:
         writer = csv.writer(write_stream, delimiter=separator)
         for row in content:
             writer.writerow(row)
@@ -95,6 +95,10 @@ def create_statement_from_goodtables_schema(goodtables_schema, table_name):
     return create_statement_from_column_list(column_list, table_name, primary_key)
 
 
+def primary_key_statement(primary_key):
+    return ', '.join(["\"{}\"".format(col) for col in primary_key])
+
+
 def generate_master_table_name(jurisdiction, event_type):
     return '{jurisdiction}_{event_type}_master'.format(**locals())
 
@@ -117,3 +121,16 @@ def lower_first(iterator):
     return itertools.chain([next(iterator).lower()], iterator)
 
 
+def infer_delimiter(infilename):
+    # we only support comma and pipe
+    with open(infilename, 'rb') as infileobj:
+        reader = csv.reader(infileobj, delimiter='|')
+        first_row = next(reader)
+        if len(first_row) > 1:
+            return '|'
+        infileobj.seek(0)
+        reader = csv.reader(infileobj, delimiter=',')
+        first_row = next(reader)
+        if len(first_row) > 1:
+            return ','
+        raise ValueError('Unknown delimiter')

@@ -3,28 +3,14 @@ import RaisedButton from 'material-ui/RaisedButton'
 import {List, ListItem} from 'material-ui/List'
 import { resetUploadResponse, pickFile } from '../../actions'
 import { connect } from 'react-redux'
-import { clone, curry, flatten, map, mapObjIndexed, merge, values } from 'ramda'
+import { clone, curry, flatten, map, mapObjIndexed, merge, slice, values } from 'ramda'
 import {CSVLink} from 'react-csv'
 
-
-function formatWithSingleQuotes(error) {
-  const newError = clone(error)
-  newError.message = newError.message.replace(/"/g, "'")
-  return newError
-}
-
-export function flattenErrorRows(errorRows) {
-  const mergeErrorAndIdFields = (idFields, error) => merge(idFields, error)
-  const mapErrorsToIdFields = (errorRow) => map(curry(mergeErrorAndIdFields)(errorRow.idFields), errorRow.errors)
-  const mappedErrorRows = map(mapErrorsToIdFields, errorRows)
-  return map(formatWithSingleQuotes, flatten(mappedErrorRows))
-}
 
 function mapStateToProps(state) {
   return {
     eventType: state.app.eventType,
-    errorRows: state.app.uploadResponse.exampleRows,
-    errors: flattenErrorRows(state.app.uploadResponse.exampleRows)
+    errorReport: state.app.uploadResponse.errorReport,
   }
 }
 
@@ -44,21 +30,24 @@ const styles = {
   button: { margin: 12 }
 }
 
-
-const renderIdField = (idFieldValue, idFieldName, idFieldObj) => {
-  return (<p key={idFieldName}><b>{idFieldName}</b>: {idFieldValue}</p>)
+function singleQuote(string) {
+  return string.replace(/"/g, "'")
 }
 
-const renderColumnError = (error) => {
-  return (<p key={error.message}>{error.fieldName}: {error.message}</p>)
+export function formatWithSingleQuotes(error) {
+    const newError = clone(error)
+    newError.message = singleQuote(newError.message)
+    newError.values = map(singleQuote, newError.values)
+    return newError
 }
 
-const renderBadRow = (badRow) => {
+const renderError = (error) => {
   return (
-    <ListItem key={badRow.idFields.rowNumber}>
-      {values(mapObjIndexed(renderIdField, badRow.idFields))}
-      Invalid Fields:
-      {map(renderColumnError, badRow.errors)}
+    <ListItem key={error.field_name + error.message}>
+      Field: {error.field_name}<br />
+      Message: {error.message}<br />
+      # rows with this error: {error.num_rows}<br />
+      distinct error values: {error.values.join(' | ')}
     </ListItem>
   )
 }
@@ -68,18 +57,18 @@ class UploadInvalid extends React.Component {
     return (
       <div style={styles.section}>
         <h2>Upload Failed</h2>
-        <p>Your {this.props.eventType} file had {this.props.errorRows.length} row(s) with errors.</p>
+        <p>Your {this.props.eventType} file had {this.props.errorReport.length} columns with errors</p>
         <p>Please fix the rows and re-upload. If possible, fix the fields at the source so future uploads work without error.</p>
         <RaisedButton
           style={styles.button}
-          label="Try Again" 
+          label="Try Again"
           onMouseUp={this.props.retryUpload()}
         />
-        <CSVLink filename="matchingToolErrorReport.csv" data={this.props.errors}>
+        <CSVLink filename="matchingToolErrorReport.csv" data={map(formatWithSingleQuotes, this.props.errorReport)}>
           <RaisedButton style={styles.button} label="Download full error report" />
         </CSVLink>
         <List>
-          {map(renderBadRow, this.props.errorRows)}
+          {map(renderError, map(formatWithSingleQuotes, this.props.errorReport))}
         </List>
       </div>
     )

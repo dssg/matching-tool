@@ -6,7 +6,7 @@ redis_connection = Redis(host='redis', port=6379)
 
 def runworker():
     with Connection(redis_connection):
-        worker = Worker(['default'])
+        worker = Worker(['matching'])
         worker.work()
 
 if __name__ == '__main__':

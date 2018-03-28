@@ -8,6 +8,7 @@ from flask import Flask, jsonify, request
 from flask import make_response
 
 
+from rq.registry import StartedJobRegistry
 from redis import Redis
 from rq import Queue
 from rq.job import Job
@@ -17,10 +18,8 @@ from dotenv import load_dotenv
 import pandas as pd
 
 import matcher.matcher as matcher
-import matcher.contraster as contraster
-import matcher.indexer as indexer
+import matcher.preprocess as preprocess
 import matcher.utils as utils
-
 
 # load dotenv
 APP_ROOT = os.path.join(os.path.dirname(__file__), '..')
@@ -28,23 +27,13 @@ dotenv_path = os.path.join(APP_ROOT, '.env')
 load_dotenv(dotenv_path)
 
 # load environment variables
-S3_BUCKET = os.getenv('S3_BUCKET')
 KEYS = ast.literal_eval(os.getenv('KEYS'))
-INDEXER = os.getenv('INDEXER')
-CONTRASTER = os.getenv('CONTRASTER')
 CLUSTERING_PARAMS = {
     'eps': float(os.getenv('EPS')),
     'min_samples': int(os.getenv('MIN_SAMPLES')),
     'algorithm': os.getenv('ALGORITHM'),
     'leaf_size': int(os.getenv('LEAF_SIZE')),
     'n_jobs': int(os.getenv('N_JOBS')),
-}
-PG_CONNECTION = {
-    'host': os.getenv('PGHOST'),
-    'user': os.getenv('PGUSER'),
-    'dbname': os.getenv('PGDATABASE'),
-    'password': os.getenv('PGPASSWORD'),
-    'port': os.getenv('PGPORT')
 }
 
 # Lookups
@@ -62,8 +51,22 @@ app.config.from_object(__name__)
 app.config.from_envvar('FLASK_SETTINGS', silent=True)
 
 
-q = Queue(connection=redis_connection)
+q = Queue('matching', connection=redis_connection)
+registry = StartedJobRegistry('matching', connection=redis_connection)
 
+@app.route('/match/get_jobs')
+def list_jobs():
+    queued_job_ids = q.job_ids
+    queued_jobs = q.jobs
+    app.logger.info(f"queue: {queued_jobs}")
+
+    return jsonify({
+        'q': len(q),
+        'job_ids': queued_job_ids,
+        'current_job': registry.get_job_ids(),
+        'expired_job_id':  registry.get_expired_job_ids(),
+        'enqueue_at': [job.enqueued_at for job in queued_jobs]
+    })
 
 @app.before_first_request
 def setup_logging():
@@ -72,19 +75,9 @@ def setup_logging():
         app.logger.addHandler(logging.StreamHandler())
         app.logger.setLevel(logging.DEBUG)
 
-
-@app.route('/poke', methods=['GET'])
-def poke():
-    app.logger.info("I'm being poked!")
-    return jsonify({
-        'status': 'success',
-        'message': 'Stop poking me!'
-    })
-
-
 @app.route('/match/<jurisdiction>/<event_type>', methods=['GET'])
 def match(jurisdiction, event_type):
-    upload_id = request.args.get('uploadId', None)
+    upload_id = request.args.get('uploadId', None)   ## QUESTION: Why is this a request arg and is not in the route? Also, Why in CamelCase?
     if not upload_id:
         return jsonify(status='invalid', reason='uploadId not present')
 
@@ -92,8 +85,9 @@ def match(jurisdiction, event_type):
 
     job = q.enqueue_call(
         func=do_match,
-        args=(jurisdiction, event_type),
-        result_ttl=5000
+        args=(jurisdiction, event_type, upload_id),
+        result_ttl=5000,
+        timeout=100000
     )
 
     app.logger.info(f"Job id {job.get_id()}")
@@ -110,8 +104,7 @@ def get_match_results(job_key):
             utils.get_matched_table_name(
                 event_type=job.result['event_type'],
                 jurisdiction=job.result['jurisdiction']
-            ),
-            PG_CONNECTION)
+            ))
 
         response = make_response(jsonify(df.to_json(orient='records')))
         response.headers["Content-Type"] = "text/json"
@@ -137,47 +130,38 @@ def get_match_finished(job_key):
         })
 
 
-@app.route('/list/<jurisdiction>', methods=['POST'])
-def get_list(jurisdiction):
-    app.logger.debug(f"Retrieving the list for the county {county}")
-    if request.method == 'POST':
-        try:
-            data = request.get_json()
-            start_date = data.get('start_date', '')
-            end_date = data.get('end_date', '')
-        except ValueError:
-            return jsonify(f"Invalid date: ({start_date}, {end_date})")
-
-        app.logger.debug(f"Filtering the list between dates {start_date} and {end_date}")
-
-    return jsonify({
-        'status': 'not implemented',
-        'message': 'nice try, but we are still working on it'
-    })
-
-
-def do_match(jurisdiction, event_type):
+def do_match(jurisdiction, event_type, upload_id):
     app.logger.info("Matching process started!")
-    indexer_func = getattr(indexer, INDEXER)
-    contraster_func = getattr(contraster, CONTRASTER)
 
-    df = pd.concat([utils.load_data_for_matching(jurisdiction, event_type, S3_BUCKET, KEYS) for event_type in EVENT_TYPES])
+    # We will frame the record linkage problem as a deduplication problem
+    app.logger.info('Loading data for matching.')
+    df = pd.concat([utils.load_data_for_matching(jurisdiction, event_type, upload_id, KEYS) for event_type in EVENT_TYPES])
 
-    app.logger.info(f"Running matcher({KEYS},{INDEXER},{CONTRASTER})")
-    df = matcher.run(
-        df=df,
-        keys=KEYS,
-        indexer=indexer_func,
-        contraster=contraster_func,
-        clustering_params=CLUSTERING_PARAMS
-    )
+    app.logger.info('Doing some preprocessing on the columns')
+    df = preprocess.preprocess(df)
+    app.logger.info(f"Races observed in preprocessed df: {df['race']}")
 
-    for event_type in EVENT_TYPES:
-        utils.write_matched_data(df, jurisdiction, event_type, S3_BUCKET, PG_CONNECTION)
+    app.logger.info(f"Running matcher({KEYS})")
+    app.logger.debug(f"The dataframe has the following columns: {df.columns}")
+    app.logger.debug(f"The dimensions of the dataframe is: {df.shape}")
+    app.logger.debug(f"The indices are {df.index}")
+    app.logger.debug(f'df has {len(df)} rows and {len(df.index.unique())} unique indices')
+    app.logger.debug(f'The dataframe has the following duplicate indices: {df[df.index.duplicated()].index.values}')
+
+    matches = matcher.run(df=df, clustering_params=CLUSTERING_PARAMS)
+    app.logger.debug('Matching done!')
+    app.logger.debug(f'Index of matches: {matches.index.values})')
+    app.logger.debug(f'Columns of matches: {matches.columns.values}')
+
+    app.logger.info('Writing matched results!')
+    for e_type in EVENT_TYPES:
+        utils.write_matched_data(df, jurisdiction, e_type)
 
     return {
         'status': 'done',
+        'number_of_matches_found': len(matches),
         'event_type': event_type,
         'jurisdiction': jurisdiction,
+        'upload_id': upload_id,
         'message': 'matching proccess is done! check out the result!'
     }

@@ -4,6 +4,7 @@ import PickDataType from './upload/pick-data-type'
 import UploadFile from './upload/upload-file'
 import ConfirmData from './upload/confirm-data'
 import Done from './upload/done'
+import Validating from './upload/validating'
 import { Step, Stepper, StepLabel } from 'material-ui/Stepper'
 import WarningIcon from 'material-ui/svg-icons/alert/warning'
 import {red500} from 'material-ui/styles/colors'
@@ -14,18 +15,20 @@ import Header from './header'
 function mapStateToStep(state) {
   if(state.app.selectedEventType.slug === '') {
     return 0
-  } else if (state.app.uploadResponse.status === '' || state.app.uploadResponse.status === 'invalid' || state.app.uploadResponse.status === 'error') {
+  } else if (state.app.validationResponse.status === 'validating') {
+    return 2
+  } else if (state.app.validationResponse.status === '' || state.app.validationResponse.status === 'invalid' || state.app.validationResponse.status === 'error') {
     return 1
   } else if (state.app.mergeResults.totalUniqueRows !== '') {
+    return 4
+  } else if (state.app.validationResponse.status === 'valid') {
     return 3
-  } else if (state.app.uploadResponse.status === 'valid') {
-    return 2
   }
 }
 
 function mapStateToProps(state) {
   return {
-    uploadProblem: ['invalid', 'error'].includes(state.app.uploadResponse.status ),
+    uploadProblem: ['invalid', 'error'].includes(state.app.validationResponse.status ),
     step: mapStateToStep(state)
   }
 }
@@ -37,6 +40,9 @@ function mapDispatchToProps(dispatch) {
     },
     resetUploadResponse: () => {
       dispatch(resetAppState('uploadResponse'))
+    },
+    resetValidationResponse: () => {
+      dispatch(resetAppState('validationResponse'))
     },
     resetMergeResults: () => {
       dispatch(resetAppState('mergeResults'))
@@ -57,14 +63,16 @@ class UploadPage extends React.Component {
     this.props.resetFile()
     this.props.resetMergeResults()
     this.props.resetEventType()
+    this.props.resetValidationResponse()
   }
 
   renderStepContent() {
     switch (this.props.step) {
     case 0: return (<PickDataType />)
     case 1: return (<UploadFile />)
-    case 2: return (<ConfirmData />)
-    case 3: return (<Done />)
+    case 2: return (<Validating />)
+    case 3: return (<ConfirmData />)
+    case 4: return (<Done />)
     default: return 'unknown step'
     }
   }
@@ -80,11 +88,13 @@ class UploadPage extends React.Component {
               <StepLabel>Choose Data Type</StepLabel>
             </Step>
             <Step>
+              <StepLabel>Upload File</StepLabel>
+            </Step>
+            <Step>
               <StepLabel
-                icon={this.props.uploadProblem ? <WarningIcon color={red500} /> : 2}
+                icon={this.props.uploadProblem ? <WarningIcon color={red500} /> : 3}
                 style={this.props.uploadProblem ? {color: red500} : {}}
-              >Upload File
-              </StepLabel>
+              >Validate File</StepLabel>
             </Step>
             <Step>
               <StepLabel>Confirm Upload</StepLabel>
