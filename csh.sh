@@ -38,7 +38,7 @@ EOF
 }
 
 function start_infrastructure () {
-    docker-compose --project-name ${PROJECT} up -d db webapp matcher worker redis
+    docker-compose --project-name ${PROJECT} up -d db webapp matcher_worker  webapp_worker redis
 }
 
 function stop_infrastructure () {
