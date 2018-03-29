@@ -13,8 +13,6 @@ from . import api
 
 import recordlinkage as rl
 
-from flask import current_app
-
 def run(df:pd.DataFrame, clustering_params:dict) -> pd.DataFrame:
 
 
@@ -24,40 +22,40 @@ def run(df:pd.DataFrame, clustering_params:dict) -> pd.DataFrame:
 
     matches = {}
 
-    current_app.logger.debug(f"{df.first_name.value_counts()}")
+    api.app.logger.debug(f"{df.first_name.value_counts()}")
     
     for key, group in grouped:
-        current_app.logger.debug(f"Processing group: {key}")
-        current_app.logger.debug(f"Group size: {len(group)}")
+        api.app.logger.debug(f"Processing group: {key}")
+        api.app.logger.debug(f"Group size: {len(group)}")
 
         if len(group) > 1:
         
             indexer = rl.FullIndex()
             pairs = indexer.index(group)
 
-            current_app.logger.debug(f"Number of pairs: {len(pairs)}")
+            api.app.logger.debug(f"Number of pairs: {len(pairs)}")
 
-            current_app.logger.debug(f"Initializing featurization")
+            api.app.logger.debug(f"Initializing featurization")
             features = featurizer.generate_features(pairs, df)
-            current_app.logger.debug(f"Features created")
+            api.app.logger.debug(f"Features created")
         
             features.index.rename(['a', 'b'], inplace=True)
             utils.write_to_s3(features.reset_index(), f"csh/matcher/features/{key}")
             features = rules.compactify(rules.scale(features), operation='mean')
             utils.write_to_s3(features.reset_index(), f"csh/matcher/features_scaled/{key}")
 
-            current_app.logger.debug(f"Features dataframe size: {features.shape}")
+            api.app.logger.debug(f"Features dataframe size: {features.shape}")
 
-            current_app.logger.debug(f"Features data without duplicated indexes: {features[~features.index.duplicated(keep='first')].shape}")
+            api.app.logger.debug(f"Features data without duplicated indexes: {features[~features.index.duplicated(keep='first')].shape}")
 
-            current_app.logger.debug("Duplicated keys:") 
-            current_app.logger.debug(f"{features[features.index.duplicated(keep=False)]}")
+            api.app.logger.debug("Duplicated keys:") 
+            api.app.logger.debug(f"{features[features.index.duplicated(keep=False)]}")
 
             f = features.reset_index()
             
-            current_app.logger.debug(f"{f[f.a == f.b]}")
+            api.app.logger.debug(f"{f[f.a == f.b]}")
 
-            current_app.logger.debug(f"{features[~features.index.duplicated(keep='first')].matches.unstack(level=0, fill_value=1)}")
+            api.app.logger.debug(f"{features[~features.index.duplicated(keep='first')].matches.unstack(level=0, fill_value=1)}")
 
             matched = cluster.generate_matched_ids(
                 distances = features[~features.index.duplicated(keep='first')].matches.unstack(level=-1, fill_value=1),
@@ -67,7 +65,7 @@ def run(df:pd.DataFrame, clustering_params:dict) -> pd.DataFrame:
 
             matches[key] = matched
         else:
-            current_app.logger.debug(f"Group {key} only have one record, Ignoring")
+            api.app.logger.debug(f"Group {key} only have one record, Ignoring")
 
     return matches
 
