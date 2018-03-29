@@ -1,7 +1,5 @@
 # coding: utf-8
 
-from . import contraster
-
 import pandas as pd
 import numpy as np
 
@@ -63,5 +61,5 @@ def generate_matched_ids(
 
     current_app.logger.info('Matched ids generated')
 
-    return (df)
+    return (df)                 
 
