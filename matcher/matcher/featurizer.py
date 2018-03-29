@@ -1,3 +1,4 @@
+# coding: utf-8
 
 import recordlinkage as rl
 import pandas as pd

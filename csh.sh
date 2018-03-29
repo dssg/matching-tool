@@ -54,7 +54,7 @@ function destroy () {
 }
 
 function infrastructure_logs () {
-    docker-compose --project-name ${PROJECT} logs -f -t
+    docker-compose --project-name ${PROJECT} logs  -f -t
 }
 
 function status () {

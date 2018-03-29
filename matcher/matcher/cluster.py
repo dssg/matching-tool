@@ -1,16 +1,10 @@
 # coding: utf-8
 
-from . import contraster
-
-import logging
-logger = logging.getLogger('matcher')
-
 import pandas as pd
 import numpy as np
 
 
 from sklearn.cluster import DBSCAN
-
 
 from . import api
 
@@ -66,5 +60,5 @@ def generate_matched_ids(
 
     api.app.logger.info('Matched ids generated')
 
-    return (df)
+    return (df)                 
 

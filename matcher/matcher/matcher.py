@@ -1,8 +1,5 @@
 # coding: utf-8
 
-import logging
-logger = logging.getLogger('matcher')
-
 import pandas as pd
 
 from typing import List
@@ -16,7 +13,6 @@ from . import api
 
 import recordlinkage as rl
 
-
 def run(df:pd.DataFrame, clustering_params:dict) -> pd.DataFrame:
 
 
@@ -25,9 +21,7 @@ def run(df:pd.DataFrame, clustering_params:dict) -> pd.DataFrame:
     grouped = df.groupby('first_name')
 
     matches = {}
-    
     api.app.logger.debug(f"{df.first_name.value_counts()}")
-
     
     for key, group in grouped:
         api.app.logger.debug(f"Processing group: {key}")
@@ -55,7 +49,6 @@ def run(df:pd.DataFrame, clustering_params:dict) -> pd.DataFrame:
 
             api.app.logger.debug("Duplicated keys:") 
             api.app.logger.debug(f"{features[features.index.duplicated(keep=False)]}")
-
 
             f = features.reset_index()
             

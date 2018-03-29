@@ -150,9 +150,9 @@ def do_match(jurisdiction, event_type, upload_id):
 
     matches = matcher.run(df=df, clustering_params=CLUSTERING_PARAMS)
     app.logger.debug('Matching done!')
-    for matched in matches:
-        app.logger.debug(f'Index of matches: {matched.index.values})')
-        app.logger.debug(f'Columns of matches: {matched.columns.values}')
+    for key, matched in matches.items():
+        app.logger.debug(f'Index of matches for {key}: {matched.index.values})')
+        app.logger.debug(f'Columns of matches for {key}: {matched.columns.values}')
 
     app.logger.info('Writing matched results!')
     #for e_type in EVENT_TYPES:

@@ -1,10 +1,9 @@
 # coding: utf-8
+
 import ast
 import os
 import subprocess
 
-import logging
-logger = logging.getLogger('utils')
 
 import numpy as np
 import pandas as pd
@@ -13,6 +12,9 @@ import boto3
 import psycopg2
 import smart_open
 import botocore
+
+
+from . import api
 
 
 # load dotenv
@@ -72,7 +74,7 @@ def concatenate_source_index(df:pd.DataFrame, event_type:str) -> pd.Series:
 
 def read_merged_data_from_s3(jurisdiction:str, event_type:str) -> pd.DataFrame:
     # Read the data in and select the necessary columns
-    logger.info(f"Reading data from {S3_BUCKET}/{jurisdiction}/{event_type}")
+    api.app.logger.info(f"Reading data from {S3_BUCKET}/{jurisdiction}/{event_type}")
     merged_key = f'csh/matcher/{jurisdiction}/{event_type}/merged'
     df=pd.read_csv(f's3://{S3_BUCKET}/{merged_key}', sep='|')
  
@@ -83,7 +85,7 @@ def read_merged_data_from_s3(jurisdiction:str, event_type:str) -> pd.DataFrame:
 
 
 def load_data_for_matching(jurisdiction:str, event_type:str, upload_id:str, keys:list) -> pd.DataFrame:
-    logger.info(f'Loading {jurisdiction} {event_type} data for matching.')
+    api.app.logger.info(f'Loading {jurisdiction} {event_type} data for matching.')
     
     try:
         df = read_merged_data_from_s3(jurisdiction, event_type)
@@ -100,11 +102,11 @@ def load_data_for_matching(jurisdiction:str, event_type:str, upload_id:str, keys
         ## TODO: Check the definition of keys
         df = df.drop_duplicates(subset=keys)
         
-        logger.info(f'{jurisdiction} {event_type} data loaded from S3.')
+        api.app.logger.info(f'{jurisdiction} {event_type} data loaded from S3.')
 
         return df
     except FileNotFoundError as e:
-        logger.info(f'No merged file found for {jurisdiction} {event_type}. Skipping.')
+        api.app.logger.info(f'No merged file found for {jurisdiction} {event_type}. Skipping.')
         pass
 
 
@@ -112,7 +114,7 @@ def get_matched_table_name(jurisdiction:str, event_type:str) -> str:
     return f'{jurisdiction}_{event_type}_matched'
 
 def write_matched_data(df:pd.DataFrame, jurisdiction:str, event_type:str):
-    logger.info(f'Writing matched data for {jurisdiction} {event_type}')
+    api.app.logger.info(f'Writing matched data for {jurisdiction} {event_type}')
     df = df[df.event_type == event_type]
 
     right_df=read_merged_data_from_s3(jurisdiction, event_type)
@@ -129,13 +131,13 @@ def write_matched_data(df:pd.DataFrame, jurisdiction:str, event_type:str):
     
     key = f'csh/matcher/{jurisdiction}/{event_type}/matched'
     write_to_s3(df,key)
-    logger.info(f'Written data for {jurisdiction} {event_type} to S3.')
+    api.app.logger.info(f'Written data for {jurisdiction} {event_type} to S3.')
     write_matched_data_to_postgres(
         key=key, 
         table_name=get_matched_table_name(jurisdiction, event_type), 
         column_names=df.columns.values
     )
-    logger.info(f'Written data for {jurisdiction} {event_type} to postgres.')
+    api.app.logger.info(f'Written data for {jurisdiction} {event_type} to postgres.')
 
 
 def select_columns(df:pd.DataFrame, keys:list) -> pd.DataFrame:
@@ -144,7 +146,7 @@ def select_columns(df:pd.DataFrame, keys:list) -> pd.DataFrame:
     
     We always expect at least two columns: source and source_id
     """
-    logger.info(f'Selecting columns for matching.')
+    api.app.logger.info(f'Selecting columns for matching.')
     columns_to_select = ['source', 'source_id', 'internal_person_id', 'source_index']
     if keys:
         columns_to_select = columns_to_select + keys
@@ -168,7 +170,7 @@ def write_matched_data_to_postgres(key, table_name, column_names):
     conn = psycopg2.connect(**PG_CONNECTION)
     cur = conn.cursor()
 
-    logger.info(f'Creating table matched.{table_name}')
+    api.app.logger.info(f'Creating table matched.{table_name}')
     col_list = [f'{col} varchar' for col in column_names]
     col_type_list = ', '.join(col_list)
     create_table_query = f"""
@@ -178,10 +180,10 @@ def write_matched_data_to_postgres(key, table_name, column_names):
             {col_type_list}
         );
     """
-    logger.warning(create_table_query)
+    api.app.logger.warning(create_table_query)
     cur.execute(create_table_query)
 
-    logger.info(f'Inserting data into matched.{table_name}')
+    api.app.logger.info(f'Inserting data into matched.{table_name}')
     with smart_open.smart_open(f's3://{S3_BUCKET}/{key}') as f:
         copy_query = f"""
             COPY matched.{table_name} FROM STDIN WITH CSV HEADER DELIMITER AS '|'
@@ -191,14 +193,14 @@ def write_matched_data_to_postgres(key, table_name, column_names):
             file=f
         )
     conn.commit()
-    logger.info(f'Done writing matched results to matched.{table_name}')
+    api.app.logger.info(f'Done writing matched results to matched.{table_name}')
 
     cur.close()
     conn.close()
 
 
 def write_to_s3(df, key):
-    logger.info(f'Writing data to s3://{S3_BUCKET}/{key}')
+    api.app.logger.info(f'Writing data to s3://{S3_BUCKET}/{key}')
     csv_buffer = StringIO()
     df.to_csv(csv_buffer, sep='|', index=False)
     s3_resource = boto3.resource('s3')
