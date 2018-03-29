@@ -61,7 +61,8 @@ def run(df:pd.DataFrame, clustering_params:dict) -> pd.DataFrame:
             matched = cluster.generate_matched_ids(
                 distances = pd.concat([features, f]).matches.unstack(level=-1, fill_value=0),
                 DF = group,
-                clustering_params=clustering_params
+                clustering_params=clustering_params,
+                block_name=key
             )
 
             matches[key] = matched
