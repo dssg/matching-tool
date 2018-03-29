@@ -40,7 +40,7 @@ def run(df:pd.DataFrame, clustering_params:dict) -> pd.DataFrame:
  
             features.index.rename(['matcher_index_left', 'matcher_index_right'], inplace=True)
             utils.write_to_s3(features.reset_index(), f"csh/matcher/features/{key}")
-            features = rules.compactify(rules.scale(features), operation='mean')
+            features = rules.compactify(features, operation='mean')
             utils.write_to_s3(features.reset_index(), f"csh/matcher/features_scaled/{key}")
 
             api.app.logger.debug(f"Features dataframe size: {features.shape}")
