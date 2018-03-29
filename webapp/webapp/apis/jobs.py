@@ -11,14 +11,14 @@ from rq.registry import StartedJobRegistry
 
 from datetime import datetime
 
-match_api = Blueprint('match_api', __name__, url_prefix='/api/match')
+jobs_api = Blueprint('jobs_api', __name__, url_prefix='/api/jobs')
 
 
 redis_connection = Redis(host='redis', port=6379)
 q = Queue('matching', connection=redis_connection)
 registry = StartedJobRegistry('matching', connection=redis_connection)
 
-@match_api.route('/job_in_q', methods=['GET'])
+@jobs_api.route('/job_in_q', methods=['GET'])
 @login_required
 def get_jobs_in_q():
     queued_job_ids = q.job_ids
