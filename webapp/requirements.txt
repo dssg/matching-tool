@@ -1,6 +1,6 @@
 flask-security
 flask-sqlalchemy
-goodtables>=1.5
+goodtables==1.5.1
 tableschema
 alembic
 pyyaml

@@ -21,7 +21,6 @@ def run(df:pd.DataFrame, clustering_params:dict) -> pd.DataFrame:
     grouped = df.groupby('first_name')
 
     matches = {}
-
     api.app.logger.debug(f"{df.first_name.value_counts()}")
     
     for key, group in grouped:
@@ -38,8 +37,8 @@ def run(df:pd.DataFrame, clustering_params:dict) -> pd.DataFrame:
             api.app.logger.debug(f"Initializing featurization")
             features = featurizer.generate_features(pairs, df)
             api.app.logger.debug(f"Features created")
-        
-            features.index.rename(['a', 'b'], inplace=True)
+ 
+            features.index.rename(['matcher_index_left', 'matcher_index_right'], inplace=True)
             utils.write_to_s3(features.reset_index(), f"csh/matcher/features/{key}")
             features = rules.compactify(rules.scale(features), operation='mean')
             utils.write_to_s3(features.reset_index(), f"csh/matcher/features_scaled/{key}")
@@ -50,17 +49,20 @@ def run(df:pd.DataFrame, clustering_params:dict) -> pd.DataFrame:
 
             api.app.logger.debug("Duplicated keys:") 
             api.app.logger.debug(f"{features[features.index.duplicated(keep=False)]}")
-
             f = features.reset_index()
-            
-            api.app.logger.debug(f"{f[f.a == f.b]}")
+
+            api.app.logger.debug(f"{f[f.matcher_index_left == f.matcher_index_right]}")
 
             api.app.logger.debug(f"{features[~features.index.duplicated(keep='first')].matches.unstack(level=0, fill_value=1)}")
 
+            api.app.logger.debug('Generating inverse pairs (flip left/right ordering)')
+            f.rename({'matcher_index_left': 'matcher_index_right', 'matcher_index_right': 'matcher_index_left'}, axis='columns', inplace=True)
+            f.set_index(['matcher_index_left', 'matcher_index_right'], inplace=True)
             matched = cluster.generate_matched_ids(
-                distances = features[~features.index.duplicated(keep='first')].matches.unstack(level=-1, fill_value=1),
+                distances = pd.concat([features, f]).matches.unstack(level=-1, fill_value=0),
                 DF = group,
-                clustering_params=clustering_params
+                clustering_params=clustering_params,
+                block_name=key
             )
 
             matches[key] = matched
