@@ -49,8 +49,8 @@ def generate_features(pairs:pd.MultiIndex, df:pd.DataFrame) -> pd.DataFrame:
     # differ on what they use
     if 'full_name' in df.columns:
         compare_cl.exact('full_name', 'full_name', label='full_name_exacti_distance')
-        compare_cl.string('full_name', 'full_name', method='jarowinkler', threshold=0.85, label='full_name_jarowinkler_distance')
-        # compare_cl.string('full_name', 'full_name', method='qgram', threshold=0.85, label='full_name_qgram_distance')
+        compare_cl.string('full_name', 'full_name', method='jarowinkler', label='full_name_jarowinkler_distance')
+        # compare_cl.string('full_name', 'full_name', method='qgram',  label='full_name_qgram_distance')
         compare_cl.compare_vectorized(compare_exact_n_chars, 'full_name', 'full_name', 5, label='full_name_first_5_distance')
         compare_cl.compare_vectorized(compare_exact_n_chars, 'full_name', 'full_name', -5, label='full_name_last_5_distance')
         compare_cl.compare_vectorized(compare_exact_n_chars, 'full_name', 'full_name', 3, label='full_name_first_3_distance')
@@ -60,7 +60,7 @@ def generate_features(pairs:pd.MultiIndex, df:pd.DataFrame) -> pd.DataFrame:
     # we should preprocess prefixes to remove punctuation and possibly spaces
     if 'prefix' in df.columns:
         compare_cl.exact('prefix', 'prefix', label='prefix_exact_distance')
-        compare_cl.string('prefix', 'prefix', method='jaro', threshold=0.85, label='prefix_jaro_distance')
+        compare_cl.string('prefix', 'prefix', method='jaro',  label='prefix_jaro_distance')
 
     # first_name
     # potential preprocessing steps:
@@ -69,8 +69,8 @@ def generate_features(pairs:pd.MultiIndex, df:pd.DataFrame) -> pd.DataFrame:
     # - try using second+ word of first name as middle name if no middle name 
     if 'first_name' in df.columns:
         compare_cl.exact('first_name', 'first_name', label='first_name_exact_distance')
-        compare_cl.string('first_name', 'first_name', method='jarowinkler', threshold=0.85, label='first_name_jarowinkler_distance')
-        # compare_cl.string('first_name', 'first_name', method='qgram', threshold=0.85, label='first_name_qgram_distance')
+        compare_cl.string('first_name', 'first_name', method='jarowinkler',  label='first_name_jarowinkler_distance')
+        # compare_cl.string('first_name', 'first_name', method='qgram',  label='first_name_qgram_distance')
         compare_cl.compare_vectorized(compare_exact_n_chars, 'first_name', 'first_name', 5, label='first_name_first_5_distance')
         compare_cl.compare_vectorized(compare_exact_n_chars, 'first_name', 'first_name', -5, label='first_name_last_5_distance')
         compare_cl.compare_vectorized(compare_exact_n_chars, 'first_name', 'first_name', 3, label='first_name_first_3_distance')
@@ -82,8 +82,8 @@ def generate_features(pairs:pd.MultiIndex, df:pd.DataFrame) -> pd.DataFrame:
     # - create: full_middle_name, first_word_middle_name, second_word_middle_name
     if 'middle_name' in df.columns:
         compare_cl.exact('middle_name', 'middle_name', label='middle_name_exact_distance')
-        compare_cl.string('middle_name', 'middle_name', method='jarowinkler', threshold=0.85, label='middle_name_jarowinkler_distance')
-        # compare_cl.string('middle_name', 'middle_name', method='qgram', threshold=0.85, label='middle_name_qgram_distance')
+        compare_cl.string('middle_name', 'middle_name', method='jarowinkler',  label='middle_name_jarowinkler_distance')
+        # compare_cl.string('middle_name', 'middle_name', method='qgram',  label='middle_name_qgram_distance')
         compare_cl.compare_vectorized(compare_exact_n_chars, 'middle_name', 'middle_name', 5, label='middle_name_first_5_distance')
         compare_cl.compare_vectorized(compare_exact_n_chars, 'middle_name', 'middle_name', -5, label='middle_name_last_5_distance')
         compare_cl.compare_vectorized(compare_exact_n_chars, 'middle_name', 'middle_name', 3, label='middle_name_first_3_distance')
@@ -95,8 +95,8 @@ def generate_features(pairs:pd.MultiIndex, df:pd.DataFrame) -> pd.DataFrame:
     # - create: full_last_name, first_word_last_name, second_word_last_name
     if 'last_name' in df.columns:
         compare_cl.exact('last_name', 'last_name', label='last_name_exact_distance')
-        compare_cl.string('last_name', 'last_name', method='jarowinkler', threshold=0.85, label='last_name_jarowinkler_distance')
-        # compare_cl.string('last_name', 'last_name', method='qgram', threshold=0.85, label='last_name_qgram_distance')
+        compare_cl.string('last_name', 'last_name', method='jarowinkler',  label='last_name_jarowinkler_distance')
+        # compare_cl.string('last_name', 'last_name', method='qgram',  label='last_name_qgram_distance')
         compare_cl.compare_vectorized(compare_exact_n_chars, 'last_name', 'last_name', 5, label='middle_name_first_5_distance')
         compare_cl.compare_vectorized(compare_exact_n_chars, 'last_name', 'last_name', -5, label='middle_name_last_5_distance')
         compare_cl.compare_vectorized(compare_exact_n_chars, 'last_name', 'last_name', 3, label='middle_name_first_3_distance')
@@ -106,7 +106,7 @@ def generate_features(pairs:pd.MultiIndex, df:pd.DataFrame) -> pd.DataFrame:
     if 'suffix' in df.columns:
         # we should preprocess suffixes to remove punctuation and possibly spaces
         compare_cl.exact('suffix', 'suffix', label='suffix_exact_distance')
-        compare_cl.string('suffix', 'suffix', method='jaro', threshold=0.85, label='suffix_jaro_distance')
+        compare_cl.string('suffix', 'suffix', method='jaro',  label='suffix_jaro_distance')
 
     # dob
     # MUST BE CAST TO DATETIME DURING PREPROCESSING
@@ -125,8 +125,8 @@ def generate_features(pairs:pd.MultiIndex, df:pd.DataFrame) -> pd.DataFrame:
     # to make this comparison.
     if 'ssn' in df.columns:
         compare_cl.exact('ssn', 'ssn', label='ssn_exact_distance')
-        compare_cl.string('ssn', 'ssn', method='jaro', threshold=0.85, label='ssn_jaro_distance')
-        # compare_cl.string('ssn', 'ssn', method='qgram', threshold=0.85, label='ssn_qgram_distance')
+        compare_cl.string('ssn', 'ssn', method='jaro',  label='ssn_jaro_distance')
+        # compare_cl.string('ssn', 'ssn', method='qgram',  label='ssn_qgram_distance')
         # the last four digits are the "serial number" of the person (i.e., the most unique part of the number) 
         # and are often the only known/shared component, so we will run a special exact comparison on them
         compare_cl.compare_vectorized(compare_exact_n_chars, 'ssn', 'ssn', -4, label='ssn_last_4_distance')
@@ -141,8 +141,8 @@ def generate_features(pairs:pd.MultiIndex, df:pd.DataFrame) -> pd.DataFrame:
     # that we can generalize here, we need to convert to string for all of them.
     if 'dmv_number' in df.columns:
         compare_cl.exact('dmv_number', 'dmv_number', label='dmv_number_exact_distance')
-        compare_cl.string('dmv_number', 'dmv_number', method='jaro', threshold=0.85, label='dmv_number_jaro_distance')
-        # compare_cl.string('dmv_number', 'dmv_number', method='qgram', threshold=0.85, label='dmv_number_qgram_distance')
+        compare_cl.string('dmv_number', 'dmv_number', method='jaro',  label='dmv_number_jaro_distance')
+        # compare_cl.string('dmv_number', 'dmv_number', method='qgram',  label='dmv_number_qgram_distance')
 
     # dmv_state
     if 'dmv_state' in df.columns:
