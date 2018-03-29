@@ -45,7 +45,8 @@ def cluster(
 def generate_matched_ids(
     distances:pd.DataFrame,
     DF:pd.DataFrame,
-    clustering_params:dict
+    clustering_params:dict,
+    block_name=''
 ) -> pd.DataFrame:
     
     api.app.logger.info('Beginning clustering & id generation.')
@@ -58,6 +59,11 @@ def generate_matched_ids(
     ids[ids == -1] = replacement_ids
     api.app.logger.debug(f'IDs: {ids}')
     api.app.logger.debug(f'Replaced noisy singleton ids with \n{replacement_ids}')
+    
+    api.app.logger.debug(f'Adding the block name ({block_name}) to the matched_ids.')
+    ids = block_name + ids.astype(str)
+    api.app.logger.debug(f'New IDs: \n{ids}')
+    
     df = DF.copy()
     
     df['matched_id'] = ids
