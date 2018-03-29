@@ -53,7 +53,11 @@ def generate_matched_ids(
     ids = cluster(
         distances, **clustering_params
     )
-
+    max_cluster_id = ids.max()
+    replacement_ids = pd.Series(range(max_cluster_id + 1, max_cluster_id + len(ids[ids == -1]) + 1), index=ids[ids==-1].index)
+    ids[ids == -1] = replacement_ids
+    api.app.logger.debug(f'IDs: {ids}')
+    api.app.logger.debug(f'Replaced noisy singleton ids with \n{replacement_ids}')
     df = DF.copy()
     
     df['matched_id'] = ids
