@@ -2,17 +2,14 @@
 
 from . import contraster
 
-import logging
-logger = logging.getLogger('matcher')
-
 import pandas as pd
 import numpy as np
 
 
 from sklearn.cluster import DBSCAN
 
+from flask import current_app
 
-from . import api
 
 def cluster(
     distances:pd.DataFrame,
@@ -26,7 +23,7 @@ def cluster(
     indexed with the source row_id.
     """
 
-    api.app.logger.info('Beginning clustering.')
+    current_app.logger.info('Beginning clustering.')
 
     clusterer = DBSCAN(
         eps=eps,
@@ -40,7 +37,7 @@ def cluster(
     )
 
     clusterer.fit(X=distances)
-    api.app.logger.info('Clustering done! Assigning matched ids.')
+    current_app.logger.info('Clustering done! Assigning matched ids.')
 
     return pd.Series(
         index=distances.index,
@@ -54,7 +51,7 @@ def generate_matched_ids(
     clustering_params:dict
 ) -> pd.DataFrame:
     
-    api.app.logger.info('Beginning clustering & id generation.')
+    current_app.logger.info('Beginning clustering & id generation.')
 
     ids = cluster(
         distances, **clustering_params
@@ -64,7 +61,7 @@ def generate_matched_ids(
     
     df['matched_id'] = ids
 
-    api.app.logger.info('Matched ids generated')
+    current_app.logger.info('Matched ids generated')
 
     return (df)
 
