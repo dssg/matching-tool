@@ -27,7 +27,7 @@ def run(df:pd.DataFrame, clustering_params:dict) -> pd.DataFrame:
     features = rules.compactify(rules.scale(features), operation='mean')
     utils.write_to_s3(features.reset_index(), 'csh/matcher/features_scaled')
     matches = cluster.generate_matched_ids(
-        distances = features[features.index.duplicated(keep='first')].matches.unstack(level=1, fill_value=1),
+        distances = features.matches.unstack(level=1, fill_value=1),
         df = df,
         clustering_params=clustering_params
     )

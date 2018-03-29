@@ -24,7 +24,6 @@ def cluster(
     """
 
     logger.info('Beginning clustering.')
-    df = 1 - df
     clusterer = DBSCAN(
         eps=eps,
         min_samples=min_samples,
