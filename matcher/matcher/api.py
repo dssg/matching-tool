@@ -7,6 +7,7 @@ import ast
 from flask import Flask, jsonify, request
 from flask import make_response
 
+import time
 
 from rq.registry import StartedJobRegistry
 from redis import Redis
@@ -131,6 +132,10 @@ def get_match_finished(job_key):
 
 
 def do_match(jurisdiction, event_type, upload_id):
+
+
+    start_time = time.time()
+    
     app.logger.info("Matching process started!")
 
     # We will frame the record linkage problem as a deduplication problem
@@ -150,13 +155,29 @@ def do_match(jurisdiction, event_type, upload_id):
 
     matches = matcher.run(df=df, clustering_params=CLUSTERING_PARAMS)
     app.logger.debug('Matching done!')
+
     for key, matched in matches.items():
         app.logger.debug(f'Index of matches for {key}: {matched.index.values})')
         app.logger.debug(f'Columns of matches for {key}: {matched.columns.values}')
 
     app.logger.info('Writing matched results!')
+
+    # Merging the dataframe
+
+    end_time_1 = time.time()
+
+    app.logger.debug(f"Total matching time: {end_time_1 - start_time}")
+    
+    all_matches = pd.concat(matches.values())
+
+    end_time_2 = time.time()
+
+    app.logger.debug(f"Number of matched pairs: {len(all_matches)}")
+
+    app.logger.debug(f"Total concatenating time: {end_time_2 - end_time_1}")
+    
     #for e_type in EVENT_TYPES:
-    #    utils.write_matched_data(df, jurisdiction, e_type)
+    #    utils.write_matched_data(all_matches, jurisdiction, e_type)
 
     return {
         'status': 'done',
