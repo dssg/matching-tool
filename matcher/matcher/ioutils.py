@@ -44,7 +44,7 @@ EVENT_TYPES = [
 ]
 
 
-def load_data_for_matching(jurisdiction:str, upload_id:str) --> tuple:
+def load_data_for_matching(jurisdiction:str, upload_id:str) -> tuple:
     # We will frame the record linkage problem as a deduplication problem
     df = pd.concat([load_one_event_type(jurisdiction, e_type, upload_id) for event_type in EVENT_TYPES])
 
@@ -99,4 +99,25 @@ def read_merged_data_from_s3(jurisdiction:str, event_type:str) -> pd.DataFrame:
     df.set_index('person_index', drop=True, inplace=True)
 
     return df
+
+
+def write_matched_data(matches:pd.DataFrame, jurisdiction:str, event_types_read) -> None:
+    for event_type in event_types_read:
+        api.app.logger.info(f'Writing matched data for {jurisdiction} {event_type}')
+        write_one_event_type(matches, jurisdiction, event_type)
+
+
+def write_one_event_type(df:pd.DataFrame, jurisdiction:str, event_type:str):
+    api.app.logger.info(f'Joining matches to merged data for {event_type}')
+    df = utils.join_matched_and_merged_data(df, jurisdiction, event_type)
+
+    key = f'csh/matcher/{jurisdiction}/{event_type}/matched'
+    write_to_s3(df,key)
+    api.app.logger.info(f'Written data for {jurisdiction} {event_type} to S3.')
+    write_matched_data_to_postgres(
+        key=key,
+        table_name=get_matched_table_name(jurisdiction, event_type),
+        column_names=df.columns.values
+    )
+    api.app.logger.info(f'Written data for {jurisdiction} {event_type} to postgres.')
 

@@ -52,31 +52,21 @@ def get_matched_table_name(jurisdiction:str, event_type:str) -> str:
     return f'{jurisdiction}_{event_type}_matched'
 
 
-def write_matched_data(df:pd.DataFrame, jurisdiction:str, event_type:str):
-    api.app.logger.info(f'Writing matched data for {jurisdiction} {event_type}')
-    df = df[df.event_type == event_type]
-
-    right_df=read_merged_data_from_s3(jurisdiction, event_type)
+def join_matched_and_merged_data(right_df:pd.DataFrame, jurisdiction:str, event_type:str) -> pd.DataFrame:
+    left_df=read_merged_data_from_s3(jurisdiction, event_type)
 
     cols_to_use = right_df.columns.difference(df.columns).values
 
-    df = df.merge(
+    df = left_df.merge(
         right=right_df[cols_to_use],
         left_index=True,
         right_index=True,
         copy=False,
-        validate='one_to_many'
+        validate='many_to_one'
     )
-    
-    key = f'csh/matcher/{jurisdiction}/{event_type}/matched'
-    write_to_s3(df,key)
-    api.app.logger.info(f'Written data for {jurisdiction} {event_type} to S3.')
-    write_matched_data_to_postgres(
-        key=key, 
-        table_name=get_matched_table_name(jurisdiction, event_type), 
-        column_names=df.columns.values
-    )
-    api.app.logger.info(f'Written data for {jurisdiction} {event_type} to postgres.')
+    api.app.logger.info(f'Joined match ids to merged data for {jurisdiction}')
+
+    return df
 
 
 def select_columns(df:pd.DataFrame, keys:list) -> pd.DataFrame:
