@@ -24,14 +24,6 @@ dotenv_path = os.path.join(APP_ROOT, '.env')
 load_dotenv(dotenv_path)
 
 # load environment variables
-S3_BUCKET = os.getenv('S3_BUCKET')
-PG_CONNECTION = {
-    'host': os.getenv('PGHOST'),
-    'user': os.getenv('PGUSER'),
-    'dbname': os.getenv('PGDATABASE'),
-    'password': os.getenv('PGPASSWORD'),
-    'port': os.getenv('PGPORT')
-}
 KEYS = ast.literal_eval(os.getenv('KEYS'))
 
 
@@ -50,27 +42,15 @@ def get_source_id(df):
         raise ValueError('No source id column found')
 
 
-def concatenate_source_index(df:pd.DataFrame, event_type:str) -> pd.Series:
-    # index_column_names = INDEXES[event_type]
-    index_column_names = KEYS
-    index_columns = df[index_column_names]
-    return index_columns.apply(lambda x: ''.join(x.map(str)), axis=1)
-
-
-def read_merged_data_from_s3(jurisdiction:str, event_type:str) -> pd.DataFrame:
-    # Read the data in and select the necessary columns
-    api.app.logger.info(f"Reading data from {S3_BUCKET}/{jurisdiction}/{event_type}")
-    merged_key = f'csh/matcher/{jurisdiction}/{event_type}/merged'
-    df=pd.read_csv(f's3://{S3_BUCKET}/{merged_key}', sep='|')
- 
-    df['source_index'] = concatenate_source_index(df, event_type)
-    df.set_index('source_index', drop=True, inplace=True)
-
-    return df
+def concatenate_person_index(df:pd.DataFrame, event_type:str) -> pd.Series:
+    person_column_names = KEYS
+    person_columns = df[index_column_names]
+    return person_columns.apply(lambda x: ''.join(x.map(str)), axis=1)
 
 
 def get_matched_table_name(jurisdiction:str, event_type:str) -> str:
     return f'{jurisdiction}_{event_type}_matched'
+
 
 def write_matched_data(df:pd.DataFrame, jurisdiction:str, event_type:str):
     api.app.logger.info(f'Writing matched data for {jurisdiction} {event_type}')

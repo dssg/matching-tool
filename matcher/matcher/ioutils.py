@@ -56,7 +56,7 @@ def load_data_for_matching(jurisdiction:str, upload_id:str) --> tuple:
 
     ## TODO: Check the definition of keys
     # Drop duplicates, disregarding event type
-    df.drop('event_type', inplace=True)
+    df = df.drop('event_type')
     df = df.drop_duplicates(subset=keys)
 
     api.app.logger.debug(f"The loaded dataframe has the following columns: {df.columns}")
@@ -75,7 +75,7 @@ def load_one_event_type(jurisdiction:str, event_type:str, upload_id:str) -> pd.D
         df = read_merged_data_from_s3(jurisdiction, event_type)
 
         # Dropping columns that we don't need for matching
-        df = select_columns(df=df, keys=keys)
+        df = utils.select_columns(df=df, keys=keys)
 
         # Keeping track of the event_type
         df['event_type'] = event_type
@@ -87,4 +87,16 @@ def load_one_event_type(jurisdiction:str, event_type:str, upload_id:str) -> pd.D
     except FileNotFoundError as e:
         api.app.logger.info(f'No merged file found for {jurisdiction} {event_type}. Skipping.')
         pass
+
+
+def read_merged_data_from_s3(jurisdiction:str, event_type:str) -> pd.DataFrame:
+    # Read the data in and select the necessary columns
+    merged_key = f'csh/matcher/{jurisdiction}/{event_type}/merged'
+    api.app.logger.info(f"Reading data from s3://{S3_BUCKET}/{merged_key}")
+    df = pd.read_csv(f's3://{S3_BUCKET}/{merged_key}', sep='|')
+
+    df['person_index'] = utils.concatenate_person_index(df)
+    df.set_index('person_index', drop=True, inplace=True)
+
+    return df
 
