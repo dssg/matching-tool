@@ -116,12 +116,14 @@ def write_one_event_type(df:pd.DataFrame, jurisdiction:str, event_type:str) -> N
     api.app.logger.info(f'Writing data for {jurisdiction} {event_type} to S3.')
     key = f'csh/matcher/{jurisdiction}/{event_type}/matched'
     write_to_s3(df, key)
+
+    # Write the current match to postgres for use by the webapp
+    api.app.logger.info(f'Writing data for {jurisdiction} {event_type} to postgres.')
     write_matched_data_to_postgres(
         key=key,
         table_name=get_matched_table_name(jurisdiction, event_type),
         column_names=df.columns.values
     )
-    api.app.logger.info(f'Written data for {jurisdiction} {event_type} to postgres.')
 
 
 def write_dataframe_to_s3(df:pd.DataFrame, key:str) -> None:
@@ -130,4 +132,42 @@ def write_dataframe_to_s3(df:pd.DataFrame, key:str) -> None:
     s3_resource = boto3.resource('s3')
     s3_resource.Object(S3_BUCKET, key).put(Body=csv_buffer.getvalue())
     api.app.logger.info(f'Wrote data to s3://{S3_BUCKET}/{key}')
+
+
+def write_matched_data_to_postgres(key:str, table_name:str, column_names:list) -> None:
+    conn = psycopg2.connect(**PG_CONNECTION)
+    cur = conn.cursor()
+
+    api.app.logger.info(f'Creating table matched.{table_name}')
+    create_matched_table(table_name, column_names, cur)
+
+    api.app.logger.info(f'Inserting data into matched.{table_name}')
+    with smart_open.smart_open(f's3://{S3_BUCKET}/{key}') as f:
+        copy_query = f"""
+            COPY matched.{table_name} FROM STDIN WITH CSV HEADER DELIMITER AS '|'
+        """
+        cur.copy_expert(
+            sql=copy_query,
+            file=f
+        )
+    conn.commit()
+    api.app.logger.info(f'Done writing matched results to matched.{table_name}')
+
+    cur.close()
+    conn.close()
+
+
+def create_matched_table(table_name:str, column_names:list, cur:psycopg2.cursor) -> None:
+    col_list = [f'{col} varchar' for col in column_names]
+    col_type_list = ', '.join(col_list)
+    create_table_query = f"""
+        CREATE SCHEMA IF NOT EXISTS matched;
+        DROP TABLE IF EXISTS matched.{table_name};
+        CREATE TABLE matched.{table_name} (
+            {col_type_list}
+        );
+    """
+    api.app.logger.debug(f'Create table query: \n{create_table_query}')
+    cur.execute(create_table_query)
+    api.app.logger.info(f'Created table {table_name}')
 

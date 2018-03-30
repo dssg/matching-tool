@@ -94,36 +94,3 @@ def read_matched_data_from_postgres(table_name:str):
 
     return dat
 
-
-def write_matched_data_to_postgres(key, table_name, column_names):
-    conn = psycopg2.connect(**PG_CONNECTION)
-    cur = conn.cursor()
-
-    api.app.logger.info(f'Creating table matched.{table_name}')
-    col_list = [f'{col} varchar' for col in column_names]
-    col_type_list = ', '.join(col_list)
-    create_table_query = f"""
-        CREATE SCHEMA IF NOT EXISTS matched;
-        DROP TABLE IF EXISTS matched.{table_name};
-        CREATE TABLE matched.{table_name} (
-            {col_type_list}
-        );
-    """
-    api.app.logger.warning(create_table_query)
-    cur.execute(create_table_query)
-
-    api.app.logger.info(f'Inserting data into matched.{table_name}')
-    with smart_open.smart_open(f's3://{S3_BUCKET}/{key}') as f:
-        copy_query = f"""
-            COPY matched.{table_name} FROM STDIN WITH CSV HEADER DELIMITER AS '|'
-        """
-        cur.copy_expert(
-            sql=copy_query,
-            file=f
-        )
-    conn.commit()
-    api.app.logger.info(f'Done writing matched results to matched.{table_name}')
-
-    cur.close()
-    conn.close()
-
