@@ -127,12 +127,3 @@ def write_matched_data_to_postgres(key, table_name, column_names):
     cur.close()
     conn.close()
 
-
-def write_to_s3(df, key):
-    api.app.logger.info(f'Writing data to s3://{S3_BUCKET}/{key}')
-    csv_buffer = StringIO()
-    df.to_csv(csv_buffer, sep='|', index=False)
-    s3_resource = boto3.resource('s3')
-    s3_resource.Object(S3_BUCKET, key).put(Body=csv_buffer.getvalue())
-
-

@@ -107,17 +107,27 @@ def write_matched_data(matches:pd.DataFrame, jurisdiction:str, event_types_read)
         write_one_event_type(matches, jurisdiction, event_type)
 
 
-def write_one_event_type(df:pd.DataFrame, jurisdiction:str, event_type:str):
+def write_one_event_type(df:pd.DataFrame, jurisdiction:str, event_type:str) -> None:
+    # Join the matched ids to the source data
     api.app.logger.info(f'Joining matches to merged data for {event_type}')
     df = utils.join_matched_and_merged_data(df, jurisdiction, event_type)
 
+    # Cache the current match to S3
+    api.app.logger.info(f'Writing data for {jurisdiction} {event_type} to S3.')
     key = f'csh/matcher/{jurisdiction}/{event_type}/matched'
-    write_to_s3(df,key)
-    api.app.logger.info(f'Written data for {jurisdiction} {event_type} to S3.')
+    write_to_s3(df, key)
     write_matched_data_to_postgres(
         key=key,
         table_name=get_matched_table_name(jurisdiction, event_type),
         column_names=df.columns.values
     )
     api.app.logger.info(f'Written data for {jurisdiction} {event_type} to postgres.')
+
+
+def write_dataframe_to_s3(df:pd.DataFrame, key:str) -> None:
+    csv_buffer = StringIO()
+    df.to_csv(csv_buffer, sep='|', index=False)
+    s3_resource = boto3.resource('s3')
+    s3_resource.Object(S3_BUCKET, key).put(Body=csv_buffer.getvalue())
+    api.app.logger.info(f'Wrote data to s3://{S3_BUCKET}/{key}')
 
