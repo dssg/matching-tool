@@ -66,23 +66,23 @@ def list_jobs():
 @app.before_first_request
 def setup_logging():
     if not app.debug:
-	# In production mode, add log handler to sys.stderr.
-	app.logger.addHandler(logging.StreamHandler())
-	app.logger.setLevel(logging.DEBUG)
+        # In production mode, add log handler to sys.stderr.
+        app.logger.addHandler(logging.StreamHandler())
+        app.logger.setLevel(logging.DEBUG)
 
 @app.route('/match/<jurisdiction>/<event_type>', methods=['GET'])
 def match(jurisdiction, event_type):
     upload_id = request.args.get('uploadId', None)   ## QUESTION: Why is this a request arg and is not in the route? Also, Why in CamelCase?
     if not upload_id:
-	return jsonify(status='invalid', reason='uploadId not present')
+        return jsonify(status='invalid', reason='uploadId not present')
 
     app.logger.debug("Someone wants to start a matching process!")
 
     job = q.enqueue_call(
-	func=do_match,
-	args=(jurisdiction, event_type, upload_id),
-	result_ttl=5000,
-	timeout=100000
+        func=do_match,
+        args=(jurisdiction, event_type, upload_id),
+        result_ttl=5000,
+        timeout=100000
     )
 
     app.logger.info(f"Job id {job.get_id()}")
@@ -95,22 +95,22 @@ def get_match_results(job_key):
     job = Job.fetch(job_key, connection=redis_connection)
     app.logger.info(job.result)
     if job.is_finished:
-	df = ioutils.read__data_from_postgres(
-    utils.get_matched_table_name(
-	event_type=job.result['event_type'],
-	jurisdiction=job.result['jurisdiction']
+        df = ioutils.read__data_from_postgres(
+            utils.get_matched_table_name(
+            event_type=job.result['event_type'],
+            jurisdiction=job.result['jurisdiction']
     ))
 
-response = make_response(jsonify(df.to_json(orient='records')))
-response.headers["Content-Type"] = "text/json"
+        response = make_response(jsonify(df.to_json(orient='records')))
+        response.headers["Content-Type"] = "text/json"
 
-return response
+        return response
 
-else:
-return jsonify({
-    'status': 'not yet',
-    'message': 'nice try, but we are still working on it'
-})
+    else:
+        return jsonify({
+            'status': 'not yet',
+            'message': 'nice try, but we are still working on it'
+        })
 
 
 @app.route('/match/job_finished/<job_key>', methods=["GET"])
