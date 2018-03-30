@@ -1,4 +1,5 @@
 {
+	"name": "HMIS Service Stays",
     "fields": [
         {
             "name": "internal_person_id",
@@ -57,7 +58,10 @@
         },
         {
             "name": "dob",
-            "type": "string"
+            "type": "string",
+			"constraints": {
+				"partial_dob": true
+			}
         },
         {
             "name": "dob_type",
@@ -74,15 +78,24 @@
         },
 		{
 			"name": "ssn",
-			"type": "string"
+			"type": "string",
+			"constraints": {
+				"pattern": "[0-9X]{9}"
+			}
 		},
 		{
 			"name": "ssn_hash",
-			"type": "string"
+			"type": "string",
+			"constraints": {
+				"pattern": "[0-9a-f]*$"
+			}
 		},
 		{
 			"name": "ssn_bigrams",
-			"type": "string"
+			"type": "string",
+			"constraints": {
+				"pattern": "([0-9a-f]*,){9}[0-9a-f]*"
+			}
 		},
 		{
 			"name": "ssn_data_quality",
@@ -411,12 +424,18 @@
 		},
 		{
 			"name": "created_date",
-			"type": "string"
+			"type": "string",
+            "constraints": {
+                "datetime_with_timezone_hour_only": true
+            }
 
 		},
 		{
 			"name": "updated_date",
-			"type": "string"
+			"type": "string",
+            "constraints": {
+                "datetime_with_timezone_hour_only": true
+            }
 		}
     ],
     "trueValues": [ "true", "Y" ],

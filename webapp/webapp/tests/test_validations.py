@@ -1,4 +1,3 @@
-from webapp.validations import is_good_ssn, is_good_hash, is_good_bigrams
 from webapp import tasks
 from unittest import TestCase
 
@@ -58,7 +57,7 @@ def test_some_booking_id_is_needed():
         report=report,
         expected_error_count=8,
         error_count_invalid_msg='Either internal event id or booking number is needed',
-        expected_code='booking-num-or-event-id-constraint',
+        expected_code='one-of-group-constraint',
         expected_substring="booking_number"
     )
 
@@ -77,8 +76,8 @@ def test_no_person_id():
         report=report,
         expected_error_count=8,
         error_count_invalid_msg='Either internal person id or inmate number should be needed',
-        expected_code='inmate-num-or-person-id-constraint',
-        expected_substring="internal_person_id, inmate_number"
+        expected_code='one-of-group-constraint',
+        expected_substring="'inmate_number', 'internal_person_id'"
     )
 
 
@@ -142,7 +141,7 @@ def test_hmis_partial_dob_with_blanks():
         expected_error_count=2,
         error_count_invalid_msg='Two rows should have invalid DOBs',
         expected_code='partial-dob',
-        expected_substring="dob should be in format"
+        expected_substring="is not in format YYYY-MM-DD"
     )
 
 
@@ -191,34 +190,3 @@ def test_comma_delimiter():
 def test_tab_delimiter():
     with assert_raises(ValueError):
         fill_and_validate('hmis_service_stays', HMIS_BAD_DELIMITER)
-
-# TESTS OF UNDERLYING FUNCTIONS
-
-def test_good_ssn():
-    good_full_ssn = '123456789'
-    good_partial_ssn = 'XXXXX6789'
-    too_short = '6789'
-    bad_partial_ssn = 'XXXXabcd'
-
-    assert is_good_ssn(good_full_ssn)
-    assert is_good_ssn(good_partial_ssn)
-    assert not is_good_ssn(too_short)
-    assert not is_good_ssn(bad_partial_ssn)
-
-
-def test_good_hash():
-    good_hash = 'f7c3bc1d808e04732adf679965ccc34ca7ae3441'
-    too_long = 'f7c3bc1d808e04732adf679965ccc34ca7ae34412'
-    bad_chars = 'f7c3bc1d808e04732adf679965ccc34ca7ae344p'
-
-    assert is_good_hash(good_hash)
-    assert not is_good_hash(too_long)
-    assert not is_good_hash(bad_chars)
-
-
-def test_good_bigrams():
-    good_bigrams = '7b52009b64fd0a2a49e6d8a939753077792b0554,d435a6cdd786300dff204ee7c2ef942d3e9034e2,f1f836cb4ea6efb2a0b1b99f41ad8b103eff4b59,fb644351560d8296fe6da332236b1f8d61b2828a,54ceb91256e8190e474aa752a6e0650a2df5ba37,4d89d294cd4ca9f2ca57dc24a53ffb3ef5303122,eb4ac3033e8ab3591e0fcefa8c26ce3fd36d5a0f,eb4ac3033e8ab3591e0fcefa8c26ce3fd36d5a0f,eb4ac3033e8ab3591e0fcefa8c26ce3fd36d5a0f,eb4ac3033e8ab3591e0fcefa8c26ce3fd36d5a0f'
-    bad_bigrams = '7b52009b64fd0a2a49e6d8a939753077792b0554,d435a6cdd786300dff204ee7c2ef942d3e9034e2,f1f836cb4ea6efb2a0b1b99f41ad8b103eff4b59,fb644351560d8296fe6da332236b1f8d61b2828a,54ceb91256e8190e474aa752a6e0650a2df5ba37,4d89d294cd4ca9f2ca57dc24a53ffb3ef5303122,eb4ac3033e8ab3591e0fcefa8c26ce3fd36d5a0f'
-
-    assert is_good_bigrams(good_bigrams)
-    assert not is_good_bigrams(bad_bigrams)

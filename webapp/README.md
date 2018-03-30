@@ -81,6 +81,22 @@ The following will remove the user we created above from the role we created abo
 `FLASK_APP=webapp/app.py flask roles remove email@example.com boone_hmis`
 
 
+## Adding a Schema
+
+1. Make a schema file (guide to come), put in `webapp/schemas/uploader/` with dashes between words
+
+2. Add to `webapp/webapp/tests/test_schemas.py` and run test to validate schema
+
+3. Add entry to `webapp/webapp/validations/__init__.py`:CHECKS_BY_SCHEMA with desired checks, key being same as filename but with underscores between words
+
+4. Create a role for all jurisdictions that can use this schema, and add any desired users to this role.  For instance, to let testuser@example.com upload files for test county, run this outside of a running container:
+
+`docker exec -it webapp flask roles create test_by_name_list`
+`docker exec -it webapp flask roles add testuser@example.com test_by_name_list`
+
+5. Restart the webapp and webapp_worker containers to pick up the changes
+
+
 ## Running All Tests
 This project uses [Tox](https://tox.readthedocs.io/en/latest/) to run both the Python and JS test suites. This is recommended before pushing commits. To run all tests,
 

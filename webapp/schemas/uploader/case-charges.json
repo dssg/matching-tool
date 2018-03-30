@@ -1,0 +1,286 @@
+{
+    "name": "Case Charges",
+    "fields": [
+        {
+            "name": "internal_person_id",
+            "type": "string"
+        },
+        {
+            "name": "internal_event_id",
+            "type": "string"
+        },
+        {
+            "name": "internal_charge_id",
+            "type": "string",
+            "constraints": {
+                "required": true
+            }
+        },
+        {
+            "name": "inmate_number",
+            "type": "string"
+        },
+        {
+            "name": "full_name",
+            "type": "string"
+        },
+        {
+            "name": "prefix",
+            "type": "string"
+        },
+        {
+            "name": "first_name",
+            "type": "string"
+        },
+        {
+            "name": "middle_name",
+            "type": "string"
+        },
+        {
+            "name": "last_name",
+            "type": "string"
+        },
+        {
+            "name": "suffix",
+            "type": "string"
+        },
+        {
+            "name": "dob",
+            "type": "string",
+            "constraints": {
+                "partial_dob": true
+            }
+        },
+        {
+            "name": "ssn",
+            "type": "string",
+            "constraints": {
+                "pattern": "[0-9X]{9}"
+            }
+        },
+        {
+            "name": "ssn_hash",
+            "type": "string",
+            "constraints": {
+                "pattern": "[0-9a-f]*$"
+            }
+        },
+        {
+            "name": "ssn_bigrams",
+            "type": "string",
+            "constraints": {
+                "pattern": "([0-9a-f]*,){9}[0-9a-f]*"
+            }
+        },
+        {
+            "name": "fingerprint_id",
+            "type": "string"
+        },
+        {
+            "name": "dmv_number",
+            "type": "string"
+        },
+        {
+            "name": "dmv_state",
+            "type": "string"
+        },
+        {
+            "name": "additional_id_name",
+            "type": "string"
+        },
+        {
+            "name": "additional_id_number",
+            "type": "string"
+        },
+        {
+            "name": "race",
+            "type": "string",
+            "constraints": {
+                "enum_maybe_list": ["W", "B", "A", "I", "P", "H", "O", "D", "R", "N"]
+            }
+        },
+        {
+            "name": "ethnicity",
+            "type": "string",
+            "constraints": {
+                "enum": [
+                    "HISPANIC",
+                    "NOT HISPANIC",
+                    "DEFENDANT DOESN'T KNOW",
+                    "DEFENDANT REFUSED",
+                    "DATA NOT COLLECTED"
+                ]
+            }
+        },
+        {
+            "name": "sex",
+            "type": "string",
+            "constraints": {
+                "enum": [
+                    "F",
+                    "M",
+                    "MT",
+                    "FT",
+                    "O",
+                    "D",
+                    "R",
+                    "N"
+                ]
+            }
+        },
+        {
+            "name": "hair_color",
+            "type": "string",
+            "constraints": {
+                "enum": [
+                    "BLD",
+                    "BLE",
+                    "BLK",
+                    "BLN",
+                    "BLU",
+                    "BRO",
+                    "GRY",
+                    "GRN",
+                    "ONG",
+                    "OTH",
+                    "PNK",
+                    "PLE",
+                    "RED",
+                    "SDY",
+                    "S/P",
+                    "WHI",
+                    "XXX"
+                ]
+            }
+        },
+        {
+            "name": "eye_color",
+            "type": "string",
+            "constraints": {
+                "enum": [
+                    "BLK",
+                    "BRO",
+                    "GRN",
+                    "MAR",
+                    "PNK",
+                    "BLU",
+                    "GRY",
+                    "HAZ",
+                    "MUL",
+                    "XXX"
+                ]
+            }
+        },
+        {
+            "name": "height",
+            "type": "integer"
+        },
+        {
+            "name": "weight",
+            "type": "integer"
+        },
+        {
+            "name": "street_address",
+            "type": "string"
+        },
+        {
+            "name": "city",
+            "type": "string"
+        },
+        {
+            "name": "state",
+            "type": "string"
+        },
+        {
+            "name": "postal_code",
+            "type": "string"
+        },
+        {
+            "name": "county",
+            "type": "string"
+        },
+        {
+            "name": "country",
+            "type": "string"
+        },
+        {
+            "name": "birth_place",
+            "type": "string"
+        },
+        {
+            "name": "charge_date",
+            "type": "string",
+            "constraints": {
+                "datetime_with_timezone_hour_only": true,
+                "required": true
+            }
+        },
+        {
+            "name": "charge_position",
+            "type": "integer"
+        },
+        {
+            "name": "case_number",
+            "type": "string"
+        },
+        {
+            "name": "statute",
+            "type": "string"
+        },
+        {
+            "name": "charge_desc",
+            "type": "string"
+        },
+        {
+            "name": "charge_type",
+            "type": "string",
+            "constraints": {
+                "enum": [
+                    "F",
+                    "M",
+                    "C",
+                    "T",
+                    "I",
+                    "O"
+                ]
+            }
+        },
+        {
+            "name": "offense_category",
+            "type": "string"
+        },
+        {
+            "name": "charge_class",
+            "type": "string"
+        },
+        {
+            "name": "bond_amount",
+            "type": "number"
+        },
+        {
+            "name": "source_name",
+            "type": "string"
+        },
+        {
+            "name": "created_date",
+            "type": "string",
+            "constraints": {
+                "datetime_with_timezone_hour_only": true
+            }
+        },
+        {
+            "name": "updated_date",
+            "type": "string",
+            "constraints": {
+                "datetime_with_timezone_hour_only": true
+            }
+        }
+    ],
+    "primaryKey": [
+        "internal_event_id",
+        "internal_charge_id",
+        "case_number",
+        "charge_position",
+        "charge_date"
+    ]
+}

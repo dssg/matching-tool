@@ -1,4 +1,5 @@
 {
+	"name": "Test",
     "fields": [
         {
             "name": "Internal Person ID",
