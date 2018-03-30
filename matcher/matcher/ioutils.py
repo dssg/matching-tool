@@ -9,6 +9,7 @@ from io import StringIO
 import boto3
 import psycopg2
 import smart_open
+import botocore
 
 
 from . import api
