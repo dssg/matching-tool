@@ -7,7 +7,7 @@ import ast
 from flask import Flask, jsonify, request
 from flask import make_response
 
-import time
+import datetime
 
 from rq.registry import StartedJobRegistry
 from redis import Redis
@@ -133,51 +133,54 @@ def get_match_finished(job_key):
 
 def do_match(jurisdiction, event_type, upload_id):
 
-
-    start_time = time.time()
-    
+    start_time = datetime.datetime.now()
     app.logger.info("Matching process started!")
 
     # We will frame the record linkage problem as a deduplication problem
     app.logger.info('Loading data for matching.')
-    df = pd.concat([utils.load_data_for_matching(jurisdiction, event_type, upload_id, KEYS) for event_type in EVENT_TYPES])
+    df = pd.concat([utils.load_data_for_matching(jurisdiction, e_type, upload_id, KEYS) for e_type in EVENT_TYPES])
+    app.logger.debug(f"The loaded dataframe has the following columns: {df.columns}")
+    app.logger.debug(f"The dimensions of the loaded dataframe is: {df.shape}")
+    app.logger.debug(f"The indices of the loaded dataframe are {df.index}")
+    app.logger.debug(f'The loaded has {len(df)} rows and {len(df.index.unique())} unique indices')
+    app.logger.debug(f'The loaded dataframe has the following duplicate indices: {df[df.index.duplicated()].index.values}')
+    data_loaded_time = datetime.datetime.now()
 
+    # Preprocessing: enforce data types and split/combine columns for feartures
     app.logger.info('Doing some preprocessing on the columns')
     df = preprocess.preprocess(df)
-    app.logger.info(f"Races observed in preprocessed df: {df['race']}")
+    data_preprocessed_time = datetime.datetime.now()
 
     app.logger.info(f"Running matcher({KEYS})")
-    app.logger.debug(f"The dataframe has the following columns: {df.columns}")
-    app.logger.debug(f"The dimensions of the dataframe is: {df.shape}")
-    app.logger.debug(f"The indices are {df.index}")
-    app.logger.debug(f'df has {len(df)} rows and {len(df.index.unique())} unique indices')
-    app.logger.debug(f'The dataframe has the following duplicate indices: {df[df.index.duplicated()].index.values}')
-
     matches = matcher.run(df=df, clustering_params=CLUSTERING_PARAMS)
+    data_matched_time = datetime.datetime.now()
     app.logger.debug('Matching done!')
 
     for key, matched in matches.items():
         app.logger.debug(f'Index of matches for {key}: {matched.index.values})')
         app.logger.debug(f'Columns of matches for {key}: {matched.columns.values}')
 
-    app.logger.info('Writing matched results!')
+    app.logger.info('Concatenating matched results!')
 
     # Merging the dataframe
 
-    end_time_1 = time.time()
-
-    app.logger.debug(f"Total matching time: {end_time_1 - start_time}")
+    app.logger.debug(f"Total matching time: {data_matched_time - start_time}")
     
     all_matches = pd.concat(matches.values())
 
-    end_time_2 = time.time()
+    matches_concatenated_time = datetime.datetime.now()
 
     app.logger.debug(f"Number of matched pairs: {len(all_matches)}")
 
-    app.logger.debug(f"Total concatenating time: {end_time_2 - end_time_1}")
+    app.logger.debug(f"Total concatenating time: {matches_concatenated_time - data_matched_time}")
     
-    #for e_type in EVENT_TYPES:
-    #    utils.write_matched_data(all_matches, jurisdiction, e_type)
+    app.logger.info('Writing matched results!')
+    for e_type in EVENT_TYPES:
+        utils.write_matched_data(all_matches, jurisdiction, e_type)
+
+    data_written_time = datetime.datetime.now()
+
+    total_match_time = data_written_time - start_time
 
     return {
         'status': 'done',

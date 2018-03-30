@@ -105,6 +105,7 @@ def load_data_for_matching(jurisdiction:str, event_type:str, upload_id:str, keys
         api.app.logger.info(f'{jurisdiction} {event_type} data loaded from S3.')
 
         return df
+
     except FileNotFoundError as e:
         api.app.logger.info(f'No merged file found for {jurisdiction} {event_type}. Skipping.')
         pass

@@ -2,6 +2,8 @@
 
 import pandas as pd
 
+from . import api
+
 def preprocess(df:pd.DataFrame) -> pd.DataFrame:
     # full_name
     # full name is only given if name parts are not. maybe we should do some preprocessing on full names to create
@@ -11,6 +13,7 @@ def preprocess(df:pd.DataFrame) -> pd.DataFrame:
     # prefix
     # we should preprocess prefixes to remove punctuation and possibly spaces
     if 'prefix' in df.columns:
+        api.app.logger.debug('Removing punctuation from prefixes')
         df['prefix'] = df['prefix'].str.replace('[^\w\s]','')
 
     # first_name
@@ -31,11 +34,13 @@ def preprocess(df:pd.DataFrame) -> pd.DataFrame:
 
     # suffix
     if 'suffix' in df.columns:
+        api.app.logger.debug('Removing punctuation from suffixes')
         df['suffix'] = df['suffix'].str.replace('[^\w\s]','')
 
     # dob
     # MUST BE CAST TO DATETIME DURING PREPROCESSING
     if 'dob' in df.columns:
+        api.app.logger.debug('Converting date of birth to datetime')
         df['dob'] = pd.to_datetime(df['dob'])
 
     # ssn
@@ -47,24 +52,32 @@ def preprocess(df:pd.DataFrame) -> pd.DataFrame:
     # of the area code may be useful for matching. we may want to preprocess ssn to extract the area code
     # to make this comparison.
     if 'ssn' in df.columns:
+        api.app.logger.debug('Converting social security number to str')
         df['ssn'] = df['ssn'].astype(str)
 
     # dmv_number
     # THIS SHOULD BE CAST TO STRING. In some jurisdictions, they are strings and in others ints. To ensure
     # that we can generalize here, we need to convert to string for all of them.
     if 'dmv_number' in df.columns:
+        api.app.logger.debug('Converting dmv number to str')
         df['dmv_number'] = df['dmv_number'].astype(str)
 
     # race
     # make race into a list
     # eventually, we will want to combine secondary race and race into a single field
     if 'race' in df.columns:
+        api.app.logger.debug('Converting race to list')
         df['race'] = df['race'].fillna('').str.split(',')
+        app.logger.debug(f"Races observed in preprocessed df: {df['race']}")
 
     # ethnicity
     # ethnicity encodes only Hispanic/Not Hispanic. for some databases, Hispanic is actually included
     # in the race categories instead of in a separate field. we may want to do some pre-processing to
     # to add H to the race list where the ethnicity field contains 'Hispanic'
+
+    api.app.logger.info('Preprocessing done!')
+    api.app.logger.debug(f"The preprocessed dataframe has the following columns: {df.columns}")
+    api.app.logger.debug(f"The preprocessed dimensions of the dataframe is: {df.shape}")
 
     return df
 
