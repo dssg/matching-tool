@@ -49,7 +49,7 @@ def concatenate_person_index(df:pd.DataFrame, event_type:str) -> pd.Series:
 
 
 def get_matched_table_name(jurisdiction:str, event_type:str) -> str:
-    return f'{jurisdiction}_{event_type}_matched'
+    return f'matched.{jurisdiction}_{event_type}'
 
 
 def join_matched_and_merged_data(right_df:pd.DataFrame, jurisdiction:str, event_type:str) -> pd.DataFrame:

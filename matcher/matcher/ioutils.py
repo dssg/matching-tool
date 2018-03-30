@@ -121,7 +121,7 @@ def write_one_event_type(df:pd.DataFrame, jurisdiction:str, event_type:str) -> N
     api.app.logger.info(f'Writing data for {jurisdiction} {event_type} to postgres.')
     write_matched_data_to_postgres(
         key=key,
-        table_name=get_matched_table_name(jurisdiction, event_type),
+        table_name=utils.get_matched_table_name(jurisdiction, event_type),
         column_names=df.columns.values
     )
 
@@ -139,21 +139,29 @@ def write_matched_data_to_postgres(key:str, table_name:str, column_names:list) -
     cur = conn.cursor()
 
     api.app.logger.info(f'Creating table matched.{table_name}')
+    create_schema_if_not_exists('matched', cur)
     create_matched_table(table_name, column_names, cur)
 
     api.app.logger.info(f'Inserting data into matched.{table_name}')
 
+    conn.commit()
     cur.close()
     conn.close()
+
+
+def create_schema_if_not_exists(schema_name:str, cur:psycopg2.cursor) -> None:
+    create_schema_query = f'CREATE SCHEMA IF NOT EXISTS {schema_name};'
+    api.app.logger.debug(f'Create schema query: \n{create_schema_query}')
+    cur.execute(create_schema_query)
+    api.app.logger.info(f'Created schema (if not already present) {schema_name}')
 
 
 def create_matched_table(table_name:str, column_names:list, cur:psycopg2.cursor) -> None:
     col_list = [f'{col} varchar' for col in column_names]
     col_type_list = ', '.join(col_list)
     create_table_query = f"""
-        CREATE SCHEMA IF NOT EXISTS matched;
-        DROP TABLE IF EXISTS matched.{table_name};
-        CREATE TABLE matched.{table_name} (
+        DROP TABLE IF EXISTS {table_name};
+        CREATE TABLE {table_name} (
             {col_type_list}
         );
     """
@@ -165,12 +173,12 @@ def create_matched_table(table_name:str, column_names:list, cur:psycopg2.cursor)
 def insert_data_into_table(key:str, table_name:str, cur:psycopg2.cursor) -> None:
     with smart_open.smart_open(f's3://{S3_BUCKET}/{key}') as f:
         copy_query = f"""
-            COPY matched.{table_name} FROM STDIN WITH CSV HEADER DELIMITER AS '|'
+            COPY {table_name} FROM STDIN WITH CSV HEADER DELIMITER AS '|'
         """
         cur.copy_expert(
             sql=copy_query,
             file=f
         )
-    conn.commit()
-    api.app.logger.info(f'Wrote data to matched.{table_name}')
+    api.app.logger.info(f'Wrote data to {table_name}')
+
 
