@@ -142,16 +142,6 @@ def write_matched_data_to_postgres(key:str, table_name:str, column_names:list) -
     create_matched_table(table_name, column_names, cur)
 
     api.app.logger.info(f'Inserting data into matched.{table_name}')
-    with smart_open.smart_open(f's3://{S3_BUCKET}/{key}') as f:
-        copy_query = f"""
-            COPY matched.{table_name} FROM STDIN WITH CSV HEADER DELIMITER AS '|'
-        """
-        cur.copy_expert(
-            sql=copy_query,
-            file=f
-        )
-    conn.commit()
-    api.app.logger.info(f'Done writing matched results to matched.{table_name}')
 
     cur.close()
     conn.close()
@@ -170,4 +160,17 @@ def create_matched_table(table_name:str, column_names:list, cur:psycopg2.cursor)
     api.app.logger.debug(f'Create table query: \n{create_table_query}')
     cur.execute(create_table_query)
     api.app.logger.info(f'Created table {table_name}')
+
+
+def insert_data_into_table(key:str, table_name:str, cur:psycopg2.cursor) -> None:
+    with smart_open.smart_open(f's3://{S3_BUCKET}/{key}') as f:
+        copy_query = f"""
+            COPY matched.{table_name} FROM STDIN WITH CSV HEADER DELIMITER AS '|'
+        """
+        cur.copy_expert(
+            sql=copy_query,
+            file=f
+        )
+    conn.commit()
+    api.app.logger.info(f'Wrote data to matched.{table_name}')
 
