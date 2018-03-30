@@ -39,78 +39,78 @@ CLUSTERING_PARAMS = {
 
 # Initialize the app
 app = Flask(__name__)
-	redis_connection = Redis(host='redis', port=6379)
+redis_connection = Redis(host='redis', port=6379)
 
-	# set config environment
-	app.config.from_object(__name__)
-	app.config.from_envvar('FLASK_SETTINGS', silent=True)
-
-
-	q = Queue('matching', connection=redis_connection)
-	registry = StartedJobRegistry('matching', connection=redis_connection)
-
-	@app.route('/match/get_jobs')
-	def list_jobs():
-	    queued_job_ids = q.job_ids
-	    queued_jobs = q.jobs
-	    app.logger.info(f"queue: {queued_jobs}")
-
-	    return jsonify({
-		'q': len(q),
-		'job_ids': queued_job_ids,
-		'current_job': registry.get_job_ids(),
-		'expired_job_id':  registry.get_expired_job_ids(),
-		'enqueue_at': [job.enqueued_at for job in queued_jobs]
-	    })
-
-	@app.before_first_request
-	def setup_logging():
-	    if not app.debug:
-		# In production mode, add log handler to sys.stderr.
-		app.logger.addHandler(logging.StreamHandler())
-		app.logger.setLevel(logging.DEBUG)
-
-	@app.route('/match/<jurisdiction>/<event_type>', methods=['GET'])
-	def match(jurisdiction, event_type):
-	    upload_id = request.args.get('uploadId', None)   ## QUESTION: Why is this a request arg and is not in the route? Also, Why in CamelCase?
-	    if not upload_id:
-		return jsonify(status='invalid', reason='uploadId not present')
-
-	    app.logger.debug("Someone wants to start a matching process!")
-
-	    job = q.enqueue_call(
-		func=do_match,
-		args=(jurisdiction, event_type, upload_id),
-		result_ttl=5000,
-		timeout=100000
-	    )
-
-	    app.logger.info(f"Job id {job.get_id()}")
-
-	    return jsonify({"job": job.get_id()})
+# set config environment
+app.config.from_object(__name__)
+app.config.from_envvar('FLASK_SETTINGS', silent=True)
 
 
-	@app.route('/match/results/<job_key>', methods=["GET"])
-	def get_match_results(job_key):
-	    job = Job.fetch(job_key, connection=redis_connection)
-	    app.logger.info(job.result)
-	    if job.is_finished:
-		df = ioutils.read__data_from_postgres(
-            utils.get_matched_table_name(
-                event_type=job.result['event_type'],
-                jurisdiction=job.result['jurisdiction']
-            ))
+q = Queue('matching', connection=redis_connection)
+registry = StartedJobRegistry('matching', connection=redis_connection)
 
-        response = make_response(jsonify(df.to_json(orient='records')))
-        response.headers["Content-Type"] = "text/json"
+@app.route('/match/get_jobs')
+def list_jobs():
+    queued_job_ids = q.job_ids
+    queued_jobs = q.jobs
+    app.logger.info(f"queue: {queued_jobs}")
 
-        return response
+    return jsonify({
+	'q': len(q),
+	'job_ids': queued_job_ids,
+	'current_job': registry.get_job_ids(),
+	'expired_job_id':  registry.get_expired_job_ids(),
+	'enqueue_at': [job.enqueued_at for job in queued_jobs]
+    })
 
-    else:
-        return jsonify({
-            'status': 'not yet',
-            'message': 'nice try, but we are still working on it'
-        })
+@app.before_first_request
+def setup_logging():
+    if not app.debug:
+	# In production mode, add log handler to sys.stderr.
+	app.logger.addHandler(logging.StreamHandler())
+	app.logger.setLevel(logging.DEBUG)
+
+@app.route('/match/<jurisdiction>/<event_type>', methods=['GET'])
+def match(jurisdiction, event_type):
+    upload_id = request.args.get('uploadId', None)   ## QUESTION: Why is this a request arg and is not in the route? Also, Why in CamelCase?
+    if not upload_id:
+	return jsonify(status='invalid', reason='uploadId not present')
+
+    app.logger.debug("Someone wants to start a matching process!")
+
+    job = q.enqueue_call(
+	func=do_match,
+	args=(jurisdiction, event_type, upload_id),
+	result_ttl=5000,
+	timeout=100000
+    )
+
+    app.logger.info(f"Job id {job.get_id()}")
+
+    return jsonify({"job": job.get_id()})
+
+
+@app.route('/match/results/<job_key>', methods=["GET"])
+def get_match_results(job_key):
+    job = Job.fetch(job_key, connection=redis_connection)
+    app.logger.info(job.result)
+    if job.is_finished:
+	df = ioutils.read__data_from_postgres(
+    utils.get_matched_table_name(
+	event_type=job.result['event_type'],
+	jurisdiction=job.result['jurisdiction']
+    ))
+
+response = make_response(jsonify(df.to_json(orient='records')))
+response.headers["Content-Type"] = "text/json"
+
+return response
+
+else:
+return jsonify({
+    'status': 'not yet',
+    'message': 'nice try, but we are still working on it'
+})
 
 
 @app.route('/match/job_finished/<job_key>', methods=["GET"])
