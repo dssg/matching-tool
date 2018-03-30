@@ -35,7 +35,7 @@ def get_source_id(df):
         raise ValueError('No source id column found')
 
 
-def concatenate_person_index(df:pd.DataFrame, event_type:str) -> pd.Series:
+def concatenate_person_index(df:pd.DataFrame) -> pd.Series:
     person_column_names = KEYS
     person_columns = df[index_column_names]
     return person_columns.apply(lambda x: ''.join(x.map(str)), axis=1)
