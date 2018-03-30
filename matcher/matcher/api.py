@@ -1,4 +1,4 @@
-#coding: utf-8
+# coding: utf-8
 
 import os
 import json
@@ -21,6 +21,8 @@ import pandas as pd
 import matcher.matcher as matcher
 import matcher.preprocess as preprocess
 import matcher.utils as utils
+
+from matcher.logger import logger
 
 # load dotenv
 APP_ROOT = os.path.join(os.path.dirname(__file__), '..')
@@ -59,7 +61,7 @@ registry = StartedJobRegistry('matching', connection=redis_connection)
 def list_jobs():
     queued_job_ids = q.job_ids
     queued_jobs = q.jobs
-    app.logger.info(f"queue: {queued_jobs}")
+    logger.info(f"queue: {queued_jobs}")
 
     return jsonify({
         'q': len(q),
@@ -73,8 +75,8 @@ def list_jobs():
 def setup_logging():
     if not app.debug:
         # In production mode, add log handler to sys.stderr.
-        app.logger.addHandler(logging.StreamHandler())
-        app.logger.setLevel(logging.DEBUG)
+        logger.addHandler(logging.StreamHandler())
+        logger.setLevel(logging.DEBUG)
 
 @app.route('/match/<jurisdiction>/<event_type>', methods=['GET'])
 def match(jurisdiction, event_type):
@@ -82,7 +84,7 @@ def match(jurisdiction, event_type):
     if not upload_id:
         return jsonify(status='invalid', reason='uploadId not present')
 
-    app.logger.debug("Someone wants to start a matching process!")
+    logger.debug("Someone wants to start a matching process!")
 
     job = q.enqueue_call(
         func=do_match,
@@ -91,7 +93,7 @@ def match(jurisdiction, event_type):
         timeout=100000
     )
 
-    app.logger.info(f"Job id {job.get_id()}")
+    logger.info(f"Job id {job.get_id()}")
 
     return jsonify({"job": job.get_id()})
 
@@ -99,7 +101,7 @@ def match(jurisdiction, event_type):
 @app.route('/match/results/<job_key>', methods=["GET"])
 def get_match_results(job_key):
     job = Job.fetch(job_key, connection=redis_connection)
-    app.logger.info(job.result)
+    logger.info(job.result)
     if job.is_finished:
         df = utils.read_matched_data_from_postgres(
             utils.get_matched_table_name(
@@ -134,47 +136,47 @@ def get_match_finished(job_key):
 def do_match(jurisdiction, event_type, upload_id):
 
     start_time = datetime.datetime.now()
-    app.logger.info("Matching process started!")
+    logger.info("Matching process started!")
 
     # We will frame the record linkage problem as a deduplication problem
-    app.logger.info('Loading data for matching.')
+    logger.info('Loading data for matching.')
     df = pd.concat([utils.load_data_for_matching(jurisdiction, e_type, upload_id, KEYS) for e_type in EVENT_TYPES])
-    app.logger.debug(f"The loaded dataframe has the following columns: {df.columns}")
-    app.logger.debug(f"The dimensions of the loaded dataframe is: {df.shape}")
-    app.logger.debug(f"The indices of the loaded dataframe are {df.index}")
-    app.logger.debug(f'The loaded has {len(df)} rows and {len(df.index.unique())} unique indices')
-    app.logger.debug(f'The loaded dataframe has the following duplicate indices: {df[df.index.duplicated()].index.values}')
+    logger.debug(f"The loaded dataframe has the following columns: {df.columns}")
+    logger.debug(f"The dimensions of the loaded dataframe is: {df.shape}")
+    logger.debug(f"The indices of the loaded dataframe are {df.index}")
+    logger.debug(f'The loaded has {len(df)} rows and {len(df.index.unique())} unique indices')
+    logger.debug(f'The loaded dataframe has the following duplicate indices: {df[df.index.duplicated()].index.values}')
     data_loaded_time = datetime.datetime.now()
 
     # Preprocessing: enforce data types and split/combine columns for feartures
-    app.logger.info('Doing some preprocessing on the columns')
+    logger.info('Doing some preprocessing on the columns')
     df = preprocess.preprocess(df)
     data_preprocessed_time = datetime.datetime.now()
 
-    app.logger.info(f"Running matcher({KEYS})")
+    logger.info(f"Running matcher({KEYS})")
     matches = matcher.run(df=df, clustering_params=CLUSTERING_PARAMS)
     data_matched_time = datetime.datetime.now()
-    app.logger.debug('Matching done!')
+    logger.debug('Matching done!')
 
     for key, matched in matches.items():
-        app.logger.debug(f'Index of matches for {key}: {matched.index.values})')
-        app.logger.debug(f'Columns of matches for {key}: {matched.columns.values}')
+        logger.debug(f'Index of matches for {key}: {matched.index.values})')
+        logger.debug(f'Columns of matches for {key}: {matched.columns.values}')
 
-    app.logger.info('Concatenating matched results!')
+    logger.info('Concatenating matched results!')
 
     # Merging the dataframe
 
-    app.logger.debug(f"Total matching time: {data_matched_time - start_time}")
+    logger.debug(f"Total matching time: {data_matched_time - start_time}")
     
     all_matches = pd.concat(matches.values())
 
     matches_concatenated_time = datetime.datetime.now()
 
-    app.logger.debug(f"Number of matched pairs: {len(all_matches)}")
+    logger.debug(f"Number of matched pairs: {len(all_matches)}")
 
-    app.logger.debug(f"Total concatenating time: {matches_concatenated_time - data_matched_time}")
+    logger.debug(f"Total concatenating time: {matches_concatenated_time - data_matched_time}")
     
-    app.logger.info('Writing matched results!')
+    logger.info('Writing matched results!')
     for e_type in EVENT_TYPES:
         utils.write_matched_data(all_matches, jurisdiction, e_type)
 
