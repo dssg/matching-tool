@@ -4,12 +4,12 @@ import pandas as pd
 
 from typing import List
 
-from . import featurizer
-from . import rules
-from . import cluster
-from . import utils
+import matcher.featurizer as featurizer
+import matcher.rules as rules
+import matcher.cluster as cluster
+import matcher.ioutils as ioutils
 
-from . import api
+import matcher.api as api
 
 import recordlinkage as rl
 
@@ -39,9 +39,9 @@ def run(df:pd.DataFrame, clustering_params:dict) -> pd.DataFrame:
             api.app.logger.debug(f"Features created")
  
             features.index.rename(['matcher_index_left', 'matcher_index_right'], inplace=True)
-            utils.write_to_s3(features.reset_index(), f"csh/matcher/features/{key}")
+            ioutils.write_dataframe_to_s3(features.reset_index(), f"csh/matcher/features/{key}")
             features = rules.compactify(features, operation='mean')
-            utils.write_to_s3(features.reset_index(), f"csh/matcher/features_scaled/{key}")
+            ioutils.write_dataframe_to_s3(features.reset_index(), f"csh/matcher/features_scaled/{key}")
 
             api.app.logger.debug(f"Features dataframe size: {features.shape}")
 
@@ -67,7 +67,8 @@ def run(df:pd.DataFrame, clustering_params:dict) -> pd.DataFrame:
 
             matches[key] = matched
         else:
-            api.app.logger.debug(f"Group {key} only have one record, Ignoring")
+            api.app.logger.debug(f"Group {key} only have one record, making a singleton id")
+            matches[key] = cluster.generate_singleton_id(group)
 
     return matches
 
