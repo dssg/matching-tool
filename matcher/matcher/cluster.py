@@ -6,7 +6,7 @@ import numpy as np
 
 from sklearn.cluster import DBSCAN
 
-from . import api
+from matcher.logger import logger
 
 def cluster(
     distances:pd.DataFrame,
@@ -20,7 +20,7 @@ def cluster(
     indexed with the source row_id.
     """
 
-    api.app.logger.info('Beginning clustering.')
+    logger.info('Beginning clustering.')
 
     clusterer = DBSCAN(
         eps=eps,
@@ -34,7 +34,7 @@ def cluster(
     )
 
     clusterer.fit(X=distances)
-    api.app.logger.info('Clustering done! Assigning matched ids.')
+    logger.info('Clustering done! Assigning matched ids.')
 
     return pd.Series(
         index=distances.index,
@@ -49,7 +49,7 @@ def generate_matched_ids(
     block_name=''
 ) -> pd.DataFrame:
     
-    api.app.logger.info('Beginning clustering & id generation.')
+    logger.info('Beginning clustering & id generation.')
 
     ids = cluster(
         distances, **clustering_params
@@ -57,18 +57,24 @@ def generate_matched_ids(
     max_cluster_id = ids.max()
     replacement_ids = pd.Series(range(max_cluster_id + 1, max_cluster_id + len(ids[ids == -1]) + 1), index=ids[ids==-1].index)
     ids[ids == -1] = replacement_ids
-    api.app.logger.debug(f'IDs: {ids}')
-    api.app.logger.debug(f'Replaced noisy singleton ids with \n{replacement_ids}')
+    logger.debug(f'IDs: {ids}')
+    logger.debug(f'Replaced noisy singleton ids with \n{replacement_ids}')
     
-    api.app.logger.debug(f'Adding the block name ({block_name}) to the matched_ids.')
+    logger.debug(f'Adding the block name ({block_name}) to the matched_ids.')
     ids = block_name + ids.astype(str)
-    api.app.logger.debug(f'New IDs: \n{ids}')
+    logger.debug(f'New IDs: \n{ids}')
     
     df = DF.copy()
     
     df['matched_id'] = ids
 
-    api.app.logger.info('Matched ids generated')
+    logger.info('Matched ids generated')
 
     return (df)                 
+
+
+def generate_singleton_id(df:pd.DataFrame, block_name:str) -> pd.DataFrame:
+    df['matched_id'] = block_name + '0'
+    logger.info(f'Singleton has id {df.matched_id.values[0]}')
+    return df
 

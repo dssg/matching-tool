@@ -87,6 +87,9 @@ celerybeat-schedule
 venv/
 ENV/
 
+# swap files
+*.swp
+
 # Spyder project settings
 .spyderproject
 .spyproject

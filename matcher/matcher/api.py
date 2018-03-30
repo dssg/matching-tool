@@ -2,7 +2,6 @@
 
 import os
 import json
-import ast
 
 from flask import Flask, jsonify, request
 from flask import make_response
@@ -21,6 +20,7 @@ import pandas as pd
 import matcher.matcher as matcher
 import matcher.preprocess as preprocess
 import matcher.utils as utils
+import matcher.ioutils as ioutils
 
 from matcher.logger import logger
 
@@ -30,7 +30,6 @@ dotenv_path = os.path.join(APP_ROOT, '.env')
 load_dotenv(dotenv_path)
 
 # load environment variables
-KEYS = ast.literal_eval(os.getenv('KEYS'))
 CLUSTERING_PARAMS = {
     'eps': float(os.getenv('EPS')),
     'min_samples': int(os.getenv('MIN_SAMPLES')),
@@ -39,11 +38,6 @@ CLUSTERING_PARAMS = {
     'n_jobs': int(os.getenv('N_JOBS')),
 }
 
-# Lookups
-EVENT_TYPES = [
-    'hmis_service_stays', 
-    'jail_bookings'
-]
 
 # Initialize the app
 app = Flask(__name__)
@@ -64,11 +58,11 @@ def list_jobs():
     logger.info(f"queue: {queued_jobs}")
 
     return jsonify({
-        'q': len(q),
-        'job_ids': queued_job_ids,
-        'current_job': registry.get_job_ids(),
-        'expired_job_id':  registry.get_expired_job_ids(),
-        'enqueue_at': [job.enqueued_at for job in queued_jobs]
+	'q': len(q),
+	'job_ids': queued_job_ids,
+	'current_job': registry.get_job_ids(),
+	'expired_job_id':  registry.get_expired_job_ids(),
+	'enqueue_at': [job.enqueued_at for job in queued_jobs]
     })
 
 @app.route('/match/<jurisdiction>/<event_type>', methods=['GET'])
@@ -96,11 +90,11 @@ def get_match_results(job_key):
     job = Job.fetch(job_key, connection=redis_connection)
     logger.info(job.result)
     if job.is_finished:
-        df = utils.read_matched_data_from_postgres(
+        df = ioutils.read__data_from_postgres(
             utils.get_matched_table_name(
-                event_type=job.result['event_type'],
-                jurisdiction=job.result['jurisdiction']
-            ))
+            event_type=job.result['event_type'],
+            jurisdiction=job.result['jurisdiction']
+    ))
 
         response = make_response(jsonify(df.to_json(orient='records')))
         response.headers["Content-Type"] = "text/json"
@@ -131,14 +125,10 @@ def do_match(jurisdiction, event_type, upload_id):
     start_time = datetime.datetime.now()
     logger.info("Matching process started!")
 
-    # We will frame the record linkage problem as a deduplication problem
+    # Loading: collect matching data (keys) for all available event types & record which event types were found
     logger.info('Loading data for matching.')
-    df = pd.concat([utils.load_data_for_matching(jurisdiction, e_type, upload_id, KEYS) for e_type in EVENT_TYPES])
-    logger.debug(f"The loaded dataframe has the following columns: {df.columns}")
-    logger.debug(f"The dimensions of the loaded dataframe is: {df.shape}")
-    logger.debug(f"The indices of the loaded dataframe are {df.index}")
-    logger.debug(f'The loaded has {len(df)} rows and {len(df.index.unique())} unique indices')
-    logger.debug(f'The loaded dataframe has the following duplicate indices: {df[df.index.duplicated()].index.values}')
+    df, event_types_read = ioutils.load_data_for_matching(jurisdiction, upload_id)
+
     data_loaded_time = datetime.datetime.now()
 
     # Preprocessing: enforce data types and split/combine columns for feartures
@@ -146,7 +136,8 @@ def do_match(jurisdiction, event_type, upload_id):
     df = preprocess.preprocess(df)
     data_preprocessed_time = datetime.datetime.now()
 
-    logger.info(f"Running matcher({KEYS})")
+    logger.info(f"Running matcher")
+
     matches = matcher.run(df=df, clustering_params=CLUSTERING_PARAMS)
     data_matched_time = datetime.datetime.now()
     logger.debug('Matching done!')
@@ -155,24 +146,20 @@ def do_match(jurisdiction, event_type, upload_id):
         logger.debug(f'Index of matches for {key}: {matched.index.values})')
         logger.debug(f'Columns of matches for {key}: {matched.columns.values}')
 
-    logger.info('Concatenating matched results!')
-
-    # Merging the dataframe
-
     logger.debug(f"Total matching time: {data_matched_time - start_time}")
-    
-    all_matches = pd.concat(matches.values())
 
+    
+    # Merging: Join the matched blocks into a single dataframe
+    logger.info('Concatenating matched results!')
+    all_matches = pd.concat(matches.values())
     matches_concatenated_time = datetime.datetime.now()
 
     logger.debug(f"Number of matched pairs: {len(all_matches)}")
-
     logger.debug(f"Total concatenating time: {matches_concatenated_time - data_matched_time}")
-    
-    logger.info('Writing matched results!')
-    for e_type in EVENT_TYPES:
-        utils.write_matched_data(all_matches, jurisdiction, e_type)
 
+    # Writing: Join the matched ids to the source data for each event & write to S3 and postgres    
+    logger.info('Writing matched results!')
+    ioutils.write_matched_data(all_matches, jurisdiction, event_types_read)
     data_written_time = datetime.datetime.now()
 
     total_match_time = data_written_time - start_time
