@@ -50,11 +50,11 @@ def load_data_for_matching(jurisdiction:str, upload_id:str) -> tuple:
     df['upload_id'] = upload_id
 
     # Which event types did we read successfully?
-    event_types_read = df.event_type.values
+    event_types_read = df.event_type.drop_duplicates().values
 
     ## TODO: Check the definition of keys
     # Drop duplicates, disregarding event type
-    df = df.drop('event_type')
+    df = df.drop('event_type', axis=1)
     df = df.drop_duplicates(subset=KEYS)
 
     api.app.logger.debug(f"The loaded dataframe has the following columns: {df.columns}")

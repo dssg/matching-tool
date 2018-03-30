@@ -6,6 +6,7 @@ import os
 
 import pandas as pd
 
+from matcher import ioutils
 
 from . import  api
 
@@ -46,9 +47,9 @@ def get_matched_table_name(jurisdiction:str, event_type:str) -> str:
 
 
 def join_matched_and_merged_data(right_df:pd.DataFrame, jurisdiction:str, event_type:str) -> pd.DataFrame:
-    left_df=read_merged_data_from_s3(jurisdiction, event_type)
+    left_df=ioutils.read_merged_data_from_s3(jurisdiction, event_type)
 
-    cols_to_use = right_df.columns.difference(df.columns).values
+    cols_to_use = right_df.columns.difference(right_df.columns).values
 
     df = left_df.merge(
         right=right_df[cols_to_use],

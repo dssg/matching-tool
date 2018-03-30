@@ -68,7 +68,7 @@ def preprocess(df:pd.DataFrame) -> pd.DataFrame:
     if 'race' in df.columns:
         api.app.logger.debug('Converting race to list')
         df['race'] = df['race'].fillna('').str.split(',')
-        app.logger.debug(f"Races observed in preprocessed df: {df['race']}")
+        api.app.logger.debug(f"Races observed in preprocessed df: {df['race']}")
 
     # ethnicity
     # ethnicity encodes only Hispanic/Not Hispanic. for some databases, Hispanic is actually included
