@@ -37,8 +37,8 @@ def get_source_id(df):
 
 def concatenate_person_index(df:pd.DataFrame) -> pd.Series:
     person_column_names = KEYS
-    person_columns = df[index_column_names]
-    return person_columns.apply(lambda x: ''.join(x.map(str)), axis=1)
+    person_df = df[person_column_names]
+    return person_df.apply(lambda x: ''.join(x.map(str)), axis=1)
 
 
 def get_matched_table_name(jurisdiction:str, event_type:str) -> str:
