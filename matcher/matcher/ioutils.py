@@ -57,7 +57,7 @@ def load_data_for_matching(jurisdiction:str, upload_id:str) -> tuple:
     ## TODO: Check the definition of keys
     # Drop duplicates, disregarding event type
     df = df.drop('event_type')
-    df = df.drop_duplicates(subset=keys)
+    df = df.drop_duplicates(subset=KEYS)
 
     api.app.logger.debug(f"The loaded dataframe has the following columns: {df.columns}")
     api.app.logger.debug(f"The dimensions of the loaded dataframe is: {df.shape}")
@@ -75,7 +75,7 @@ def load_one_event_type(jurisdiction:str, event_type:str, upload_id:str) -> pd.D
         df = read_merged_data_from_s3(jurisdiction, event_type)
 
         # Dropping columns that we don't need for matching
-        df = utils.select_columns(df=df, keys=keys)
+        df = utils.select_columns(df=df, keys=KEYS)
 
         # Keeping track of the event_type
         df['event_type'] = event_type

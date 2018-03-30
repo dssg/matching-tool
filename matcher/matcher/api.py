@@ -29,7 +29,6 @@ dotenv_path = os.path.join(APP_ROOT, '.env')
 load_dotenv(dotenv_path)
 
 # load environment variables
-KEYS = ast.literal_eval(os.getenv('KEYS'))
 CLUSTERING_PARAMS = {
     'eps': float(os.getenv('EPS')),
     'min_samples': int(os.getenv('MIN_SAMPLES')),
@@ -142,7 +141,7 @@ def do_match(jurisdiction, event_type, upload_id):
     df = preprocess.preprocess(df)
     data_preprocessed_time = datetime.datetime.now()
 
-    app.logger.info(f"Running matcher({KEYS})")
+    app.logger.info(f"Running matcher")
     matches = matcher.run(df=df, clustering_params=CLUSTERING_PARAMS)
     data_matched_time = datetime.datetime.now()
     app.logger.debug('Matching done!')
