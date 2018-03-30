@@ -1,188 +1,24 @@
 # coding: utf-8
 
-import subprocess
-import logging
-logger = logging.getLogger('matcher')
+import ast
+import os
+
 
 import pandas as pd
-from io import StringIO
-import boto3
-import psycopg2
-import smart_open
+
+from matcher import ioutils
+
+from matcher.logger import logger
 
 
-DATA_FIELDS = {
-    'hmis_service_stays': """
-        internal_person_id          text,
-        secondary_person_id         text,
-        internal_event_id           text,
-        full_name                   text,
-        prefix                      text,
-        first_name                  text,
-        middle_name                 text,
-        last_name                   text,
-        suffix                      text,
-        name_data_quality           text,
-        dob                         date,
-        dob_type                    text,
-        ssn                         text,
-        ssn_hash                    text,
-        ssn_bigrams                 text,
-        ssn_data_quality            text,
-        dmv_number                  text,
-        dmv_state                   text,
-        additional_id_number        text,
-        additional_id_name          text,
-        race                        text,
-        secondary_race              text,
-        ethnicity                   text,
-        sex                         text,
-        street_address              text,
-        city                        text,
-        state                       text,
-        postal_code                 text,
-        county                      text,
-        country                     text,
-        address_data_quality        text,
-        veteran_status              text,
-        disabling_condition         text,
-        project_start_date          timestamp,
-        project_exit_date           timestamp,
-        program_name                text,
-        program_type                text,
-        federal_program             text,
-        destination                 text,
-        household_id                text,
-        household_relationship      text,
-        move_in_date                timestamp,
-        living_situation_type       text,
-        living_situation_length     text,
-        living_situation_start_date timestamp,
-        times_on_street             text,
-        months_homeless             text,
-        client_location_start_date  timestamp,
-        client_location_end_date    timestamp,
-        client_location             text,
-        source_name                 text,
-        created_date                timestamp,
-        updated_date                timestamp,
-        inserted_ts                 timestamp,
-        updated_ts                  timestamp,
-        source_id                   text,
-        matched_id                  int
-    """,
-    'jail_bookings': """
-        internal_person_id      text,
-        internal_event_id       text,
-        inmate_number           text,
-        full_name               text,
-        prefix                  text,
-        first_name              text,
-        middle_name             text,
-        last_name               text,
-        suffix                  text,
-        dob                     date,
-        ssn                     text,
-        ssn_hash                text,
-        ssn_bigrams             text,
-        fingerprint_id          text,
-        dmv_number              text,
-        dmv_state               text,
-        additional_id_number    text,
-        additional_id_name      text,
-        race                    text,
-        ethnicity               text,
-        sex                     text,
-        hair_color              text,
-        eye_color               text,
-        height                  int,
-        weight                  int,
-        street_address          text,
-        city                    text,
-        state                   text,
-        postal_code             text,
-        county                  text,
-        country                 text,
-        birth_place             text,
-        booking_number          text,
-        jail_entry_date         timestamp,
-        jail_exit_date          timestamp,
-        homeless                text,
-        mental_health           text,
-        veteran                 text,
-        special_initiative      text,
-        bond_amount             text,
-        arresting_agency        text,
-        bed                     text,
-        cell                    text,
-        block                   text,
-        building                text,
-        annex                   text,
-        floor                   text,
-        classification          text,
-        detention               text,
-        location_type           text,
-        relocation_date         timestamp,
-        case_number             text,
-        source_name             text,
-        created_date            timestamp,
-        updated_date            timestamp,
-        inserted_ts             timestamp,
-        updated_ts              timestamp,
-        source_id               text,
-        matched_id              int
-    """
-}
+# load dotenv
+from dotenv import load_dotenv
+APP_ROOT = os.path.join(os.path.dirname(__file__), '..')
+dotenv_path = os.path.join(APP_ROOT, '.env')
+load_dotenv(dotenv_path)
 
-
-def read_matched_data_from_postgres(table_name, pg_keys):
-    conn = psycopg2.connect(**pg_keys)
-    cur = conn.cursor()
-
-    sql = f"SELECT * FROM matched.{table_name};"
-    dat = pd.io.sql.read_sql_query(sql, conn)
-
-    conn.close()
-
-    return dat
-
-
-def write_matched_data_to_postgres(bucket, key, table_name, pg_keys):
-    conn = psycopg2.connect(**pg_keys)
-    cur = conn.cursor()
-
-    logger.info(f'Creating table matched.{table_name}')
-    create_table_query = f"""
-        CREATE SCHEMA IF NOT EXISTS matched;
-        DROP TABLE IF EXISTS matched.{table_name};
-        CREATE TABLE matched.{table_name} (
-            {DATA_FIELDS[table_name]}
-        );
-    """
-    logger.warning(create_table_query)
-    cur.execute(create_table_query)
-
-    logger.info(f'Inserting data into matched.{table_name}')
-    with smart_open.smart_open(f's3://{bucket}/{key}') as f:
-        copy_query = f"""
-            COPY matched.{table_name} FROM STDIN WITH CSV HEADER DELIMITER AS '|'
-        """
-        cur.copy_expert(
-            sql=copy_query,
-            file=f
-        )
-    conn.commit()
-    logger.info(f'Done writing matched results to matched.{table_name}')
-
-    cur.close()
-    conn.close()
-
-
-def write_to_s3(df, bucket, key):
-    csv_buffer = StringIO()
-    df.to_csv(csv_buffer, sep='|', index=False)
-    s3_resource = boto3.resource('s3')
-    s3_resource.Object(bucket, key).put(Body=csv_buffer.getvalue())
+# load environment variables
+KEYS = ast.literal_eval(os.getenv('KEYS'))
 
 
 def get_source_id(df):
@@ -200,42 +36,43 @@ def get_source_id(df):
         raise ValueError('No source id column found')
 
 
-def cartesian(df1:pd.DataFrame, df2:pd.DataFrame=None) -> pd.DataFrame:
-    """
-    Takes two data sets and generates a new data set that contains the cartesian product of the rows.
-    If only one dataset is specified, this function returns a self cross join
-    """
-
-    #suffixes = ['_'+s for s in sources]
-
-    if df2 is None:
-        df2=df1.copy()
+def concatenate_person_index(df:pd.DataFrame) -> pd.Series:
+    person_column_names = KEYS
+    person_df = df[person_column_names]
+    return person_df.apply(lambda x: ''.join(x.map(str)), axis=1)
 
 
-    df1['_tmpkey'] = 1
-    df2['_tmpkey'] = 1
+def get_matched_table_name(jurisdiction:str, event_type:str) -> str:
+    return f'matched.{jurisdiction}_{event_type}'
 
 
+def join_matched_and_merged_data(right_df:pd.DataFrame, jurisdiction:str, event_type:str) -> pd.DataFrame:
+    left_df=ioutils.read_merged_data_from_s3(jurisdiction, event_type)
 
-    df = pd.merge(df1, df2, on='_tmpkey', suffixes=['_left', '_right']).drop('_tmpkey', axis=1)
-    df.index = pd.MultiIndex.from_product((df1.index, df2.index))
-    df1.drop("_tmpkey", axis=1, inplace=True)
-    df2.drop("_tmpkey", axis=1, inplace=True)
+    cols_to_use = right_df.columns.difference(left_df.columns).values
 
-    return df
-
-
-def generate_row_ids(df:pd.DataFrame) -> pd.DataFrame:
-    df['row_id'] = range(0, len(df))
+    df = left_df.merge(
+        right=right_df[cols_to_use],
+        left_index=True,
+        right_index=True,
+        copy=False,
+        validate='many_to_one'
+    )
+    logger.info(f'Joined match ids to merged data for {jurisdiction}')
 
     return df
 
 
-def version(df:pd.DataFrame) -> pd.DataFrame:
+def select_columns(df:pd.DataFrame, keys:list) -> pd.DataFrame:
+    """ 
+    Reduces the dataframe to the columns selected for matching.
+    
+    We always expect at least two columns: source and source_id
     """
-    Adds the code version (git head hash) to the passed DataFrame.
-    """
-    # head_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD']).rstrip()
-    df['code_version'] = '0.1' #head_hash
+    logger.info(f'Selecting columns for matching.')
+    columns_to_select = ['source', 'source_id', 'internal_person_id', 'source_index']
+    if keys:
+        columns_to_select = columns_to_select + keys
+    
+    return df.reindex(keys, axis="columns")
 
-    return df

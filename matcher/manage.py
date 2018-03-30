@@ -1,15 +1,13 @@
 import redis
-from flask_script import Server, Manager
+from redis import Redis
 from rq import Connection, Worker
-from matcher.api import app, redis_connection
 
-manager = Manager(app)
+redis_connection = Redis(host='redis', port=6379)
 
-@manager.command
 def runworker():
     with Connection(redis_connection):
         worker = Worker(['matching'])
         worker.work()
 
 if __name__ == '__main__':
-    manager.run()
+    runworker()

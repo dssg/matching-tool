@@ -1,13 +1,14 @@
-#coding: utf-8
+# coding: utf-8
 
 import os
 import json
-import ast
 
 from flask import Flask, jsonify, request
 from flask import make_response
 
+import datetime
 
+from rq.registry import StartedJobRegistry
 from redis import Redis
 from rq import Queue, get_current_job
 from rq.job import Job
@@ -18,10 +19,11 @@ from dotenv import load_dotenv
 import pandas as pd
 
 import matcher.matcher as matcher
-import matcher.contraster as contraster
-import matcher.indexer as indexer
+import matcher.preprocess as preprocess
 import matcher.utils as utils
+import matcher.ioutils as ioutils
 
+from matcher.logger import logger
 
 # load dotenv
 APP_ROOT = os.path.join(os.path.dirname(__file__), '..')
@@ -29,10 +31,6 @@ dotenv_path = os.path.join(APP_ROOT, '.env')
 load_dotenv(dotenv_path)
 
 # load environment variables
-S3_BUCKET = os.getenv('S3_BUCKET')
-KEYS = ast.literal_eval(os.getenv('KEYS'))
-INDEXER = os.getenv('INDEXER')
-CONTRASTER = os.getenv('CONTRASTER')
 CLUSTERING_PARAMS = {
     'eps': float(os.getenv('EPS')),
     'min_samples': int(os.getenv('MIN_SAMPLES')),
@@ -40,19 +38,7 @@ CLUSTERING_PARAMS = {
     'leaf_size': int(os.getenv('LEAF_SIZE')),
     'n_jobs': int(os.getenv('N_JOBS')),
 }
-PG_CONNECTION = {
-    'host': os.getenv('PGHOST'),
-    'user': os.getenv('PGUSER'),
-    'dbname': os.getenv('PGDATABASE'),
-    'password': os.getenv('PGPASSWORD'),
-    'port': os.getenv('PGPORT')
-}
 
-# Lookups
-NEXT_EVENT_TYPES = {
-    'hmis_service_stays': 'jail_bookings',
-    'jail_bookings': 'hmis_service_stays'
-}
 
 # Initialize the app
 app = Flask(__name__)
@@ -64,40 +50,38 @@ app.config.from_envvar('FLASK_SETTINGS', silent=True)
 
 
 q = Queue('matching', connection=redis_connection)
+registry = StartedJobRegistry('matching', connection=redis_connection)
 
+@app.route('/match/get_jobs')
+def list_jobs():
+    queued_job_ids = q.job_ids
+    queued_jobs = q.jobs
+    logger.info(f"queue: {queued_jobs}")
 
-@app.before_first_request
-def setup_logging():
-    if not app.debug:
-        # In production mode, add log handler to sys.stderr.
-        app.logger.addHandler(logging.StreamHandler())
-        app.logger.setLevel(logging.DEBUG)
-
-
-@app.route('/poke', methods=['GET'])
-def poke():
-    app.logger.info("I'm being poked!")
     return jsonify({
-        'status': 'success',
-        'message': 'Stop poking me!'
+	'q': len(q),
+	'job_ids': queued_job_ids,
+	'current_job': registry.get_job_ids(),
+	'expired_job_id':  registry.get_expired_job_ids(),
+	'enqueue_at': [job.enqueued_at for job in queued_jobs]
     })
-
 
 @app.route('/match/<jurisdiction>/<event_type>', methods=['GET'])
 def match(jurisdiction, event_type):
-    upload_id = request.args.get('uploadId', None)
+    upload_id = request.args.get('uploadId', None)   ## QUESTION: Why is this a request arg and is not in the route? Also, Why in CamelCase?
     if not upload_id:
         return jsonify(status='invalid', reason='uploadId not present')
 
-    app.logger.debug("Someone wants to start a matching process!")
+    logger.debug("Someone wants to start a matching process!")
 
     job = q.enqueue_call(
         func=do_match,
-        args=(jurisdiction, event_type),
-        result_ttl=5000
+        args=(jurisdiction, event_type, upload_id),
+        result_ttl=5000,
+        timeout=100000
     )
 
-    app.logger.info(f"Job id {job.get_id()}")
+    logger.info(f"Job id {job.get_id()}")
 
     return jsonify({"job": job.get_id()})
 
@@ -105,9 +89,13 @@ def match(jurisdiction, event_type):
 @app.route('/match/results/<job_key>', methods=["GET"])
 def get_match_results(job_key):
     job = Job.fetch(job_key, connection=redis_connection)
-    app.logger.info(job.result)
+    logger.info(job.result)
     if job.is_finished:
-        df = utils.read_matched_data_from_postgres(job.result['event_type'], PG_CONNECTION)
+        df = ioutils.read__data_from_postgres(
+            utils.get_matched_table_name(
+            event_type=job.result['event_type'],
+            jurisdiction=job.result['jurisdiction']
+    ))
 
         response = make_response(jsonify(df.to_json(orient='records')))
         response.headers["Content-Type"] = "text/json"
@@ -133,76 +121,55 @@ def get_match_finished(job_key):
         })
 
 
-@app.route('/list/<jurisdiction>', methods=['POST'])
-def get_list(jurisdiction):
-    app.logger.debug(f"Retrieving the list for the county {county}")
-    if request.method == 'POST':
-        try:
-            data = request.get_json()
-            start_date = data.get('start_date', '')
-            end_date = data.get('end_date', '')
-        except ValueError:
-            return jsonify(f"Invalid date: ({start_date}, {end_date})")
+def do_match(jurisdiction, event_type, upload_id):
 
-        app.logger.debug(f"Filtering the list between dates {start_date} and {end_date}")
+    start_time = datetime.datetime.now()
+    logger.info("Matching process started!")
 
-    return jsonify({
-        'status': 'not implemented',
-        'message': 'nice try, but we are still working on it'
-    })
+    # Loading: collect matching data (keys) for all available event types & record which event types were found
+    logger.info('Loading data for matching.')
+    df, event_types_read = ioutils.load_data_for_matching(jurisdiction, upload_id)
 
+    data_loaded_time = datetime.datetime.now()
 
-def do_match(jurisdiction, event_type):
-    app.logger.info("Matching process started!")
-    indexer_func = getattr(indexer, INDEXER)
-    contraster_func = getattr(contraster, CONTRASTER)
+    # Preprocessing: enforce data types and split/combine columns for feartures
+    logger.info('Doing some preprocessing on the columns')
+    df = preprocess.preprocess(df)
+    data_preprocessed_time = datetime.datetime.now()
 
-    # Read the data in and start the self-match process
-    app.logger.info(f"Reading data from {S3_BUCKET}/{jurisdiction}/{event_type}")
+    logger.info(f"Running matcher")
 
-    merged_key = f'csh/matcher/{jurisdiction}/{event_type}/merged'
-    df1 = pd.read_csv(f's3://{S3_BUCKET}/{merged_key}', sep='|')
+    matches = matcher.run(df=df, clustering_params=CLUSTERING_PARAMS)
+    data_matched_time = datetime.datetime.now()
+    logger.debug('Matching done!')
 
-    app.logger.info(f"Running matcher({KEYS},{INDEXER},{CONTRASTER}) for self-match")
-    df1, df2 = matcher.run(df1, KEYS, indexer_func, contraster_func, CLUSTERING_PARAMS)
+    for key, matched in matches.items():
+        logger.debug(f'Index of matches for {key}: {matched.index.values})')
+        logger.debug(f'Columns of matches for {key}: {matched.columns.values}')
 
-    app.logger.info('Self-matching complete. Writing data to disk.')
+    logger.debug(f"Total matching time: {data_matched_time - start_time}")
 
-    matched_key_1 = f'csh/matcher/{jurisdiction}/{event_type}/matched'
-    utils.write_to_s3(df1, S3_BUCKET, matched_key_1)
+    
+    # Merging: Join the matched blocks into a single dataframe
+    logger.info('Concatenating matched results!')
+    all_matches = pd.concat(matches.values())
+    matches_concatenated_time = datetime.datetime.now()
 
-    app.logger.info('Self-matches written to disk. Writing to database.')
-    utils.write_matched_data_to_postgres(S3_BUCKET, matched_key_1, event_type, PG_CONNECTION)
+    logger.debug(f"Number of matched pairs: {len(all_matches)}")
+    logger.debug(f"Total concatenating time: {matches_concatenated_time - data_matched_time}")
 
-    # Check if there is matched data available from the other source. If so,
-    # match the two sets.
-    app.logger.debug("Self-matching stored. Trying to match to other data source.")
+    # Writing: Join the matched ids to the source data for each event & write to S3 and postgres    
+    logger.info('Writing matched results!')
+    ioutils.write_matched_data(all_matches, jurisdiction, event_types_read)
+    data_written_time = datetime.datetime.now()
 
-    event_type_2 = NEXT_EVENT_TYPES[event_type]
-    matched_key_2 = f'csh/matcher/{jurisdiction}/{event_type_2}/matched'
-
-    try:
-        app.logger.info(f"Trying to read data from {S3_BUCKET}/{jurisdiction}/{event_type_2}")
-        df2 = pd.read_csv(f's3://{S3_BUCKET}/{matched_key_2}', sep='|')
-
-        app.logger.info(f"Running matcher({KEYS},{INDEXER},{CONTRASTER}) to match two sources")
-        df1, df2 = matcher.run(df1, KEYS, indexer_func, contraster_func, CLUSTERING_PARAMS, df2)
-
-        app.logger.info('Matching between sources complete. Writing data to disk.')
-        utils.write_to_s3(df1, S3_BUCKET, matched_key_1)
-        utils.write_to_s3(df2, S3_BUCKET, matched_key_2)
-
-        app.logger.info('Matches between sources written to disk. Writing to database.')
-        utils.write_matched_data_to_postgres(S3_BUCKET, matched_key_1, event_type, PG_CONNECTION)
-        utils.write_matched_data_to_postgres(S3_BUCKET, matched_key_2, event_type_2, PG_CONNECTION)
-
-        app.logger.debug("Matching to other data scource done.")
-    except FileNotFoundError:
-        app.logger.debug("Matched data not available for other data source.")
-
+    total_match_time = data_written_time - start_time
 
     return {
         'status': 'done',
+        'number_of_matches_found': len(matches),
         'event_type': event_type,
+        'jurisdiction': jurisdiction,
+        'upload_id': upload_id,
         'message': 'matching proccess is done! check out the result!'
     }
