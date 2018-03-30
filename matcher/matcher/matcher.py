@@ -68,7 +68,7 @@ def run(df:pd.DataFrame, clustering_params:dict) -> pd.DataFrame:
             matches[key] = matched
         else:
             api.app.logger.debug(f"Group {key} only have one record, making a singleton id")
-            matches[key] = cluster.generate_singleton_id(group)
+            matches[key] = cluster.generate_singleton_id(group, key)
 
     return matches
 

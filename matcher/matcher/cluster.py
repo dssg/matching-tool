@@ -72,3 +72,9 @@ def generate_matched_ids(
 
     return (df)                 
 
+
+def generate_singleton_id(df:pd.DataFrame, block_name:str) -> pd.DataFrame:
+    df['matched_id'] = block_name + '0'
+    api.app.logger.info(f'Singleton has id {df.matched_id.values[0]}')
+    return df
+
