@@ -183,3 +183,15 @@ def insert_data_into_table(key:str, table_name:str, cur:psycopg2.cursor) -> None
     api.app.logger.info(f'Wrote data to {table_name}')
 
 
+def read_data_from_postgres(table_name:str):
+    conn = psycopg2.connect(**PG_CONNECTION)
+    cur = conn.cursor()
+
+    sql = f"SELECT * FROM {table_name};"
+    df = pd.io.sql.read_sql_query(sql, conn)
+    api.app.logger.info(f'Read data from {table_name}')
+
+    conn.close()
+
+    return df
+

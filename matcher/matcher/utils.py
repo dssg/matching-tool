@@ -82,15 +82,3 @@ def select_columns(df:pd.DataFrame, keys:list) -> pd.DataFrame:
     
     return df.reindex(keys, axis="columns")
 
-
-def read_matched_data_from_postgres(table_name:str):
-    conn = psycopg2.connect(**PG_CONNECTION)
-    cur = conn.cursor()
-
-    sql = f"SELECT * FROM matched.{table_name};"
-    dat = pd.io.sql.read_sql_query(sql, conn)
-
-    conn.close()
-
-    return dat
-

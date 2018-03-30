@@ -96,7 +96,7 @@ def get_match_results(job_key):
     job = Job.fetch(job_key, connection=redis_connection)
     app.logger.info(job.result)
     if job.is_finished:
-        df = utils.read_matched_data_from_postgres(
+        df = ioutils.read__data_from_postgres(
             utils.get_matched_table_name(
                 event_type=job.result['event_type'],
                 jurisdiction=job.result['jurisdiction']
