@@ -71,13 +71,6 @@ def list_jobs():
         'enqueue_at': [job.enqueued_at for job in queued_jobs]
     })
 
-@app.before_first_request
-def setup_logging():
-    if not app.debug:
-        # In production mode, add log handler to sys.stderr.
-        logger.addHandler(logging.StreamHandler())
-        logger.setLevel(logging.DEBUG)
-
 @app.route('/match/<jurisdiction>/<event_type>', methods=['GET'])
 def match(jurisdiction, event_type):
     upload_id = request.args.get('uploadId', None)   ## QUESTION: Why is this a request arg and is not in the route? Also, Why in CamelCase?
