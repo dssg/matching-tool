@@ -2,16 +2,13 @@
 
 import ast
 import os
-import subprocess
 
 
-import numpy as np
 import pandas as pd
 from io import StringIO
 import boto3
 import psycopg2
 import smart_open
-import botocore
 
 
 import matcher.api as api
