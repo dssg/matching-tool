@@ -138,11 +138,12 @@ def write_matched_data_to_postgres(key:str, table_name:str, column_names:list) -
     conn = psycopg2.connect(**PG_CONNECTION)
     cur = conn.cursor()
 
-    api.app.logger.info(f'Creating table matched.{table_name}')
+    api.app.logger.info(f'Creating table {table_name}')
     create_schema_if_not_exists('matched', cur)
     create_matched_table(table_name, column_names, cur)
 
-    api.app.logger.info(f'Inserting data into matched.{table_name}')
+    api.app.logger.info(f'Inserting data into {table_name}')
+    insert_data_into_table(key, table_name, cur)
 
     conn.commit()
     cur.close()
