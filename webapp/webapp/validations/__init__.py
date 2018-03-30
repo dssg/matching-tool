@@ -35,18 +35,20 @@ CHECKS_BY_SCHEMA = {
 
 
 @check('inmate-num-or-person-id', type='custom', context='body')
-def inmate_num_or_person_id(errors, cells, row_number):
-    return one_of_group(['inmate_number', 'internal_person_id'], errors, cells, row_number)
+
+def inmate_num_or_person_id(*args, **kwargs):
+    return one_of_group(['inmate_number', 'internal_person_id'], *args, **kwargs)
 
 
 @check('booking-num-or-event-id', type='custom', context='body')
-def booking_num_or_event_id(errors, cells, row_number):
-    return one_of_group(['booking_number', 'internal_event_id'], errors, cells, row_number)
+def booking_num_or_event_id(*args, **kwargs):
+    return one_of_group(['booking_number', 'internal_event_id'], *args, **kwargs)
 
 
 @check('lname-or-fullname', type='custom', context='body')
-def last_name_or_full_name(errors, cells, row_number):
-    return one_of_group(['last_name', 'full_name'], errors, cells, row_number)
+def last_name_or_full_name(*args, **kwargs):
+    return one_of_group(['last_name', 'full_name'], *args, **kwargs)
+
 
 
 def one_of_group(columns_in_group, errors, cells, row_number):
