@@ -11,7 +11,7 @@ export default class TableList extends React.Component {
         className="table"
         sortable
         pageButtonLimit={5}
-        itemsPerPage={18}
+        itemsPerPage={17}
         data={this.props.data} />
     )
   }
