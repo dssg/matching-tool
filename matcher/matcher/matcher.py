@@ -9,7 +9,7 @@ import matcher.rules as rules
 import matcher.cluster as cluster
 import matcher.ioutils as ioutils
 
-import matcher.api as api
+from . import api
 
 import recordlinkage as rl
 

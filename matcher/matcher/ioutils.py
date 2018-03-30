@@ -11,7 +11,7 @@ import psycopg2
 import smart_open
 
 
-import matcher.api as api
+from . import api
 import matcher.utils as utils
 
 
@@ -43,7 +43,7 @@ EVENT_TYPES = [
 
 def load_data_for_matching(jurisdiction:str, upload_id:str) -> tuple:
     # We will frame the record linkage problem as a deduplication problem
-    df = pd.concat([load_one_event_type(jurisdiction, e_type, upload_id) for event_type in EVENT_TYPES])
+    df = pd.concat([load_one_event_type(jurisdiction, event_type, upload_id) for event_type in EVENT_TYPES])
 
     ## and the upload_id
     df['upload_id'] = upload_id
@@ -147,14 +147,14 @@ def write_matched_data_to_postgres(key:str, table_name:str, column_names:list) -
     conn.close()
 
 
-def create_schema_if_not_exists(schema_name:str, cur:psycopg2.cursor) -> None:
+def create_schema_if_not_exists(schema_name:str, cur) -> None:
     create_schema_query = f'CREATE SCHEMA IF NOT EXISTS {schema_name};'
     api.app.logger.debug(f'Create schema query: \n{create_schema_query}')
     cur.execute(create_schema_query)
     api.app.logger.info(f'Created schema (if not already present) {schema_name}')
 
 
-def create_matched_table(table_name:str, column_names:list, cur:psycopg2.cursor) -> None:
+def create_matched_table(table_name:str, column_names:list, cur) -> None:
     col_list = [f'{col} varchar' for col in column_names]
     col_type_list = ', '.join(col_list)
     create_table_query = f"""
@@ -168,7 +168,7 @@ def create_matched_table(table_name:str, column_names:list, cur:psycopg2.cursor)
     api.app.logger.info(f'Created table {table_name}')
 
 
-def insert_data_into_table(key:str, table_name:str, cur:psycopg2.cursor) -> None:
+def insert_data_into_table(key:str, table_name:str, cur) -> None:
     with smart_open.smart_open(f's3://{S3_BUCKET}/{key}') as f:
         copy_query = f"""
             COPY {table_name} FROM STDIN WITH CSV HEADER DELIMITER AS '|'

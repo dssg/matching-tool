@@ -7,7 +7,7 @@ import os
 import pandas as pd
 
 
-import matcher.api as api
+from . import  api
 
 
 # load dotenv
