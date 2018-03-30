@@ -44,12 +44,47 @@ EVENT_TYPES = [
 ]
 
 
-def load_data_for_matching(jurisdiction, upload_id) --> pd.DataFrame:
+def load_data_for_matching(jurisdiction:str, upload_id:str) --> tuple:
     # We will frame the record linkage problem as a deduplication problem
-    df = pd.concat([read_event_data_from_s3(jurisdiction, e_type, upload_id, KEYS) for event_type in EVENT_TYPES])
+    df = pd.concat([load_one_event_type(jurisdiction, e_type, upload_id) for event_type in EVENT_TYPES])
+
+    ## and the upload_id
+    df['upload_id'] = upload_id
+
+    # Which event types did we read successfully?
+    event_types_read = df.event_type.values
+
+    ## TODO: Check the definition of keys
+    # Drop duplicates, disregarding event type
+    df.drop('event_type', inplace=True)
+    df = df.drop_duplicates(subset=keys)
+
     api.app.logger.debug(f"The loaded dataframe has the following columns: {df.columns}")
     api.app.logger.debug(f"The dimensions of the loaded dataframe is: {df.shape}")
     api.app.logger.debug(f"The indices of the loaded dataframe are {df.index}")
     api.app.logger.debug(f'The loaded has {len(df)} rows and {len(df.index.unique())} unique indices')
     api.app.logger.debug(f'The loaded dataframe has the following duplicate indices: {df[df.index.duplicated()].index.values}')
+
+    return df, event_types_read
+
+
+def load_one_event_type(jurisdiction:str, event_type:str, upload_id:str) -> pd.DataFrame:
+    api.app.logger.info(f'Loading {jurisdiction} {event_type} data for matching.')
+
+    try:
+        df = read_merged_data_from_s3(jurisdiction, event_type)
+
+        # Dropping columns that we don't need for matching
+        df = select_columns(df=df, keys=keys)
+
+        # Keeping track of the event_type
+        df['event_type'] = event_type
+
+        api.app.logger.info(f'{jurisdiction} {event_type} data loaded from S3.')
+
+        return df
+
+    except FileNotFoundError as e:
+        api.app.logger.info(f'No merged file found for {jurisdiction} {event_type}. Skipping.')
+        pass
 

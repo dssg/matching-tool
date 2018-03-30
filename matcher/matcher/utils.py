@@ -14,7 +14,7 @@ import smart_open
 import botocore
 
 
-from . import api
+import matcher.api as api
 
 
 # load dotenv
@@ -67,33 +67,6 @@ def read_merged_data_from_s3(jurisdiction:str, event_type:str) -> pd.DataFrame:
     df.set_index('source_index', drop=True, inplace=True)
 
     return df
-
-
-def load_data_for_matching(jurisdiction:str, event_type:str, upload_id:str, keys:list) -> pd.DataFrame:
-    api.app.logger.info(f'Loading {jurisdiction} {event_type} data for matching.')
-    
-    try:
-        df = read_merged_data_from_s3(jurisdiction, event_type)
-
-        ## Dropping columns that we don't need for matching
-        df = select_columns(df=df, keys=keys)
-
-        ## keeping track of the event_type
-        df['event_type'] = event_type
-
-        ## and the upload_id
-        df['upload_id'] = upload_id
-
-        ## TODO: Check the definition of keys
-        df = df.drop_duplicates(subset=keys)
-        
-        api.app.logger.info(f'{jurisdiction} {event_type} data loaded from S3.')
-
-        return df
-
-    except FileNotFoundError as e:
-        api.app.logger.info(f'No merged file found for {jurisdiction} {event_type}. Skipping.')
-        pass
 
 
 def get_matched_table_name(jurisdiction:str, event_type:str) -> str:
