@@ -34,21 +34,6 @@ PG_CONNECTION = {
 }
 KEYS = ast.literal_eval(os.getenv('KEYS'))
 
-# we need to be able to match back to the source data on these columns.
-# i think the best way to do this may be to concatenate them as a single 
-# string as a new column 'source_index' or something every time the data are loaded.
-# this way. we can reconnect the matched data to all the columns in the source data
-# when we go to write the data.
-INDEXES = {
-    'jail_bookings': ['internal_event_id', 'booking_number', 'location_date'],
-    'booking_aka': ['internal_event_id', 'booking_number'],
-    'booking_charges': ['internal_event_id', 'internal_charge_id', 'booking_number', 'charge_position', 'charge_date'],
-    'case_charges': ['internal_event_id', 'internal_charge_id', 'case_number', 'charge_position', 'charge_date'],
-    'hmis_service_stays': ['internal_event_id', 'client_location_start_date'],
-    'hmis_aka': ['internal_event_id', 'project_start_date'],
-    'by_name': ['internal_event_id', 'full_name', 'first_name', 'middle_name', 'last_name', 'list_entry_date']
-}
-
 
 def get_source_id(df):
     try:

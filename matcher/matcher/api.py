@@ -21,6 +21,7 @@ import pandas as pd
 import matcher.matcher as matcher
 import matcher.preprocess as preprocess
 import matcher.utils as utils
+import matcher.ioutils as ioutils
 
 # load dotenv
 APP_ROOT = os.path.join(os.path.dirname(__file__), '..')
@@ -37,11 +38,6 @@ CLUSTERING_PARAMS = {
     'n_jobs': int(os.getenv('N_JOBS')),
 }
 
-# Lookups
-EVENT_TYPES = [
-    'hmis_service_stays', 
-    'jail_bookings'
-]
 
 # Initialize the app
 app = Flask(__name__)
@@ -136,14 +132,9 @@ def do_match(jurisdiction, event_type, upload_id):
     start_time = datetime.datetime.now()
     app.logger.info("Matching process started!")
 
-    # We will frame the record linkage problem as a deduplication problem
+    # Loading: collect matching data (keys) for all available event types & record which event types were found
     app.logger.info('Loading data for matching.')
-    df = pd.concat([utils.load_data_for_matching(jurisdiction, e_type, upload_id, KEYS) for e_type in EVENT_TYPES])
-    app.logger.debug(f"The loaded dataframe has the following columns: {df.columns}")
-    app.logger.debug(f"The dimensions of the loaded dataframe is: {df.shape}")
-    app.logger.debug(f"The indices of the loaded dataframe are {df.index}")
-    app.logger.debug(f'The loaded has {len(df)} rows and {len(df.index.unique())} unique indices')
-    app.logger.debug(f'The loaded dataframe has the following duplicate indices: {df[df.index.duplicated()].index.values}')
+    df, event_types_read = ioutils.load_data_for_matching(jurisdiction, upload_id)
     data_loaded_time = datetime.datetime.now()
 
     # Preprocessing: enforce data types and split/combine columns for feartures
