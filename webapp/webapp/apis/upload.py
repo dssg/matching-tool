@@ -4,7 +4,7 @@ from flask_security import Security, login_required, \
 from flask_login import current_user
 
 
-from webapp import app
+from webapp.logger import logger
 from webapp.database import db_session
 from webapp.models import User, Role, Upload, MergeLog
 from webapp.tasks import \
@@ -168,11 +168,12 @@ def get_validated_result(job_key):
         uploaded_file_name = result['uploaded_file_name']
         full_filename = result['full_filename']
         if validation_report['valid']:
-            upload_id = unique_upload_id()
+            upload_id = job_key#unique_upload_id()
             row_count = validation_report['tables'][0]['row-count'] - 1
             upload_path = s3_upload_path(jurisdiction, event_type, upload_id)
+            logger.info("Validation done!")
             try:
-                app.logger.info('Uploading upload_id: %s to s3', upload_id)
+                logger.info('Uploading upload_id: %s to s3', upload_id)
                 upload_to_s3(upload_path, filename_with_all_fields)
             except boto.exception.S3ResponseError as e:
                 logging.error(
@@ -304,7 +305,7 @@ def upload_file():
             result_ttl=5000,
             timeout=3600,
         )
-        app.logger.info(f"Job id {job.get_id()}")
+        logger.info(f"Job id {job.get_id()}")
         return jsonify(
             status='validating',
             jobKey=job.get_id(),
