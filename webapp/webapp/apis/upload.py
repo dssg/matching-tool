@@ -168,7 +168,7 @@ def get_validated_result(job_key):
         uploaded_file_name = result['uploaded_file_name']
         full_filename = result['full_filename']
         if validation_report['valid']:
-            upload_id = job_key#unique_upload_id()
+            upload_id = job_key
             row_count = validation_report['tables'][0]['row-count'] - 1
             upload_path = s3_upload_path(jurisdiction, event_type, upload_id)
             logger.info("Validation done!")
