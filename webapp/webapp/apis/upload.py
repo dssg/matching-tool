@@ -305,6 +305,7 @@ def upload_file():
             args=(uploaded_file.filename, jurisdiction, full_filename, event_type, 1000000),
             result_ttl=5000,
             timeout=3600,
+            meta={'event_type': event_type}
         )
         app.logger.info(f"Job id {job.get_id()}")
         return jsonify(
@@ -372,24 +373,4 @@ def merge_file():
         logging.error('Error merging: ', e)
         db_session.rollback()
         return make_response(jsonify(status='error'), 500)
-
-
-@upload_api.route('/upload_log/<upload_id>', methods=['GET'])
-def get_upload_log(upload_id):
-    df = query.get_upload_log(upload_id)
-    try:
-        output = df.to_dict('records')
-        return jsonify(output)
-    except:
-        return "something is wrong", 500
-
-
-@upload_api.route('/merge_log/<upload_id>', methods=['GET'])
-def get_merge_log(upload_id):
-    df = query.get_merge_log(upload_id)
-    try:
-        output = df.to_dict('records')
-        return jsonify(output)
-    except:
-        return "something is wrong", 500
 

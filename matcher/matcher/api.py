@@ -78,7 +78,8 @@ def match(jurisdiction, event_type):
         func=do_match,
         args=(jurisdiction, event_type, upload_id),
         result_ttl=5000,
-        timeout=100000
+        timeout=100000,
+        meta={'event_type': event_type}
     )
 
     logger.info(f"Job id {job.get_id()}")
@@ -149,7 +150,7 @@ def do_match(jurisdiction, event_type, upload_id):
 
     logger.debug(f"Total matching time: {data_matched_time - start_time}")
 
-    
+
     # Merging: Join the matched blocks into a single dataframe
     logger.info('Concatenating matched results!')
     all_matches = pd.concat(matches.values())
@@ -158,7 +159,7 @@ def do_match(jurisdiction, event_type, upload_id):
     logger.debug(f"Number of matched pairs: {len(all_matches)}")
     logger.debug(f"Total concatenating time: {matches_concatenated_time - data_matched_time}")
 
-    # Writing: Join the matched ids to the source data for each event & write to S3 and postgres    
+    # Writing: Join the matched ids to the source data for each event & write to S3 and postgres
     logger.info('Writing matched results!')
     ioutils.write_matched_data(all_matches, jurisdiction, event_types_read)
     data_written_time = datetime.datetime.now()

@@ -1,7 +1,7 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import { Timeline, TimelineEvent } from 'react-event-timeline'
-import { getAllJobs } from '../actions'
+import { getAllJobs, getHistory } from '../actions'
 
 
 const styles = {
@@ -14,7 +14,8 @@ const styles = {
 function mapStateToProps(state) {
   return {
     current: state.app.allJobs.current,
-    q: state.app.allJobs.q
+    q: state.app.allJobs.q,
+    history: state.app.history
   }
 }
 
@@ -22,6 +23,9 @@ function mapDispatchToProps(dispatch) {
   return {
     updateAllJobs: () => {
       dispatch(getAllJobs())
+    },
+    updateHistory: () => {
+      dispatch(getHistory())
     }
   }
 }
@@ -33,9 +37,11 @@ class ActionTimeLine extends React.Component {
 
   componentDidMount() {
     this.props.updateAllJobs()
+    this.props.updateHistory()
   }
 
   render() {
+    console.log(this.props.history)
     return (
       <div style={styles.timeline}>
         <Timeline>
@@ -49,9 +55,9 @@ class ActionTimeLine extends React.Component {
                 key={idx}>
                 <div>
                   <p><strong>Upload Time: </strong> {item.created_time}</p>
-                  <p><strong>Current Runtime: </strong> 4 hours</p>
-                  <p><strong>Service Type: </strong>HMIS</p>
-                  <p><strong>File Name: </strong>slc_hmis_03152018.csv</p>
+                  <p><strong>Current Runtime: </strong> {item.runtime}</p>
+                  <p><strong>Service Type: </strong>{item.event_type}</p>
+                  <p><strong>File Name: </strong>Unknown</p>
                 </div>
               </TimelineEvent>
             ))}
@@ -66,20 +72,24 @@ class ActionTimeLine extends React.Component {
                 <div>
                   <p><strong>Upload Time: </strong> {item.created_time}</p>
                   <p><strong>Current Runtime: </strong> 4 hours</p>
-                  <p><strong>Service Type: </strong>HMIS</p>
-                  <p><strong>File Name: </strong>slc_hmis_03152018.csv</p>
+                  <p><strong>Service Type: </strong>{item.event_type}</p>
+                  <p><strong>File Name: </strong>Unkonwn</p>
                 </div>
               </TimelineEvent>
             ))}
-            <TimelineEvent title="Last Task"
-                           icon={<i className="material-icons md-18">cloud_upload</i>}
-                           iconColor="#43C6DB">
-              <p><strong>Upload Time: </strong> 2018-03-12 10:06 PM</p>
-              <p><strong>Matched Time: </strong> 2018-03-12 10:16 PM</p>
-              <p><strong>Matching Runtime: </strong> 05:00:00</p>
-              <p><strong>Service Type: </strong>HMIS</p>
-              <p><strong>File Name: </strong>slc_hmis_03122018.csv</p>
+            {this.props.history.map((item, idx) => (
+              <TimelineEvent
+                title="Last Task"
+                icon={<i className="material-icons md-18">cloud_upload</i>}
+                iconColor="#43C6DB"
+                key={idx}>
+              <p><strong>Upload Time: </strong> {item.upload_timestamp}</p>
+              <p><strong>Matched Time: </strong> Unknown</p>
+              <p><strong>Matching Runtime: </strong> Unknown</p>
+              <p><strong>Service Type: </strong>{item.event_type_slug}</p>
+              <p><strong>File Name: </strong>{item.given_filename}</p>
             </TimelineEvent>
+            ))}
         </Timeline>
       </div>
     )
@@ -88,4 +98,3 @@ class ActionTimeLine extends React.Component {
 
 
 export default connect(mapStateToProps, mapDispatchToProps)(ActionTimeLine)
-

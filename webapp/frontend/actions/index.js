@@ -17,7 +17,8 @@ import {
   UPDATE_SET_STATUS,
   VALIDATED_RESULT,
   FETCHING_RESULT,
-  SHOW_JOBS
+  SHOW_JOBS,
+  SHOW_HISTORY
 } from '../constants/index'
 import { length, filter } from 'ramda'
 import { validJurisdictions } from '../utils/jurisdictions'
@@ -257,12 +258,31 @@ function showAllJobs(result) {
 
 export function getAllJobs() {
   return function(dispatch) {
-    return fetch('api/jobs/job_in_q', { method: 'GET', dataType: 'json', credentials: 'include'})
+    return fetch('api/jobs/get_jobs', { method: 'GET', dataType: 'json', credentials: 'include'})
       .then((resp) => {
         return resp.json()
       })
       .then((data) => {
         dispatch(showAllJobs(data))
+      })
+  }
+}
+
+function showHistory(result) {
+  return {
+    type: SHOW_HISTORY,
+    payload: result
+  }
+}
+
+export function getHistory() {
+  return function(dispatch) {
+    return fetch('api/jobs/history', { method: 'GET', dataType: 'json', credentials: 'include'})
+      .then((resp) => {
+        return resp.json()
+      })
+      .then((data) => {
+        dispatch(showHistory(data))
       })
   }
 }

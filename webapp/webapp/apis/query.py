@@ -280,32 +280,6 @@ def get_records_by_time(start_time, end_time):
     }
 
 
-def get_upload_log(upload_id):
-    query = """
-    SELECT id, upload_timestamp, event_type_slug, given_filename, file_size
-    FROM upload_log
-    WHERE id = %(upload_id)s
-    """
-    df = pd.read_sql(
-            query,
-            con=db.engine,
-            params={"upload_id": upload_id}
-    )
-    return df
-
-def get_merge_log(upload_id):
-    query = """
-    SELECT upload_id, new_unique_rows, total_unique_rows
-    FROM merge_log
-    WHERE upload_id = %(upload_id)s
-    """
-    df = pd.read_sql(
-            query,
-            con=db.engine,
-            params={"upload_id": upload_id}
-    )
-    return df
-
 def get_task_uplaod_id(n):
     query = """
     SELECT *
@@ -319,5 +293,18 @@ def get_task_uplaod_id(n):
         query,
         con=db.engine,
         params={"n": n}
+    )
+    return df
+
+
+def get_history():
+    query = """
+    SELECT *
+    FROM upload_log
+    ORDER BY upload_timestamp DESC
+    """
+    df = pd.read_sql(
+        query,
+        con=db.engine
     )
     return df
