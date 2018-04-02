@@ -71,5 +71,3 @@ def run(df:pd.DataFrame, clustering_params:dict) -> pd.DataFrame:
             matches[key] = cluster.generate_singleton_id(group, key)
 
     return matches
-
->>>>>>> master
