@@ -49,8 +49,8 @@ def get_jobs():
 def get_match_hitory():
     # Now query from upload_log but it should be querying from matcher_log
     df = query.get_history()
-    df['upload_timestamp'] = df['upload_timestamp'].dt.strftime('%Y-%m-%d %I:%M:%S %p')
     try:
+        df['upload_timestamp'] = df['upload_timestamp'].dt.strftime('%Y-%m-%d %I:%M:%S %p')
         output = df.to_dict('records')
         return jsonify(output)
     except:
