@@ -56,7 +56,7 @@ services:
             - KEYS=['first_name', 'middle_name', 'last_name', 'dob', 'ssn', 'dmv_number', 'dmv_state', 'race', 'ethnicity', 'sex']
             - CONTRASTER=exact
             # Matcher clustering configuration
-            - EPS=0.5
+            - EPS=0.8
             - MIN_SAMPLES=1
             - ALGORITHM=auto
             - LEAF_SIZE=30
