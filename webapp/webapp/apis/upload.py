@@ -27,7 +27,6 @@ from collections import defaultdict
 import re
 import requests
 import yaml
-# import logging
 import unicodecsv as csv
 import boto
 import os
