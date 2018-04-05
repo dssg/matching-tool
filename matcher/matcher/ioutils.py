@@ -12,6 +12,9 @@ import smart_open
 import botocore
 
 
+from datetime import datetime
+
+
 from matcher.logger import logger
 
 import matcher.utils as utils
@@ -41,6 +44,7 @@ EVENT_TYPES = [
     'hmis_service_stays',
     'jail_bookings'
 ]
+
 
 
 def load_data_for_matching(jurisdiction:str, upload_id:str) -> tuple:
@@ -194,3 +198,17 @@ def read_data_from_postgres(table_name:str):
 
     return df
 
+
+def insert_info_to_match_log(id:str, upload_id:str, match_start_timestamp, match_complete_timestamp, runtime) -> None:
+    conn = psycopg2.connect(**PG_CONNECTION)
+    cur = conn.cursor()
+    logger.info('Writing to match_log')
+    query = f"""
+    INSERT INTO public.match_log (id, upload_id, match_start_timestamp, match_complete_timestamp, runtime)
+        VALUES ('{id}', '{upload_id}', '{match_start_timestamp}', '{match_complete_timestamp}', '{runtime}');
+    """
+    cur.execute(query)
+    logger.info('Wrote to match_log')
+    conn.commit()
+    cur.close()
+    conn.close()

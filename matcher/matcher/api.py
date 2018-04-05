@@ -148,7 +148,7 @@ def do_match(jurisdiction, event_type, upload_id):
 
     logger.debug(f"Total matching time: {data_matched_time - start_time}")
 
-    
+
     # Merging: Join the matched blocks into a single dataframe
     logger.info('Concatenating matched results!')
     all_matches = pd.concat(matches.values())
@@ -157,12 +157,15 @@ def do_match(jurisdiction, event_type, upload_id):
     logger.debug(f"Number of matched pairs: {len(all_matches)}")
     logger.debug(f"Total concatenating time: {matches_concatenated_time - data_matched_time}")
 
-    # Writing: Join the matched ids to the source data for each event & write to S3 and postgres    
+    # Writing: Join the matched ids to the source data for each event & write to S3 and postgres
     logger.info('Writing matched results!')
     ioutils.write_matched_data(all_matches, jurisdiction, event_types_read)
     data_written_time = datetime.datetime.now()
 
     total_match_time = data_written_time - start_time
+    match_id = utils.unique_match_id()
+
+    ioutils.insert_info_to_match_log(match_id, upload_id, start_time, data_written_time, total_match_time)
 
     return {
         'status': 'done',
