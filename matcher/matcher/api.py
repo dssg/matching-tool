@@ -165,6 +165,9 @@ def do_match(jurisdiction, event_type, upload_id):
     data_written_time = datetime.datetime.now()
 
     total_match_time = data_written_time - start_time
+    match_id = utils.unique_match_id()
+
+    ioutils.insert_info_to_match_log(match_id, upload_id, start_time, data_written_time, total_match_time)
 
     return {
         'status': 'done',
