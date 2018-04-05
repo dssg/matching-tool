@@ -36,7 +36,7 @@ setup(
     long_description=README_PATH.read_text(),
     author="Center For Data Science and Public Policy",
     author_email='datascifellows@gmail.com',
-    url='https://github.com/dssg/csh',
+    url='https://github.com/dssg/matching-tool',
     packages=[
         'webapp',
         'webapp.apis',
