@@ -1,4 +1,4 @@
-"""creat matcher log
+"""create matcher log
 
 Revision ID: 66263cd9943c
 Revises: 54bc94af6ead
