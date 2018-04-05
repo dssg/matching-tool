@@ -56,11 +56,6 @@ class Validating extends React.Component {
         <div>
           <CircularProgress size={60} thickness={7} />
         </div>
-        <Link to="/">
-          <RaisedButton
-            style={styles.button}
-            label="Back to Home" />
-          </Link>
       </div>
     )
   }

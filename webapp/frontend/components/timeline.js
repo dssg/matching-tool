@@ -72,15 +72,14 @@ class ActionTimeLine extends React.Component {
                 key={idx}>
                 <div>
                   <p><strong>Upload Time: </strong> {item.created_time}</p>
-                  <p><strong>Current Runtime: </strong> 4 hours</p>
                   <p><strong>Service Type: </strong>{item.event_type}</p>
-                  <p><strong>File Name: </strong>{item.given_filename}</p>
+                  <p><strong>File Name: </strong>{item.filename}</p>
                 </div>
               </TimelineEvent>
             ))}
             {this.props.history.map((item, idx) => (
               <TimelineEvent
-                title="Last Task"
+                title={"Completed Task #" + item.index}
                 icon={<i className="material-icons md-18">cloud_upload</i>}
                 iconColor="#43C6DB"
                 key={idx}>

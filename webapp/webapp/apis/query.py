@@ -316,7 +316,7 @@ def get_history():
         to_char(match_log.runtime, 'HH24:MI:SS') as runtime
     FROM match_log
     LEFT JOIN upload_log ON upload_log.id = match_log.upload_id
-    ORDER BY match_complete_timestamp DESC
+    ORDER BY match_complete_timestamp ASC
     """
     df = pd.read_sql(
         query,

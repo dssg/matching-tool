@@ -27,6 +27,7 @@ def get_jobs():
     queued_jobs = q.jobs
     q_time = [job.enqueued_at for job in queued_jobs]
     q_event_type = [job.meta['event_type'] for job in queued_jobs]
+    q_file_name = [job.meta['filename'] for job in queued_jobs]
     try:
         current_job_id = registry.get_job_ids()
         current_job_created_at = [Job.fetch(job_id, connection=redis_connection).created_at for job_id in current_job_id]
@@ -42,7 +43,13 @@ def get_jobs():
             } for (job_id, time, event, filename) in zip(current_job_id, current_job_created_at, current_job_event_type, current_job_file_name)]
     except:
         current_job = []
-    jobs_in_q = [{'job_id': job_id, 'created_time': time.strftime('%Y-%m-%d %I:%M:%S %p'), 'event_type': event} for (job_id, time, event) in zip(q.job_ids, q_time, q_event_type)]
+    jobs_in_q = [
+        {
+            'job_id': job_id,
+            'created_time': time.strftime('%Y-%m-%d %I:%M:%S %p'),
+            'event_type': event,
+            'filename': filename
+        } for (job_id, time, event, filename) in zip(q.job_ids, q_time, q_event_type, q_file_name)]
     app.logger.info(f"current_job: {current_job}")
     return jsonify(current=current_job, q=jobs_in_q)
 
@@ -54,27 +61,9 @@ def get_match_hitory():
     df['upload_timestamp'] = df['upload_timestamp'].dt.strftime('%Y-%m-%d %I:%M:%S %p')
     df['match_start_timestamp'] = df['match_start_timestamp'].dt.strftime('%Y-%m-%d %I:%M:%S %p')
     df['match_complete_timestamp'] = df['match_complete_timestamp'].dt.strftime('%Y-%m-%d %I:%M:%S %p')
-    try:
-        output = df.to_dict('records')
-        return jsonify(output)
-    except:
-        return "something is wrong", 500
-
-
-@jobs_api.route('/upload_log/<upload_id>', methods=['GET'])
-def get_upload_log(upload_id):
-    df = query.get_upload_log(upload_id)
-    try:
-        output = df.to_dict('records')
-        return jsonify(output)
-    except:
-        return "something is wrong", 500
-
-
-@jobs_api.route('/merge_log/<upload_id>', methods=['GET'])
-def get_merge_log(upload_id):
-    df = query.get_merge_log(upload_id)
-    print(df)
+    df.index = df.index + 1
+    df.sort_index(inplace=True, ascending=False)
+    df.reset_index(level=0, inplace=True)
     try:
         output = df.to_dict('records')
         return jsonify(output)
