@@ -31,30 +31,35 @@ def get_jobs():
         current_job_id = registry.get_job_ids()
         current_job_created_at = [Job.fetch(job_id, connection=redis_connection).created_at for job_id in current_job_id]
         current_job_event_type = [Job.fetch(job_id, connection=redis_connection).meta['event_type'] for job_id in current_job_id]
+        current_job_file_name = [Job.fetch(job_id, connection=redis_connection).meta['filename'] for job_id in current_job_id]
         current_job = [
             {
                 'job_id': job_id,
                 'created_time': time.strftime('%Y-%m-%d %I:%M:%S %p'),
                 'event_type': event,
-                'runtime': str(datetime.now() - time).split('.', 2)[0]
-            } for (job_id, time, event) in zip(current_job_id, current_job_created_at, current_job_event_type)]
+                'runtime': str(datetime.now() - time).split('.', 2)[0],
+                'filename': filename
+            } for (job_id, time, event, filename) in zip(current_job_id, current_job_created_at, current_job_event_type, current_job_file_name)]
     except:
         current_job = []
     jobs_in_q = [{'job_id': job_id, 'created_time': time.strftime('%Y-%m-%d %I:%M:%S %p'), 'event_type': event} for (job_id, time, event) in zip(q.job_ids, q_time, q_event_type)]
     app.logger.info(f"current_job: {current_job}")
     return jsonify(current=current_job, q=jobs_in_q)
 
+
 @jobs_api.route('/history', methods=['GET'])
 @login_required
 def get_match_hitory():
-    # Now query from upload_log but it should be querying from matcher_log
     df = query.get_history()
+    df['upload_timestamp'] = df['upload_timestamp'].dt.strftime('%Y-%m-%d %I:%M:%S %p')
+    df['match_start_timestamp'] = df['match_start_timestamp'].dt.strftime('%Y-%m-%d %I:%M:%S %p')
+    df['match_complete_timestamp'] = df['match_complete_timestamp'].dt.strftime('%Y-%m-%d %I:%M:%S %p')
     try:
-        df['upload_timestamp'] = df['upload_timestamp'].dt.strftime('%Y-%m-%d %I:%M:%S %p')
         output = df.to_dict('records')
         return jsonify(output)
     except:
         return "something is wrong", 500
+
 
 @jobs_api.route('/upload_log/<upload_id>', methods=['GET'])
 def get_upload_log(upload_id):
@@ -69,6 +74,7 @@ def get_upload_log(upload_id):
 @jobs_api.route('/merge_log/<upload_id>', methods=['GET'])
 def get_merge_log(upload_id):
     df = query.get_merge_log(upload_id)
+    print(df)
     try:
         output = df.to_dict('records')
         return jsonify(output)

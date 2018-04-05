@@ -305,7 +305,7 @@ def upload_file():
             args=(uploaded_file.filename, jurisdiction, full_filename, event_type, 1000000),
             result_ttl=5000,
             timeout=3600,
-            meta={'event_type': event_type}
+            meta={'event_type': event_type, 'filename': filename}
         )
         app.logger.info(f"Job id {job.get_id()}")
         return jsonify(
@@ -356,7 +356,8 @@ def merge_file():
             merge_log = db_session.query(MergeLog).get(merge_id)
             try:
                 logging.info('Merge succeeded. Now querying matcher')
-                notify_matcher(upload_log.jurisdiction_slug, upload_log.event_type_slug, upload_id)
+                app.logger.info(upload_log.given_filename)
+                notify_matcher(upload_log.jurisdiction_slug, upload_log.event_type_slug, upload_id, upload_log.given_filename)
             except Exception as e:
                 logging.error('Error matching: ', e)
                 db_session.rollback()

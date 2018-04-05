@@ -7,6 +7,7 @@ import { getAllJobs, getHistory } from '../actions'
 const styles = {
   timeline: {
     height: '600px',
+    width: '350px',
     overflow: 'scroll'
   }
 }
@@ -57,7 +58,7 @@ class ActionTimeLine extends React.Component {
                   <p><strong>Upload Time: </strong> {item.created_time}</p>
                   <p><strong>Current Runtime: </strong> {item.runtime}</p>
                   <p><strong>Service Type: </strong>{item.event_type}</p>
-                  <p><strong>File Name: </strong>Unknown</p>
+                  <p><strong>File Name: </strong>{item.filename}</p>
                 </div>
               </TimelineEvent>
             ))}
@@ -73,7 +74,7 @@ class ActionTimeLine extends React.Component {
                   <p><strong>Upload Time: </strong> {item.created_time}</p>
                   <p><strong>Current Runtime: </strong> 4 hours</p>
                   <p><strong>Service Type: </strong>{item.event_type}</p>
-                  <p><strong>File Name: </strong>Unkonwn</p>
+                  <p><strong>File Name: </strong>{item.given_filename}</p>
                 </div>
               </TimelineEvent>
             ))}
@@ -84,8 +85,8 @@ class ActionTimeLine extends React.Component {
                 iconColor="#43C6DB"
                 key={idx}>
               <p><strong>Upload Time: </strong> {item.upload_timestamp}</p>
-              <p><strong>Matched Time: </strong> Unknown</p>
-              <p><strong>Matching Runtime: </strong> Unknown</p>
+              <p><strong>Matched Time: </strong> {item.match_complete_timestamp}</p>
+              <p><strong>Matching Runtime: </strong> {item.runtime}</p>
               <p><strong>Service Type: </strong>{item.event_type_slug}</p>
               <p><strong>File Name: </strong>{item.given_filename}</p>
             </TimelineEvent>

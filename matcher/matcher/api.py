@@ -66,8 +66,8 @@ def list_jobs():
 	'enqueue_at': [job.enqueued_at for job in queued_jobs]
     })
 
-@app.route('/match/<jurisdiction>/<event_type>', methods=['GET'])
-def match(jurisdiction, event_type):
+@app.route('/match/<jurisdiction>/<event_type>/<filename>', methods=['GET'])
+def match(jurisdiction, event_type, filename):
     upload_id = request.args.get('uploadId', None)   ## QUESTION: Why is this a request arg and is not in the route? Also, Why in CamelCase?
     if not upload_id:
         return jsonify(status='invalid', reason='uploadId not present')
@@ -79,7 +79,7 @@ def match(jurisdiction, event_type):
         args=(jurisdiction, event_type, upload_id),
         result_ttl=5000,
         timeout=100000,
-        meta={'event_type': event_type}
+        meta={'event_type': event_type, 'filename': filename}
     )
 
     logger.info(f"Job id {job.get_id()}")
