@@ -12,9 +12,6 @@ import smart_open
 import botocore
 
 
-from datetime import datetime
-
-
 from matcher.logger import logger
 
 import matcher.utils as utils
