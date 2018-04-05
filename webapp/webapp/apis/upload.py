@@ -22,7 +22,7 @@ from webapp.apis import query
 from werkzeug.utils import secure_filename
 
 from redis import Redis
-from rq import Queue, get_current_job
+from rq import Queue
 from rq.job import Job
 from rq.registry import StartedJobRegistry
 

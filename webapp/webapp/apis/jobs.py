@@ -5,7 +5,7 @@ from flask_security import login_required
 from webapp import app
 
 from redis import Redis
-from rq import Queue, get_current_job
+from rq import Queue
 from rq.job import Job
 from rq.registry import StartedJobRegistry
 
