@@ -15,7 +15,7 @@ setup(
     name='matcher',
     version='0.0.1',
     description='CSH matcher',
-    url='https://github.com/dssg/csh',
+    url='https://github.com/dssg/matching-tool',
     packages=find_packages(),
     include_package_data=True,
     install_requires=requirements,

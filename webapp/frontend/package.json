@@ -1,5 +1,5 @@
 {
-  "name": "csh",
+  "name": "matching-tool",
   "version": "0.0.0",
   "description": "Integrating HMIS and criminal-justice data",
   "main": "index.js",
@@ -15,12 +15,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/dssg/csh.git"
+    "url": "git://github.com/dssg/matching-tool.git"
   },
   "author": "Center for Data Science and Public Policy (datascifellows@gmail.com)",
   "license": "UChicago",
   "bugs": {
-    "url": "https://github.com/dssg/csh/issues"
+    "url": "https://github.com/dssg/matching-tool/issues"
   },
   "dependencies": {
     "babel-polyfill": "^6.26.0",
