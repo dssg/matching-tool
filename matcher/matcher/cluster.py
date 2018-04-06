@@ -70,11 +70,12 @@ def generate_matched_ids(
     
     logger.info('Beginning clustering & id generation.')
     distances = square_distance_matrix(distances)
-    ioutils.write_dataframe_to_s3(features.reset_index(), key=f'{jurisdiction}/match_cache/square_distances/{uploadid}/block_name')
+    ioutils.write_dataframe_to_s3(features.reset_index(), key=f'csh/matcher/{jurisdiction}/match_cache/square_distances/{uploadid}/block_name')
+
     ids = cluster(
         distances, **clustering_params
     )
-    ioutils.write_dataframe_to_s3(ids.reset_index(), key=f'{jurisdiction}/match_cache/raw_cluster_ids/{uploadid}/block_name')
+    ioutils.write_dataframe_to_s3(ids.reset_index(), key=f'csh/matcher/{jurisdiction}/match_cache/raw_cluster_ids/{uploadid}/block_name')
     max_cluster_id = ids.max()
     replacement_ids = pd.Series(range(max_cluster_id + 1, max_cluster_id + len(ids[ids == -1]) + 1), index=ids[ids==-1].index)
     ids[ids == -1] = replacement_ids

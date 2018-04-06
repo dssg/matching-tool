@@ -39,7 +39,7 @@ def run(df:pd.DataFrame, clustering_params:dict, jurisdiction:str, upload_id:str
  
             features.index.rename(['matcher_index_left', 'matcher_index_right'], inplace=True)
             features = rules.compactify(features, operation='mean')
-            ioutils.write_dataframe_to_s3(features.reset_index(), key=f'{jurisdiction}/match_cache/fetures/{uploadid}/key')
+            ioutils.write_dataframe_to_s3(features.reset_index(), key=f'csh/matcher/{jurisdiction}/match_cache/fetures/{uploadid}/key')
 
             logger.debug(f"Features dataframe size: {features.shape}")
             logger.debug(f"Features data without duplicated indexes: {features[~features.index.duplicated(keep='first')].shape}")

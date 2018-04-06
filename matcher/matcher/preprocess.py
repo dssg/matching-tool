@@ -80,6 +80,6 @@ def preprocess(df:pd.DataFrame, upload_id:str, jurisdiction:str) -> pd.DataFrame
     logger.info('Preprocessing done!')
     logger.debug(f"The preprocessed dataframe has the following columns: {df.columns}")
     logger.debug(f"The preprocessed dimensions of the dataframe is: {df.shape}")
-    ioutils.write_dataframe_to_s3(features.reset_index(), key=f'{jurisdiction}/match_cache/preprocessed_data/{uploadid}')
+    ioutils.write_dataframe_to_s3(features.reset_index(), key=f'csh/matcher/{jurisdiction}/match_cache/preprocessed_data/{uploadid}')
     return df
 
