@@ -65,7 +65,7 @@ def load_data_for_matching(jurisdiction:str, upload_id:str) -> tuple:
     logger.debug(f'The loaded dataframe has the following duplicate indices: {df[df.index.duplicated()].index.values}')
 
     # Cache read data
-    write_dataframe_to_s3(df=df, key=f'{jurisdiction}/match_cache/loaded_data/{upload_id}')
+    write_dataframe_to_s3(df=df, key=f'csh/matcher/{jurisdiction}/match_cache/loaded_data/{upload_id}')
 
     return df, event_types_read
 
