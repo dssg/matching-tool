@@ -159,7 +159,7 @@ def do_match(jurisdiction, event_type, upload_id):
 
     # Writing: Join the matched ids to the source data for each event & write to S3 and postgres    
     logger.info('Writing matched results!')
-    ioutils.write_matched_data(all_matches, jurisdiction, event_types_read, upload_id)
+    ioutils.write_matched_data(all_matches, jurisdiction, upload_id, event_types_read)
     data_written_time = datetime.datetime.now()
 
     total_match_time = data_written_time - start_time
