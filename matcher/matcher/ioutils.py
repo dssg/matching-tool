@@ -64,6 +64,9 @@ def load_data_for_matching(jurisdiction:str, upload_id:str) -> tuple:
     logger.debug(f'The loaded has {len(df)} rows and {len(df.index.unique())} unique indices')
     logger.debug(f'The loaded dataframe has the following duplicate indices: {df[df.index.duplicated()].index.values}')
 
+    # Cache read data
+    write_dataframe_to_s3(df=df, key=f'{jurisdiction}/match_cache/loaded_data/{uploadid}')
+
     return df, event_types_read
 
 
@@ -100,21 +103,22 @@ def read_merged_data_from_s3(jurisdiction:str, event_type:str) -> pd.DataFrame:
     return df
 
 
-def write_matched_data(matches:pd.DataFrame, jurisdiction:str, event_types_read) -> None:
+def write_matched_data(matches:pd.DataFrame, jurisdiction:str, upload_id:str, event_types_read:list) -> None:
+    write_dataframe_to_s3(df=matches, key=f'csh/matcher/{jurisdiction}/match_cache/matcher_results/{upload_id}')
     for event_type in event_types_read:
         logger.info(f'Writing matched data for {jurisdiction} {event_type}')
-        write_one_event_type(matches, jurisdiction, event_type)
+        write_one_event_type(matches, jurisdiction, event_type, upload_id)
 
 
-def write_one_event_type(df:pd.DataFrame, jurisdiction:str, event_type:str) -> None:
+def write_one_event_type(df:pd.DataFrame, jurisdiction:str, event_type:str, upload_id:str) -> None:
     # Join the matched ids to the source data
     logger.info(f'Joining matches to merged data for {event_type}')
     df = utils.join_matched_and_merged_data(df, jurisdiction, event_type)
 
     # Cache the current match to S3
     logger.info(f'Writing data for {jurisdiction} {event_type} to S3.')
-    key = f'csh/matcher/{jurisdiction}/{event_type}/matched'
-    write_dataframe_to_s3(df, key)
+    write_dataframe_to_s3(df=df, key='csh/matcher/{jurisdiction}/matches/{upload_id}')
+    write_dataframe_to_s3(df=df, key='csh/matcher/{jurisdiction}/{event_type}/matched')
 
     # Write the current match to postgres for use by the webapp
     logger.info(f'Writing data for {jurisdiction} {event_type} to postgres.')
