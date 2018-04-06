@@ -70,7 +70,7 @@ def generate_matched_ids(
     
     logger.info('Beginning clustering & id generation.')
     distances = square_distance_matrix(distances)
-    ioutils.write_dataframe_to_s3(features.reset_index(), key=f'csh/matcher/{jurisdiction}/match_cache/square_distances/{upload_id}/block_name')
+    ioutils.write_dataframe_to_s3(distances.reset_index(), key=f'csh/matcher/{jurisdiction}/match_cache/square_distances/{upload_id}/block_name')
 
     ids = cluster(
         distances, **clustering_params
