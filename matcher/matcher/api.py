@@ -138,7 +138,7 @@ def do_match(jurisdiction, event_type, upload_id):
 
     # Matching: block the data, generate pairs and features, and cluster entities
     logger.info(f"Running matcher")
-    matches = matcher.run(df=df, clustering_params=CLUSTERING_PARAMS, jurisdiction=jurisdiction)
+    matches = matcher.run(df=df, clustering_params=CLUSTERING_PARAMS, jurisdiction=jurisdiction, upload_id=upload_id)
     data_matched_time = datetime.datetime.now()
     logger.debug('Matching done!')
 
