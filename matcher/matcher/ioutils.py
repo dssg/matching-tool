@@ -117,8 +117,8 @@ def write_one_event_type(df:pd.DataFrame, jurisdiction:str, event_type:str, uplo
 
     # Cache the current match to S3
     logger.info(f'Writing data for {jurisdiction} {event_type} to S3.')
-    write_dataframe_to_s3(df=df, key='csh/matcher/{jurisdiction}/{event_type}/matches/{upload_id}')
-    write_dataframe_to_s3(df=df, key='csh/matcher/{jurisdiction}/{event_type}/matched')
+    write_dataframe_to_s3(df=df, key=f'csh/matcher/{jurisdiction}/{event_type}/matches/{upload_id}')
+    write_dataframe_to_s3(df=df, key=f'csh/matcher/{jurisdiction}/{event_type}/matched')
 
     # Write the current match to postgres for use by the webapp
     logger.info(f'Writing data for {jurisdiction} {event_type} to postgres.')
