@@ -13,11 +13,11 @@ from matcher.logger import logger
 
 import recordlinkage as rl
 
-def run(df:pd.DataFrame, clustering_params:dict, jurisdiction:str, upload_id:str) -> pd.DataFrame:
+def run(df:pd.DataFrame, clustering_params:dict, jurisdiction:str, upload_id:str, blocking_rule:str) -> pd.DataFrame:
 
     ## We will split-apply-combine
 
-    grouped = df.groupby('first_name')
+    grouped = df.groupby(eval(blocking_rule))
 
     matches = {}
     logger.debug(f"{df.first_name.value_counts()}")
