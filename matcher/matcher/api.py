@@ -37,7 +37,7 @@ CLUSTERING_PARAMS = {
     'leaf_size': int(os.getenv('LEAF_SIZE')),
     'n_jobs': int(os.getenv('N_JOBS')),
 }
-BLOCKING_RULE = os.getenv('BLOCKING_RULE')
+BLOCKING_RULES = os.getenv('BLOCKING_RULES')
 
 
 # Initialize the app
@@ -139,7 +139,7 @@ def do_match(jurisdiction, event_type, upload_id):
 
     # Matching: block the data, generate pairs and features, and cluster entities
     logger.info(f"Running matcher")
-    matches = matcher.run(df=df, clustering_params=CLUSTERING_PARAMS, jurisdiction=jurisdiction, upload_id=upload_id, blocking_rule=BLOCKING_RULE)
+    matches = matcher.run(df=df, clustering_params=CLUSTERING_PARAMS, jurisdiction=jurisdiction, upload_id=upload_id, blocking_rules=BLOCKING_RULES)
     data_matched_time = datetime.datetime.now()
     logger.debug('Matching done!')
 

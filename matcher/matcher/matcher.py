@@ -18,8 +18,7 @@ def run(df:pd.DataFrame, clustering_params:dict, jurisdiction:str, upload_id:str
     ## We will split-apply-combine
     logger.debug(f'df sent to matcher has the following columns: {df.dtypes}')
     logger.info(f'Blocking by {blocking_rule}')
-    grouped = df.groupby(eval(blocking_rule))
-    # grouped = df.groupby(eval("[df['last_name'].str[:1],df['dob'].dt.year]"))
+    grouped = df.groupby([df[key].astype(str).str[:br[key]] for key in blocking_rules.keys()])
     logger.info(f'Applying matcher to {len(grouped)} blocks.')
 
     matches = {}
@@ -54,7 +53,7 @@ def run(df:pd.DataFrame, clustering_params:dict, jurisdiction:str, upload_id:str
                 clustering_params=clustering_params,
                 jurisdiction=jurisdiction, # at some point, we may want to consider making the matcher into a class
                 upload_id=upload_id,       # rather than passing around keys, upload_ids, jurisdictions, etc.
-                block_name=key
+                block_name=str(key)
             )
 
             matches[key] = matched
