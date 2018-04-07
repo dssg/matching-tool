@@ -83,7 +83,7 @@ def generate_matched_ids(
     logger.debug(f'Replaced noisy singleton ids with \n{replacement_ids}')
     
     logger.debug(f'Adding the block name ({block_name}) to the matched_ids.')
-    ids = block_name + ids.astype(str)
+    ids = str(block_name) + ids.astype(str)
     logger.debug(f'New IDs: \n{ids}')
     
     df = DF.copy()
