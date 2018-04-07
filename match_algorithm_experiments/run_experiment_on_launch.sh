@@ -1,4 +1,6 @@
-et up environment
+#!/bin/bash
+
+# set up environment
 ln -s -f /usr/bin/python3 /usr/bin/python
 apt-get -y install python3-pip
 pip3 install awscli
