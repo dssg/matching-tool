@@ -34,17 +34,17 @@ def lists_share_all_values(l1:pd.Series, l2:pd.Series) -> pd.Series:
     return (l1_all & l2_all).astype(float)
 
 
-class Comparer(Object):
+class Comparer:
     def __init__(self):
         self.comparer = rl.Compare()
 
     def compare_exact(self, col_name:str, n_chars:int=None):
         if n_chars:
             logger.debug(f'Doing an exact comparison of {n_chars} characters of {col_name}')
-            self.comparer.exact(col_name, col_name, label=f'{col_name}_exact_distance')
+            self.comparer.compare_vectorized(compare_exact_n_chars, col_name, col_name, int(n_chars), label=f'{col_name}_exact_{n_chars}_distance')
         else:
+            self.comparer.exact(col_name, col_name, label=f'{col_name}_exact_distance')
             logger.debug(f'Doing an exact comparison of {col_name}')
-            self.comparer.compare_vectorized(compare_exact_n_chars, col_name, col_name, n, label=f'{col_name}_exact_{n_chars}_distance')
     
     def compare_string_distance(self, col_name:str, method:str):
         logger.debug(f'Doing a {method} comparison of {col_name}')
@@ -58,7 +58,7 @@ class Comparer(Object):
         logger.debug(f'Doing a numeric distance calculation on {col_name}')
         self.comparer.date(col_name, col_name, kwargs)
 
-    def compare_list(self, col_name:str, method:str)
+    def compare_list(self, col_name:str, method:str):
         if method == 'any':
             logger.debug(f'Checking if {col_name} shares any value.')
             self.comparer.compare_vectorized(lists_share_any_values, col_name, col_name, label=f'{col_name}_any_list_item_distance')
@@ -71,10 +71,10 @@ class Comparer(Object):
 
 def generate_features(all_comparisons:dict, pairs:pd.MultiIndex, df:pd.DataFrame) -> pd.DataFrame:
     c = Comparer() 
-    for col_name, comparisons in self.all_comparisons:
-        for comparison, args in comparison:
-            method_to_call = getattr(c.comparer, comparison)
-            method_to_call(col_name, args)
+    for col_name, comparisons in all_comparisons.items():
+        for comparison in comparisons:
+            method_to_call = getattr(c, comparison['method'])
+            method_to_call(col_name, **comparison['args'])
 
     return c.comparer.compute(pairs, df)
 
