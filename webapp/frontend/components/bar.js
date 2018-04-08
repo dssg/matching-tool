@@ -1,14 +1,10 @@
-import {
-  DiscreteColorLegend,
-  HorizontalGridLines,
-  makeWidthFlexible,
-  onValueClick,
-  onItemClick,
-  VerticalBarSeries,
-  XAxis,
-  XYPlot,
-  YAxis,
-} from 'react-vis'
+import DiscreteColorLegend from 'react-vis/dist/legends/discrete-color-legend'
+import HorizontalGridLines from 'react-vis/dist/plot/horizontal-grid-lines'
+import { makeWidthFlexible } from 'react-vis/dist/make-vis-flexible'
+import VerticalBarSeries from 'react-vis/dist/plot/series/vertical-bar-series'
+import XAxis from 'react-vis/dist/plot/series/vertical-bar-series'
+import XYPlot from 'react-vis/dist/plot/xy-plot'
+import YAxis from 'react-vis/dist/plot/axis/y-axis'
 import React from 'react'
 
 const FlexibleXYPlot = makeWidthFlexible(XYPlot)
