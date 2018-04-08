@@ -2,6 +2,7 @@
 
 import os
 import json
+import ast
 
 from flask import Flask, jsonify, request
 from flask import make_response
@@ -37,7 +38,7 @@ CLUSTERING_PARAMS = {
     'leaf_size': int(os.getenv('LEAF_SIZE')),
     'n_jobs': int(os.getenv('N_JOBS')),
 }
-BLOCKING_RULES = os.getenv('BLOCKING_RULES')
+BLOCKING_RULES = ast.literal_eval(os.getenv('BLOCKING_RULES'))
 
 
 # Initialize the app

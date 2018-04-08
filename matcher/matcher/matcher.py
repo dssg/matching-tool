@@ -13,12 +13,12 @@ from matcher.logger import logger
 
 import recordlinkage as rl
 
-def run(df:pd.DataFrame, clustering_params:dict, jurisdiction:str, upload_id:str, blocking_rule:str) -> pd.DataFrame:
+def run(df:pd.DataFrame, clustering_params:dict, jurisdiction:str, upload_id:str, blocking_rules:dict) -> pd.DataFrame:
 
     ## We will split-apply-combine
     logger.debug(f'df sent to matcher has the following columns: {df.dtypes}')
-    logger.info(f'Blocking by {blocking_rule}')
-    grouped = df.groupby([df[key].astype(str).str[:br[key]] for key in blocking_rules.keys()])
+    logger.info(f'Blocking by {blocking_rules}')
+    grouped = df.groupby([df[key].astype(str).str[:blocking_rules[key]] for key in blocking_rules.keys()])
     logger.info(f'Applying matcher to {len(grouped)} blocks.')
 
     matches = {}
