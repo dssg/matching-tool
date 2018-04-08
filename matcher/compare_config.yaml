@@ -1,0 +1,75 @@
+# Each top-level key is a column name in the pre-processed DataFrame.
+# Each second-level key is a function in matcher/featurizer to apply.
+# Third-level keys are arguments to pass to that function.
+first_name:
+    compare_exact: 
+        n_chars: None
+    compare_exact: 
+        n_chars: 5
+    compare_exact: 
+        n_chars: -5
+    compare_exact: 
+        n_chars: 3
+    compare_exact: 
+        n_chars: -3
+    compare_string:
+        method: jarowinkler
+middle_name:
+    compare_exact: 
+        n_chars: None
+    compare_exact: 
+        n_chars: 5
+    compare_exact: 
+        n_chars: -5
+    compare_exact: 
+        n_chars: 3
+    compare_exact: 
+        n_chars: -3
+    compare_string:
+        method: jarowinkler
+last_name:
+    compare_exact: 
+        n_chars: None
+    compare_exact: 
+        n_chars: 5
+    compare_exact: 
+        n_chars: -5
+    compare_exact: 
+        n_chars: 3
+    compare_exact: 
+        n_chars: -3
+    compare_string:
+        method: jarowinkler
+dob:
+    compare_exact:
+        n_chars: None
+    compare_exact:
+        n_chars: 4
+    compare_swap_month_days:
+        swap_score: .5
+ssn:
+    compare_exact:
+        n_chars: None
+    compare_exact:
+        n_chars: -4
+    compare_string:
+        method: jaro
+dmv_number:
+    compare_exact:
+        n_chars: None
+    compare_string:
+        method: jaro
+race:
+    compare_list:
+        method: any
+    compare_list:
+        method: all
+ethnicty:
+    compare_exact:
+        n_chars: None
+sex:
+    compare_exact:
+        n_chars: None
+    compare_exact:
+        n_chars: -1
+
