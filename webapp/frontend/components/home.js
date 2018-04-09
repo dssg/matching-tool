@@ -1,9 +1,9 @@
 import FlatButton from 'material-ui/FlatButton';
 import Header from './header'
 import React from 'react'
-import {Card, CardActions, CardHeader, CardMedia, CardTitle, CardText} from 'material-ui/Card';
-import {Link} from 'react-router-dom'
-
+import { Card, CardActions, CardHeader, CardMedia, CardTitle, CardText } from 'material-ui/Card';
+import { Link } from 'react-router-dom'
+import ActionTimeLine from './timeline'
 
 const styles = {
   page: {
@@ -12,10 +12,11 @@ const styles = {
   container: {
     display: 'flex',
     justifyContent: 'space-between',
-    width: '50%'
+    width: '65%'
   },
   card: {
-    width: '40%',
+    width: '50%',
+    margin: '10px'
   },
   title: {
     marginBottom: '40px'
@@ -28,7 +29,7 @@ export default React.createClass({
         <Header location={this.props.location} />
         <div style={styles.page}>
           <h2 style={styles.title}>Integrating HMIS and Criminal Justice Data</h2>
-          <div style={styles.container}>
+          <div className="col-sm-9" style={styles.container}>
             <Card style={styles.card}>
               <Link to='/upload'><CardTitle title='Upload' /></Link>
               <CardText>
@@ -41,6 +42,9 @@ export default React.createClass({
                 View matched data to find overlaps between populations, and frequent utilizers of county systems.
               </CardText>
             </Card>
+          </div>
+          <div className="col-sm-3">
+              <ActionTimeLine />
           </div>
         </div>
       </div>

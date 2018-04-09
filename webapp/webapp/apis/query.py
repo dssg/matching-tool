@@ -1,5 +1,5 @@
 import pandas as pd
-from webapp import db
+from webapp import db, app
 from collections import OrderedDict
 
 def get_table_data(filtered_bookings, filtered_hmis, unique_ids):
@@ -217,6 +217,9 @@ def get_records_by_time(start_time, end_time):
 
     shared_ids = filtered_hmis[filtered_hmis.matched_id.isin(filtered_bookings.matched_id)].matched_id.unique()
 
+    if len(shared_ids) == 0:
+        app.logger.warning("No matched between two services")
+
     table_data = get_table_data(filtered_bookings, filtered_hmis, list(set(list(filtered_bookings.matched_id.unique())+list(filtered_hmis.matched_id.unique()))))
 
 
@@ -275,3 +278,48 @@ def get_records_by_time(start_time, end_time):
         "vennDiagramData": venn_diagram_data,
         "filteredData": filtered_data
     }
+
+
+def get_task_uplaod_id(n):
+    query = """
+    SELECT *
+    FROM (
+        SELECT row_number() over (ORDER By upload_timestamp DESC) as rownumber, *
+        FROM upload_log
+    ) as foo
+    where rownumber = %(n)s
+    """
+    df = pd.read_sql(
+        query,
+        con=db.engine,
+        params={"n": n}
+    )
+    return df
+
+
+def get_history():
+    query = """
+    SELECT
+        upload_log.id as upload_id,
+        upload_log.jurisdiction_slug,
+        upload_log.event_type_slug,
+        upload_log.user_id,
+        upload_log.given_filename,
+        upload_log.upload_timestamp,
+        upload_log.num_rows,
+        upload_log.file_size,
+        upload_log.file_hash,
+        upload_log.s3_upload_path,
+        match_log.id as match_id,
+        match_log.match_start_timestamp,
+        match_log.match_complete_timestamp,
+        to_char(match_log.runtime, 'HH24:MI:SS') as runtime
+    FROM match_log
+    LEFT JOIN upload_log ON upload_log.id = match_log.upload_id
+    ORDER BY match_complete_timestamp ASC
+    """
+    df = pd.read_sql(
+        query,
+        con=db.engine
+    )
+    return df

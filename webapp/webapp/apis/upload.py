@@ -17,11 +17,14 @@ from webapp.tasks import \
     validate_file
 from webapp.utils import unique_upload_id, s3_upload_path, schema_filename, notify_matcher, infer_delimiter, load_schema_file
 
+from webapp.apis import query
+
 from werkzeug.utils import secure_filename
 
 from redis import Redis
-from rq import Queue, get_current_job
+from rq import Queue
 from rq.job import Job
+from rq.registry import StartedJobRegistry
 
 from collections import defaultdict
 import re
@@ -42,7 +45,6 @@ PRETTY_JURISDICTION_MAP = {
     'mclean': 'McLean County',
     'test': 'Test County',
 }
-
 
 def get_q(redis_connection):
     return Queue('webapp', connection=redis_connection)
@@ -303,6 +305,7 @@ def upload_file():
             args=(uploaded_file.filename, jurisdiction, full_filename, event_type, 1000000),
             result_ttl=5000,
             timeout=3600,
+            meta={'event_type': event_type, 'filename': filename}
         )
         logger.info(f"Job id {job.get_id()}")
         return jsonify(
@@ -370,3 +373,4 @@ def merge_file():
         logger.error('Error merging: ', e)
         db_session.rollback()
         return make_response(jsonify(status='error'), 500)
+

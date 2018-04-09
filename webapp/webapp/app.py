@@ -6,6 +6,7 @@ from webapp.database import db_session
 from webapp.models import User, Role
 from webapp.apis.upload import upload_api
 from webapp.apis.chart import chart_api
+from webapp.apis.jobs import jobs_api
 import os
 
 # Setup Flask-Security
@@ -14,11 +15,8 @@ user_datastore = SQLAlchemySessionUserDatastore(db_session,
 security = Security(app, user_datastore)
 app.register_blueprint(upload_api)
 app.register_blueprint(chart_api)
+app.register_blueprint(jobs_api)
 
-
-@app.route('/test')
-def test():
-    return "success!"
 
 
 @app.route('/', defaults={'path': ''})

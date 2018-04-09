@@ -10,8 +10,9 @@ import datetime
 
 from rq.registry import StartedJobRegistry
 from redis import Redis
-from rq import Queue
+from rq import Queue, get_current_job
 from rq.job import Job
+from rq.registry import StartedJobRegistry
 
 from dotenv import load_dotenv
 
@@ -65,8 +66,8 @@ def list_jobs():
 	'enqueue_at': [job.enqueued_at for job in queued_jobs]
     })
 
-@app.route('/match/<jurisdiction>/<event_type>', methods=['GET'])
-def match(jurisdiction, event_type):
+@app.route('/match/<jurisdiction>/<event_type>/<filename>', methods=['GET'])
+def match(jurisdiction, event_type, filename):
     upload_id = request.args.get('uploadId', None)   ## QUESTION: Why is this a request arg and is not in the route? Also, Why in CamelCase?
     if not upload_id:
         return jsonify(status='invalid', reason='uploadId not present')
@@ -77,7 +78,8 @@ def match(jurisdiction, event_type):
         func=do_match,
         args=(jurisdiction, event_type, upload_id),
         result_ttl=5000,
-        timeout=100000
+        timeout=100000,
+        meta={'event_type': event_type, 'filename': filename}
     )
 
     logger.info(f"Job id {job.get_id()}")
