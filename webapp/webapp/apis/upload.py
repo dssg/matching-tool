@@ -4,7 +4,7 @@ from flask_security import Security, login_required, \
 from flask_login import current_user
 
 
-from webapp import app
+from webapp.logger import logger
 from webapp.database import db_session
 from webapp.models import User, Role, Upload, MergeLog
 from webapp.tasks import \
@@ -30,7 +30,6 @@ from collections import defaultdict
 import re
 import requests
 import yaml
-import logging
 import unicodecsv as csv
 import boto
 import os
@@ -57,11 +56,11 @@ def get_jurisdiction_roles():
     jurisdiction_roles = []
     for role in current_user.roles:
         if not role.name:
-            logging.warning("User Role %s has no name", role)
+            logger.warning("User Role %s has no name", role)
             continue
         parts = role.name.split('_', maxsplit=1)
         if len(parts) != 2:
-            logging.warning(
+            logger.warning(
                 "User role %s does not have two parts,"
                 "cannot process into jurisdiction and event type",
                 role.name
@@ -71,7 +70,7 @@ def get_jurisdiction_roles():
         try:
             schema_file = load_schema_file(event_type)
         except FileNotFoundError:
-            logging.warning('User belongs to event_type %s that has no schema file', event_type)
+            logger.warning('User belongs to event_type %s that has no schema file', event_type)
             continue
         jurisdiction_roles.append({
             'jurisdictionSlug': jurisdiction,
@@ -109,7 +108,7 @@ def can_access_file(upload_id):
             'upload_id: %s not present in metadata database',
             upload_id
         )
-    logging.info(
+    logger.info(
         'Found jurisdiction %s and event type %s for upload id %s',
         upload.jurisdiction_slug,
         upload.event_type_slug,
@@ -170,14 +169,15 @@ def get_validated_result(job_key):
         uploaded_file_name = result['uploaded_file_name']
         full_filename = result['full_filename']
         if validation_report['valid']:
-            upload_id = unique_upload_id()
+            upload_id = job_key
             row_count = validation_report['tables'][0]['row-count'] - 1
             upload_path = s3_upload_path(jurisdiction, event_type, upload_id)
+            logger.info("Validation done!")
             try:
-                app.logger.info('Uploading upload_id: %s to s3', upload_id)
+                logger.info('Uploading upload_id: %s to s3', upload_id)
                 upload_to_s3(upload_path, filename_with_all_fields)
             except boto.exception.S3ResponseError as e:
-                logging.error(
+                logger.error(
                     'Upload id %s failed to upload to s3: %s/%s/%s. Exception: %s',
                     upload_id,
                     event_type,
@@ -307,7 +307,7 @@ def upload_file():
             timeout=3600,
             meta={'event_type': event_type, 'filename': filename}
         )
-        app.logger.info(f"Job id {job.get_id()}")
+        logger.info(f"Job id {job.get_id()}")
         return jsonify(
             status='validating',
             jobKey=job.get_id(),
@@ -331,7 +331,7 @@ def merge_file():
         has_access = can_access_file(upload_id)
         if has_access:
             upload_log = db_session.query(Upload).get(upload_id)
-            logging.info('Retrieved upload log, now copying raw table')
+            logger.info('Retrieved upload log, now copying raw table')
             raw_table_name = copy_raw_table_to_db(
                 upload_log.s3_upload_path,
                 upload_log.event_type_slug,
@@ -339,7 +339,7 @@ def merge_file():
                 db_session.get_bind()
             )
             db_session.commit()
-            logging.info('Merging raw table to master')
+            logger.info('Merging raw table to master')
             merge_id = upsert_raw_table_to_master(
                 raw_table_name,
                 upload_log.jurisdiction_slug,
@@ -347,7 +347,7 @@ def merge_file():
                 upload_id,
                 db_session
             )
-            logging.info('Syncing merged file to s3')
+            logger.info('Syncing merged file to s3')
             sync_merged_file_to_s3(
                 upload_log.jurisdiction_slug,
                 upload_log.event_type_slug,
@@ -355,10 +355,10 @@ def merge_file():
             )
             merge_log = db_session.query(MergeLog).get(merge_id)
             try:
-                logging.info('Merge succeeded. Now querying matcher')
-                notify_matcher(upload_log.jurisdiction_slug, upload_log.event_type_slug, upload_id, upload_log.given_filename)
+                logger.info('Merge succeeded. Now querying matcher')
+                notify_matcher(upload_log.jurisdiction_slug, upload_log.event_type_slug, upload_id)
             except Exception as e:
-                logging.error('Error matching: ', e)
+                logger.error('Error matching: ', e)
                 db_session.rollback()
                 return make_response(jsonify(status='error'), 500)
             db_session.commit()
@@ -370,7 +370,7 @@ def merge_file():
         else:
             return jsonify(status='not authorized')
     except ValueError as e:
-        logging.error('Error merging: ', e)
+        logger.error('Error merging: ', e)
         db_session.rollback()
         return make_response(jsonify(status='error'), 500)
 

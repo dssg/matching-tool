@@ -17,12 +17,6 @@ app.register_blueprint(upload_api)
 app.register_blueprint(chart_api)
 app.register_blueprint(jobs_api)
 
-@app.before_first_request
-def setup_logging():
-    if not app.debug:
-        # In production mode, add log handler to sys.stderr.
-        app.logger.addHandler(logging.StreamHandler())
-        app.logger.setLevel(logging.DEBUG)
 
 
 @app.route('/', defaults={'path': ''})

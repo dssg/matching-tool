@@ -135,12 +135,12 @@ def do_match(jurisdiction, event_type, upload_id):
 
     # Preprocessing: enforce data types and split/combine columns for feartures
     logger.info('Doing some preprocessing on the columns')
-    df = preprocess.preprocess(df)
+    df = preprocess.preprocess(df, upload_id, jurisdiction)
     data_preprocessed_time = datetime.datetime.now()
 
+    # Matching: block the data, generate pairs and features, and cluster entities
     logger.info(f"Running matcher")
-
-    matches = matcher.run(df=df, clustering_params=CLUSTERING_PARAMS)
+    matches = matcher.run(df=df, clustering_params=CLUSTERING_PARAMS, jurisdiction=jurisdiction, upload_id=upload_id)
     data_matched_time = datetime.datetime.now()
     logger.debug('Matching done!')
 
@@ -161,7 +161,7 @@ def do_match(jurisdiction, event_type, upload_id):
 
     # Writing: Join the matched ids to the source data for each event & write to S3 and postgres
     logger.info('Writing matched results!')
-    ioutils.write_matched_data(all_matches, jurisdiction, event_types_read)
+    ioutils.write_matched_data(all_matches, jurisdiction, upload_id, event_types_read)
     data_written_time = datetime.datetime.now()
 
     total_match_time = data_written_time - start_time

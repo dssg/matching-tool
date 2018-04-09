@@ -13,8 +13,7 @@ from matcher.logger import logger
 
 import recordlinkage as rl
 
-def run(df:pd.DataFrame, clustering_params:dict) -> pd.DataFrame:
-
+def run(df:pd.DataFrame, clustering_params:dict, jurisdiction:str, upload_id:str) -> pd.DataFrame:
 
     ## We will split-apply-combine
 
@@ -39,29 +38,20 @@ def run(df:pd.DataFrame, clustering_params:dict) -> pd.DataFrame:
             logger.debug(f"Features created")
 
             features.index.rename(['matcher_index_left', 'matcher_index_right'], inplace=True)
-            ioutils.write_dataframe_to_s3(features.reset_index(), f"csh/matcher/features/{key}")
             features = rules.compactify(features, operation='mean')
-            ioutils.write_dataframe_to_s3(features.reset_index(), f"csh/matcher/features_scaled/{key}")
+            ioutils.write_dataframe_to_s3(features.reset_index(), key=f'csh/matcher/{jurisdiction}/match_cache/features/{upload_id}/{key}')
 
             logger.debug(f"Features dataframe size: {features.shape}")
-
             logger.debug(f"Features data without duplicated indexes: {features[~features.index.duplicated(keep='first')].shape}")
-
             logger.debug("Duplicated keys:")
             logger.debug(f"{features[features.index.duplicated(keep=False)]}")
-            f = features.reset_index()
 
-            logger.debug(f"{f[f.matcher_index_left == f.matcher_index_right]}")
-
-            logger.debug(f"{features[~features.index.duplicated(keep='first')].matches.unstack(level=0, fill_value=1)}")
-
-            logger.debug('Generating inverse pairs (flip left/right ordering)')
-            f.rename({'matcher_index_left': 'matcher_index_right', 'matcher_index_right': 'matcher_index_left'}, axis='columns', inplace=True)
-            f.set_index(['matcher_index_left', 'matcher_index_right'], inplace=True)
             matched = cluster.generate_matched_ids(
-                distances = pd.concat([features, f]).matches.unstack(level=-1, fill_value=0),
-                DF = group,
+                distances=features,
+                DF=group,
                 clustering_params=clustering_params,
+                jurisdiction=jurisdiction, # at some point, we may want to consider making the matcher into a class
+                upload_id=upload_id,       # rather than passing around keys, upload_ids, jurisdictions, etc.
                 block_name=key
             )
 
