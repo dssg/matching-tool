@@ -13,14 +13,15 @@ from matcher.logger import logger
 
 import recordlinkage as rl
 
-def run(df:pd.DataFrame, clustering_params:dict, jurisdiction:str, upload_id:str) -> pd.DataFrame:
+def run(df:pd.DataFrame, clustering_params:dict, jurisdiction:str, upload_id:str, blocking_rules:dict) -> pd.DataFrame:
 
     ## We will split-apply-combine
-
-    grouped = df.groupby('first_name')
+    logger.debug(f'df sent to matcher has the following columns: {df.dtypes}')
+    logger.info(f'Blocking by {blocking_rules}')
+    grouped = df.groupby([df[key].astype(str).str[:blocking_rules[key]] for key in blocking_rules.keys()])
+    logger.info(f'Applying matcher to {len(grouped)} blocks.')
 
     matches = {}
-    logger.debug(f"{df.first_name.value_counts()}")
 
     for key, group in grouped:
         logger.debug(f"Processing group: {key}")
@@ -52,12 +53,12 @@ def run(df:pd.DataFrame, clustering_params:dict, jurisdiction:str, upload_id:str
                 clustering_params=clustering_params,
                 jurisdiction=jurisdiction, # at some point, we may want to consider making the matcher into a class
                 upload_id=upload_id,       # rather than passing around keys, upload_ids, jurisdictions, etc.
-                block_name=key
+                block_name=str(key)
             )
 
             matches[key] = matched
         else:
             logger.debug(f"Group {key} only have one record, making a singleton id")
-            matches[key] = cluster.generate_singleton_id(group, key)
+            matches[key] = cluster.generate_singleton_id(group, str(key))
 
     return matches
