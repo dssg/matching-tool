@@ -276,7 +276,7 @@ export class Results extends React.Component {
               count={this.props.totalTableRows}
               rowSize={Number(this.props.filters.limit)}
               onNextPageClick={this.props.nextPage}
-              onPrevPageClick={this.props.prevPage}
+              onPreviousPageClick={this.props.prevPage}
               initialSort={{column: this.props.filters.orderColumn, order: this.props.filters.order}}
               onSortOrderChange={this.props.updateTableSort}
               page={1+(Number(this.props.filters.offset) / Number(this.props.filters.limit))}
