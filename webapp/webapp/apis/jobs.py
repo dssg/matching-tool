@@ -2,7 +2,6 @@ from flask import render_template, request, jsonify, Blueprint, url_for, send_fi
 
 from flask_security import login_required
 
-from webapp import app
 
 from redis import Redis
 from rq import Queue
@@ -50,7 +49,6 @@ def get_jobs():
             'event_type': event,
             'filename': filename
         } for (job_id, time, event, filename) in zip(q.job_ids, q_time, q_event_type, q_file_name)]
-    app.logger.info(f"current_job: {current_job}")
     return jsonify(current=current_job, q=jobs_in_q)
 
 
@@ -58,6 +56,8 @@ def get_jobs():
 @login_required
 def get_match_hitory():
     df = query.get_history()
+    if df.empty:
+        return jsonify([])
     df['upload_timestamp'] = df['upload_timestamp'].dt.strftime('%Y-%m-%d %I:%M:%S %p')
     df['match_start_timestamp'] = df['match_start_timestamp'].dt.strftime('%Y-%m-%d %I:%M:%S %p')
     df['match_complete_timestamp'] = df['match_complete_timestamp'].dt.strftime('%Y-%m-%d %I:%M:%S %p')
