@@ -12,3 +12,4 @@ pandas
 rq
 redis
 flask-script
+colorlog
