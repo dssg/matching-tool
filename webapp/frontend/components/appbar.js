@@ -4,6 +4,7 @@ import FlatButton from 'material-ui/FlatButton';
 import IconButton from 'material-ui/IconButton';
 import Tab from 'material-ui/Tabs/Tab'
 import Tabs from 'material-ui/Tabs/Tabs'
+import React from 'react'
 import { Link } from 'react-router-dom'
 import { browserHistory } from 'react-router'
 import { connect } from 'react-redux'

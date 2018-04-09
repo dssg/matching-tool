@@ -7,7 +7,9 @@
     "test": "tests"
   },
   "jest": {
-    "testPathIgnorePatterns": ["<rootDir>/__tests__/utils.js"]
+    "testPathIgnorePatterns": [
+      "<rootDir>/__tests__/utils.js"
+    ]
   },
   "scripts": {
     "test": "node_modules/.bin/jest --coverage",

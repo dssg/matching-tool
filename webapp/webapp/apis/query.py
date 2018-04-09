@@ -105,7 +105,7 @@ def get_records_by_time(
         ("coalesce(max(bookings.first_name), max(hmis.first_name))", 'first_name'),
         ("coalesce(max(bookings.last_name), max(hmis.last_name))", 'last_name'),
         ("to_char(max(jail_entry_date::timestamp), 'YYYY-MM-DD')", 'last_jail_contact'),
-        ("to_char(max(client_location_start_date), 'YYYY-MM-DD')", 'last_hmis_contact'),
+        ("to_char(max(client_location_start_date::timestamp), 'YYYY-MM-DD')", 'last_hmis_contact'),
         ("count(bookings.internal_event_id)",  'jail_contact'),
         ("count(hmis.internal_event_id)", 'hmis_contact'),
         ("coalesce(sum(date_part('day', client_location_end_date::timestamp - client_location_start_date::timestamp)), 0)::int", 'cumu_hmis_days'),
