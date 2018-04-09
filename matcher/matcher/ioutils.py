@@ -27,11 +27,11 @@ load_dotenv(dotenv_path)
 # load environment variables
 S3_BUCKET = os.getenv('S3_BUCKET')
 PG_CONNECTION = {
-    'host': os.getenv('PGHOST'),
-    'user': os.getenv('PGUSER'),
-    'dbname': os.getenv('PGDATABASE'),
-    'password': os.getenv('PGPASSWORD'),
-    'port': os.getenv('PGPORT')
+    'host': os.getenv('POSTGRES_HOST'),
+    'user': os.getenv('POSTGRES_USER'),
+    'dbname': os.getenv('POSTGRES_DB'),
+    'password': os.getenv('POSTGRES_PASSWORD'),
+    'port': os.getenv('POSTGRES_PORT')
 }
 KEYS = ast.literal_eval(os.getenv('KEYS'))
 
