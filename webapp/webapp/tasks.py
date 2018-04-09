@@ -157,7 +157,7 @@ def bootstrap_matched_table_with_merged(jurisdiction, event_type, db_session):
 create table {} as
 select *,
 internal_person_id as source_id,
-row_number() over () as matched_id from {}
+row_number() over ()::text as matched_id from {}
         '''.format(matched_table_name, merged_table_name))
         columns_to_index = [
             'matched_id',
