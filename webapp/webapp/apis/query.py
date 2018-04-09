@@ -1,11 +1,7 @@
 import logging
 import pandas as pd
-<<<<<<< HEAD
 from webapp import db, app
-=======
-from webapp import db
 from webapp.utils import generate_matched_table_name, table_exists
->>>>>>> a95ed1e0... Bootstrapping matched table with uploaded data [Resolves #189] [Resolves #182], server-side pagination [Resolves #233]
 from collections import OrderedDict
 
 logging.basicConfig(

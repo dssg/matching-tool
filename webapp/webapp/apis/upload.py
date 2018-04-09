@@ -320,7 +320,7 @@ def merge_file():
             merge_log = db_session.query(MergeLog).get(merge_id)
             try:
                 logger.info('Merge succeeded. Now querying matcher')
-                notify_matcher(upload_log.jurisdiction_slug, upload_log.event_type_slug, upload_id)
+                notify_matcher(upload_log.jurisdiction_slug, upload_log.event_type_slug, upload_id, upload_log.given_filename)
             except Exception as e:
                 logger.error('Error matching: ', e)
                 db_session.rollback()
