@@ -94,7 +94,10 @@ class Venn extends React.Component {
     d3.selectAll(".venn-area")
       .on("click", function(d, i){
         const node = d3.select(this)
-        self.props.handleUpdateTableData(self.state.allTableData, d['sets'])
+        console.log(self.state.allTableData)
+        console.log(self.props.tableData)
+        // self.props.handleUpdateTableData(self.state.allTableData, d['sets'])
+        console.log(d['sets'])
         self.props.handleUpdateSetStatus(d['sets'])
         tooltip.style("opacity", 0)
       })

@@ -117,14 +117,14 @@ def get_records_by_time(
     filter_by_status = {
         'Jail': 'bookings.matched_id is not null',
         'HMIS': 'hmis.matched_id is not null',
-        'HMIS & Jail': 'hmis.matched_id = bookings.matched_id'
-    } 
+        'Intersection': 'hmis.matched_id = bookings.matched_id'
+    }
     status_filter = filter_by_status.get(set_status, 'true')
     rows_to_show = [dict(row) for row in db.engine.execute("""
         select
         {}
         from
-        ({}) hmis 
+        ({}) hmis
         full outer join ({}) bookings using (matched_id)
         where {}
         group by matched_id
@@ -137,7 +137,7 @@ def get_records_by_time(
             order_column,
             order,
             limit
-        ), 
+        ),
         start_time=start_time,
         end_time=end_time,
         offset=offset,
@@ -147,13 +147,18 @@ def get_records_by_time(
     venn_diagram_stats = next(db.engine.execute('''select
         count(distinct(hmis.matched_id)) as hmis_size,
         count(distinct(bookings.matched_id)) as bookings_size,
-        count(hmis.matched_id = bookings.matched_id) as shared_size,
-        count(*) as total_size
+        count(distinct(case when hmis.matched_id = bookings.matched_id then hmis.matched_id else null end)) as shared_size,
+        count(*)
         from ({}) hmis
         full outer join ({}) bookings using (matched_id)
     '''.format(hmis_query, bookings_query),
                                 start_time=start_time,
                                 end_time=end_time))
+    counts_by_status = {
+        'HMIS': venn_diagram_stats[0],
+        'Jail': venn_diagram_stats[1],
+        'Intersection': venn_diagram_stats[2]
+    }
 
     logging.info('Done querying venn diagram stats')
 
@@ -184,7 +189,7 @@ def get_records_by_time(
     filtered_data['tableData'] = rows_to_show
     return {
         "vennDiagramData": venn_diagram_data,
-        "totalTableRows": venn_diagram_stats[3],
+        "totalTableRows": counts_by_status.get(set_status, venn_diagram_stats[3]),
         "filteredData": filtered_data
     }
 
