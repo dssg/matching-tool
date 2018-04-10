@@ -7,7 +7,7 @@ import { getAllJobs, getHistory } from '../actions'
 const styles = {
   timeline: {
     height: '600px',
-    width: '350px',
+    width: '400px',
     overflow: 'scroll'
   }
 }
@@ -42,7 +42,6 @@ class ActionTimeLine extends React.Component {
   }
 
   render() {
-    console.log(this.props.history)
     return (
       <div style={styles.timeline}>
         <Timeline>

@@ -35,7 +35,7 @@ export default class DurationBarChart extends React.Component {
               xType="ordinal"
               stackBy="y"
               width={300}
-              height={280}>
+              height={270}>
               <HorizontalGridLines />
               <YAxis
                 tickFormat={v => `${v}%`}
