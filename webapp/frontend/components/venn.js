@@ -5,6 +5,7 @@ import { updateSetStatus } from '../actions'
 import { connect } from 'react-redux'
 import RaisedButton from 'material-ui/RaisedButton'
 import { filter } from 'ramda'
+import ReactTooltip from 'react-tooltip'
 
 function mapStateToProps(state) {
   return {
@@ -30,12 +31,9 @@ class Venn extends React.Component {
     }
 	}
 
-  handleReset = () => {
-    this.props.handleUpdateSetStatus(["All"])
-  }
-
   componentDidMount() {
     this.createVenn()
+    ReactTooltip.rebuild()
   }
 
   componentWillReceiveProps(nextProps) {
@@ -46,15 +44,14 @@ class Venn extends React.Component {
 
   componentDidUpdate() {
     this.createVenn()
+    ReactTooltip.rebuild()
   }
 
   createVenn() {
     const self = this
-    const chart = venn.VennDiagram().width(330).height(300)
+    const chart = venn.VennDiagram().width(340).height(300)
     const node = this.node
     const div = d3.select(node)
-
-    var tooltip = d3.select(node).append("div").attr("class", "venntooltip")
     var isSizeNotZero = x => x.size !== 0
     const venndata = filter(isSizeNotZero, self.props.data)
     div.datum(venndata).call(chart)
@@ -63,6 +60,17 @@ class Venn extends React.Component {
     d3.selectAll(".label").style("fill", "white")
                           .style("font-weight", "100")
                           .style("font-size", "14px")
+
+    d3.selectAll(".venn-area").attr("data-tip", "true")
+                              .attr("data-for", function(d, i) {
+                                if (d['sets'].length == 2) {
+                                  return "intersection"
+                                } else if ("Jail" == d['sets'][0]) {
+                                  return "jail";
+                                } else if ("Homeless" == d['sets'][0]) {
+                                  return "homeless";
+                              }
+    })
 
     d3.selectAll(".venn-area")
       .on("mouseover", function(d, i) {
@@ -73,8 +81,6 @@ class Venn extends React.Component {
 
         node.select(".label").style("font-weight", "100")
                              .style("font-size", "20px")
-        tooltip.style("opacity", .7)
-        tooltip.text(d.size + " people");
       })
       .on("mouseout", function(d, i) {
         const node = d3.select(this)
@@ -82,31 +88,29 @@ class Venn extends React.Component {
                            .style("stroke-width", 0)
         node.select("text").style("font-weight", "100")
                            .style("font-size", "14px")
-        tooltip.style("opacity", 0)
-      })
-      .on("mousemove", function() {
-        tooltip.style("left", (d3.event.pageX) + "px")
-               .style("top", (d3.event.pageY - 28) + "px")
       })
 
     d3.selectAll(".venn-area")
       .on("click", function(d, i){
         const node = d3.select(this)
         self.props.handleUpdateSetStatus(d['sets'])
-        tooltip.style("opacity", 0)
       })
   }
 
   render() {
   	return (
       <div style={{marginLeft: 10}}>
+        <ReactTooltip id="jail">
+          <p>{this.props.jail} people</p>
+        </ReactTooltip>
+        <ReactTooltip id="homeless">
+          <p>{this.props.homeless} people</p>
+        </ReactTooltip>
+        <ReactTooltip id="intersection">
+          <p>{this.props.both} people</p>
+        </ReactTooltip>
         <g transform="translate(10, 30)" ref={node => this.node = node} />
         <p> * Left circle is always larger or equal</p>
-        <RaisedButton
-          label="Reset"
-          style={{margin: 5}}
-          onClick={this.handleReset}
-          labelStyle={{fontSize: '10px',}} />
       </div>
   	)
   }

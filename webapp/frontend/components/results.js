@@ -15,10 +15,11 @@ import DataTables from 'material-ui-datatables'
 import Venn from './venn'
 import { connect } from 'react-redux'
 import { join, keys, map, merge, toPairs } from 'ramda'
-import { getMatchingResults, updateControlledDate, updateTableSort, nextTablePage, prevTablePage } from '../actions'
+import { getMatchingResults, updateControlledDate, updateTableSort, nextTablePage, prevTablePage, updateSetStatus } from '../actions'
 import { Card, CardTitle } from 'material-ui/Card'
 import {GridList, GridTile} from 'material-ui/GridList';
 import html2canvas from 'html2canvas'
+import ReactTooltip from 'react-tooltip'
 
 const styles = {
   hr: {
@@ -146,6 +147,9 @@ function mapDispatchToProps(dispatch) {
     },
     prevPage: (event) => {
       dispatch(prevTablePage())
+    },
+    handleUpdateSetStatus: (d) => {
+      dispatch(updateSetStatus(d))
     }
   }
 }
@@ -177,14 +181,6 @@ export class Results extends React.Component {
     const endDate = moment(date).format('YYYY-MM-DD')
     const startDate = moment(date).subtract(this.state.duration[0], this.state.duration[1]).format('YYYY-MM-DD')
     this.props.updateDates(startDate, endDate)
-  }
-
-  handleSearch = () => {
-    console.log(this.assembleURLParams())
-    this.props.updateMatchingResults(
-      this.props.selectedJurisdictionSlug,
-      this.assembleURLParams()
-    )
   }
 
   handleClick = () => {
@@ -239,6 +235,10 @@ export class Results extends React.Component {
     downloadURI(url)
   }
 
+  handleAll = () => {
+    this.props.handleUpdateSetStatus(["All"])
+  }
+
   intersectionPercentage = () => {
     var h = Math.floor((this.props.bothCount / this.props.homelessCount)*100)
     var j = Math.floor((this.props.bothCount / this.props.jailCount)*100)
@@ -255,7 +255,10 @@ export class Results extends React.Component {
 
   componentDidUpdate(prevProps) {
     if (this.props.filters != prevProps.filters || this.props.selectedJurisdictionSlug != prevProps.selectedJurisdictionSlug) {
-      this.handleSearch()
+      this.props.updateMatchingResults(
+        this.props.selectedJurisdictionSlug,
+        this.assembleURLParams()
+      )
     }
   }
 
@@ -395,6 +398,7 @@ export class Results extends React.Component {
     return (
       <div>
         <Header location={this.props.location} />
+        <ReactTooltip />
         <div style={styles.page}>
           <FloatingActionButton
             style={styles.floatingActionButtonAdd}
@@ -438,19 +442,22 @@ export class Results extends React.Component {
                     </SelectField>
                   </h5>
                   <RaisedButton
-                    label="Search"
-                    labelStyle={{fontSize: '10px',}}
-                    style={styles.button}
-                    onClick={this.handleSearch}/>
-                  <RaisedButton
                     label={ this.state.barFlag ? "Show List of Results" : "Show Duration Chart"}
                     labelStyle={{fontSize: '10px',}}
                     style={styles.button}
                     primary={true}
                     onClick={this.handleClick} />
+                  <RaisedButton
+                    label="All"
+                    style={{margin: 5}}
+                    onClick={this.handleAll}
+                    labelStyle={{fontSize: '10px',}} />
                 </div>
                 <Venn
                   data={this.props.vennDiagramData}
+                  jail={this.props.jailCount}
+                  homeless={this.props.homelessCount}
+                  both={this.props.bothCount}
                   local_table_data={this.props.filteredData.tableData}/>
               </Card>
             </div>
