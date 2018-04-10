@@ -457,8 +457,7 @@ export class Results extends React.Component {
                   data={this.props.vennDiagramData}
                   jail={this.props.jailCount}
                   homeless={this.props.homelessCount}
-                  both={this.props.bothCount}
-                  local_table_data={this.props.filteredData.tableData}/>
+                  both={this.props.bothCount} />
               </Card>
             </div>
             <div style={styles.datepicker}>
