@@ -46,19 +46,19 @@ class Comparer:
             self.comparer.exact(col_name, col_name, label=f'{col_name}_exact_distance')
             logger.debug(f'Doing an exact comparison of {col_name}')
     
-    def compare_string_distance(self, col_name:str, method:str):
+    def compare_string_distance(self, col_name:str, args):
         logger.debug(f'Doing a {method} comparison of {col_name}')
-        self.comparer.string(col_name, col_name, method=method, label=f'{col_name}_{method}_distance')
+        self.comparer.string(col_name, col_name, **args, label=f'{col_name}_{method}_distance')
 
-    def compare_swap_month_days(self, col_name:str, swap_score:float=None):
+    def compare_swap_month_days(self, col_name:str, args):
         logger.debug(f'Checking if the month and day are swapped in {col_name}')
-        self.comparer.date(col_name, col_name, swap_month_day=swap_score, swap_months=None)
+        self.comparer.date(col_name, col_name, **args)
 
-    def compare_numeric_distance(self, col_name:str, **kwargs):
+    def compare_numeric_distance(self, col_name:str, args):
         logger.debug(f'Doing a numeric distance calculation on {col_name}')
-        self.comparer.date(col_name, col_name, kwargs)
+        self.comparer.date(col_name, col_name, **args)
 
-    def compare_list(self, col_name:str, method:str):
+    def compare_list(self, col_name:str, **kwargs):
         if method == 'any':
             logger.debug(f'Checking if {col_name} shares any value.')
             self.comparer.compare_vectorized(lists_share_any_values, col_name, col_name, label=f'{col_name}_any_list_item_distance')
@@ -74,7 +74,11 @@ def generate_features(all_comparisons:dict, pairs:pd.MultiIndex, df:pd.DataFrame
     for col_name, comparisons in all_comparisons.items():
         for comparison in comparisons:
             method_to_call = getattr(c, comparison['method'])
-            method_to_call(col_name, **comparison['args'])
+            try:
+                method_to_call(col_name, comparison['args'])
+            except:
+                logger.debug('Found no arguments.')
+                method_to_call(col_name)
 
     return c.comparer.compute(pairs, df)
 
