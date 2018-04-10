@@ -23,21 +23,6 @@ load_dotenv(dotenv_path)
 KEYS = ast.literal_eval(os.getenv('KEYS'))
 
 
-def get_source_id(df):
-    try:
-        return df['matched_id']
-    except KeyError:
-        pass
-    try:
-        return df['internal_person_id']
-    except KeyError:
-        pass
-    try:
-        return df['inmate_number']
-    except:
-        raise ValueError('No source id column found')
-
-
 def concatenate_person_index(df:pd.DataFrame) -> pd.Series:
     person_column_names = KEYS
     person_df = df[person_column_names]
