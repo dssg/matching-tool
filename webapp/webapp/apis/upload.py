@@ -1,12 +1,11 @@
-from flask import render_template, make_response, request, jsonify, Blueprint
-from flask_security import Security, login_required, \
-     SQLAlchemySessionUserDatastore
+from flask import make_response, request, jsonify, Blueprint
+from flask_security import login_required
 from flask_login import current_user
 
 
 from webapp.logger import logger
 from webapp.database import db_session
-from webapp.models import User, Role, Upload, MergeLog
+from webapp.models import Upload, MergeLog
 from webapp.tasks import \
     upload_to_s3,\
     sync_upload_metadata,\
@@ -14,8 +13,10 @@ from webapp.tasks import \
     upsert_raw_table_to_master,\
     sync_merged_file_to_s3,\
     add_missing_fields,\
-    validate_file
-from webapp.utils import unique_upload_id, s3_upload_path, schema_filename, notify_matcher, infer_delimiter, load_schema_file
+    validate_file,\
+    bootstrap_matched_tables
+from webapp.users import can_upload_file, get_jurisdiction_roles
+from webapp.utils import unique_upload_id, s3_upload_path, notify_matcher, infer_delimiter
 
 from webapp.apis import query
 
@@ -33,59 +34,16 @@ import yaml
 import unicodecsv as csv
 import boto
 import os
-from io import BytesIO
+
 
 upload_api = Blueprint('upload_api', __name__, url_prefix='/api/upload')
-
-
-PRETTY_JURISDICTION_MAP = {
-    'boone': 'Boone County',
-    'saltlake': 'Salt Lake County',
-    'clark': 'Clark County',
-    'mclean': 'McLean County',
-    'test': 'Test County',
-}
 
 def get_q(redis_connection):
     return Queue('webapp', connection=redis_connection)
 
+
 def get_redis_connection():
     return Redis(host='redis', port=6379)
-
-def get_jurisdiction_roles():
-    jurisdiction_roles = []
-    for role in current_user.roles:
-        if not role.name:
-            logger.warning("User Role %s has no name", role)
-            continue
-        parts = role.name.split('_', maxsplit=1)
-        if len(parts) != 2:
-            logger.warning(
-                "User role %s does not have two parts,"
-                "cannot process into jurisdiction and event type",
-                role.name
-            )
-            continue
-        jurisdiction, event_type = parts
-        try:
-            schema_file = load_schema_file(event_type)
-        except FileNotFoundError:
-            logger.warning('User belongs to event_type %s that has no schema file', event_type)
-            continue
-        jurisdiction_roles.append({
-            'jurisdictionSlug': jurisdiction,
-            'jurisdiction': PRETTY_JURISDICTION_MAP.get(jurisdiction, jurisdiction),
-            'eventTypeSlug': event_type,
-            'eventType': schema_file.get('name')
-        })
-    return jurisdiction_roles
-
-
-def can_upload_file(file_jurisdiction, file_event_type):
-    return any(
-        role['jurisdictionSlug'] == file_jurisdiction and role['eventTypeSlug'] == file_event_type
-        for role in get_jurisdiction_roles()
-    )
 
 
 def get_sample(saved_filename):
@@ -123,7 +81,7 @@ def format_error_report(report, event_type_slug):
     for error in report['tables'][0]['errors']:
         message = re.sub('row \d+ and', '', error['message'])
         message = re.sub('Row number \d+: ', '', message)
-        match = re.search('The value (.*) in  column \d+', message)
+        match = re.search('The value (.*) in ', message)
         value = ''
         if match:
             value = match.group(1)
@@ -302,7 +260,7 @@ def upload_file():
         q = get_q(get_redis_connection())
         job = q.enqueue_call(
             func=validate_async,
-            args=(uploaded_file.filename, jurisdiction, full_filename, event_type, 1000000),
+            args=(uploaded_file.filename, jurisdiction, full_filename, event_type, 10000000),
             result_ttl=5000,
             timeout=3600,
             meta={'event_type': event_type, 'filename': filename}
@@ -348,6 +306,12 @@ def merge_file():
                 db_session
             )
             logger.info('Syncing merged file to s3')
+
+            bootstrap_matched_tables(
+                jurisdiction=upload_log.jurisdiction_slug,
+                db_session=db_session
+            )
+
             sync_merged_file_to_s3(
                 upload_log.jurisdiction_slug,
                 upload_log.event_type_slug,
@@ -356,7 +320,7 @@ def merge_file():
             merge_log = db_session.query(MergeLog).get(merge_id)
             try:
                 logger.info('Merge succeeded. Now querying matcher')
-                notify_matcher(upload_log.jurisdiction_slug, upload_log.event_type_slug, upload_id)
+                notify_matcher(upload_log.jurisdiction_slug, upload_log.event_type_slug, upload_id, upload_log.given_filename)
             except Exception as e:
                 logger.error('Error matching: ', e)
                 db_session.rollback()

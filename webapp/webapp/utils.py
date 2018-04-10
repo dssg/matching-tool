@@ -10,6 +10,7 @@ from webapp import SCHEMA_DIRECTORY
 
 from contextlib import contextmanager
 import requests
+from sqlalchemy import MetaData, Table
 
 
 def unique_upload_id():
@@ -103,6 +104,16 @@ def generate_master_table_name(jurisdiction, event_type):
     return '{jurisdiction}_{event_type}_master'.format(**locals())
 
 
+def master_table_column_list(goodtables_schema):
+    base_column_list = column_list_from_goodtables_schema(goodtables_schema)
+    # mutate column list
+    full_column_list = base_column_list + [('inserted_ts', 'timestamp'), ('updated_ts', 'timestamp')]
+    return full_column_list
+
+
+def generate_matched_table_name(jurisdiction, event_type):
+    return 'matched.{jurisdiction}_{event_type}'.format(**locals())
+
 def notify_matcher(jurisdiction, event_type, upload_id, filename):
     matcher_response = requests.get(
         'http://{location}:{port}/match/{jurisdiction}/{event_type}/{filename}?uploadId={upload_id}'.format(
@@ -135,3 +146,32 @@ def infer_delimiter(infilename):
         if len(first_row) > 1:
             return ','
         raise ValueError('Unknown delimiter')
+
+
+def split_table(table_name):
+    """Split a fully-qualified table name into schema and table
+    Args:
+        table_name (string) A table name, either with or without a schema prefix
+    Returns: (tuple) of schema and table name
+    """
+    table_parts = table_name.split('.')
+    if len(table_parts) == 2:
+        return tuple(table_parts)
+    elif len(table_parts) == 1:
+        return (None, table_parts[0])
+    else:
+        raise ValueError('Table name in unknown format')
+
+
+def table_object(table_name, db_engine, reflect=True):
+    schema, table_name = split_table(table_name)
+    meta = MetaData(schema=schema, bind=db_engine)
+    return Table(table_name, meta)
+
+
+def table_has_column(table_name, db_engine, column):
+    return column in table_object(table_name, db_engine).columns
+
+
+def table_exists(table_name, db_engine):
+    return table_object(table_name, db_engine, reflect=False).exists()
