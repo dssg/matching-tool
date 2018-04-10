@@ -34,7 +34,7 @@ function setup_machines() {
     for experiment in ../config/*.env
     #for counter in $(seq 1 2)
     do
-	 #echo "Creating machine ${NODE_NAME}${counter} for experiment ${experiment##*/}"
+	 echo "Creating machine ${NODE_NAME}${counter} for experiment ${experiment##*/}"
 	 docker-machine create --driver ${MACHINE_DRIVER} --amazonec2-instance-type ${AWS_INSTANCE_TYPE} ${NODE_NAME}${counter}
 	 docker-machine ssh ${NODE_NAME}${counter} sudo usermod -aG docker ubuntu
 	 docker-machine scp install.sh ${NODE_NAME}${counter}:/home/ubuntu/install.sh
@@ -44,6 +44,7 @@ function setup_machines() {
 	 docker-machine ssh ${NODE_NAME}${counter} /home/ubuntu/install.sh
 	 echo "Copying the parameteres of the experiment"
 	 docker-machine scp ${experiment} ${NODE_NAME}${counter}:/home/ubuntu/csh/matcher.env
+	 docker-machine scp ../../.env ${NODE_NAME}${counter}:/home/ubuntu/csh/.env
 	 let counter++
     done
 
@@ -54,7 +55,7 @@ function run_experiment() {
     do
 	docker-machine scp run.sh ${NODE_NAME}${N}:/home/ubuntu/run.sh
 	docker-machine ssh ${NODE_NAME}${N} chmod +x /home/ubuntu/run.sh	
-	docker-machine ssh ${NODE_NAME}${N} /home/ubuntu/run.sh
+	docker-machine ssh ${NODE_NAME}${N} /home/ubuntu/run.sh "${@}"
     done
 }
 
@@ -75,7 +76,7 @@ function stop_machines() {
 function destroy_machines() {
     for N in $(seq 1 $NUM_EXPERIMENTS)
     do
-	echo docker-machine rm -y ${NODE_NAME}${N}
+	docker-machine rm -y ${NODE_NAME}${N}
     done
 }
 
@@ -92,7 +93,7 @@ case "$1" in
 	shift
 	;;
     run)
-	run_experiment
+	run_experiment ${@:2}
 	shift
 	;;
     stop)
