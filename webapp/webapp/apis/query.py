@@ -95,7 +95,7 @@ def get_records_by_time(
     )
     logging.info('Querying table records')
     columns = [
-        ("matched_id", 'matched_id'),
+        ("md5(matched_id)", 'matched_id'),
         ("string_agg(coalesce(bookings.internal_person_id, bookings.inmate_number)::text, ',')", 'booking_id'),
         ("string_agg(hmis.internal_person_id::text, ',')", 'hmis_id'),
         ("coalesce(max(bookings.first_name), max(hmis.first_name))", 'first_name'),
@@ -117,7 +117,7 @@ def get_records_by_time(
     filter_by_status = {
         'Jail': 'bookings.matched_id is not null',
         'HMIS': 'hmis.matched_id is not null',
-        'Intersection': 'hmis.matched_id = bookings.matched_id'
+        'Intersection': 'hmis.matched_id = bookings.hashed_id'
     }
     status_filter = filter_by_status.get(set_status, 'true')
     rows_to_show = [dict(row) for row in db.engine.execute("""
@@ -147,7 +147,7 @@ def get_records_by_time(
     venn_diagram_stats = next(db.engine.execute('''select
         count(distinct(hmis.matched_id)) as hmis_size,
         count(distinct(bookings.matched_id)) as bookings_size,
-        count(distinct(case when hmis.matched_id = bookings.matched_id then hmis.matched_id else null end)) as shared_size,
+        count(distinct(case when hmis.matched_id = bookings.hashed_id then hmis.hashed_id else null end)) as shared_size,
         count(*)
         from ({}) hmis
         full outer join ({}) bookings using (matched_id)
