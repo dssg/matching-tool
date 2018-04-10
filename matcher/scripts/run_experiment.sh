@@ -12,7 +12,7 @@ NUM_EXPERIMENTS=$(ls ../config/*.env | wc -l)
 MACHINE_DRIVER=amazonec2
 
 # EC2 instance type
-AWS_INSTANCE_TYPE=t2.2xlarge
+AWS_INSTANCE_TYPE=m4.large
 
 
 function help_menu () {
