@@ -2,6 +2,8 @@
 
 JURISDICTION=$1
 
+EVENT_TYPE=$2
+
 UPLOAD_ID=$3
 
-http 0.0.0.0:5001/match/${JURISDICTION}/$2 uploadId==${UPLOAD_ID}
+http 0.0.0.0:5001/match/${JURISDICTION}/${EVENT_TYPE} uploadId==${UPLOAD_ID}
