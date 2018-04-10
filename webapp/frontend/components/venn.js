@@ -1,7 +1,7 @@
 import React from 'react'
 import d3 from 'd3'
 import * as venn from 'venn.js'
-import { updateTableData, getMatchingResults, updateSetStatus } from '../actions'
+import { updateSetStatus } from '../actions'
 import { connect } from 'react-redux'
 import RaisedButton from 'material-ui/RaisedButton'
 
@@ -16,9 +16,6 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
   return {
-    handleUpdateTableData: (data, section) => {
-      dispatch(updateTableData(data, section))
-    },
     handleUpdateSetStatus: (d) => {
       dispatch(updateSetStatus(d))
     },
@@ -34,7 +31,6 @@ class Venn extends React.Component {
 	}
 
   handleReset = () => {
-    this.props.handleUpdateTableData(this.state.allTableData, "All")
     this.props.handleUpdateSetStatus(["All"])
   }
 
@@ -54,7 +50,7 @@ class Venn extends React.Component {
 
   createVenn() {
     const self = this
-    const chart = venn.VennDiagram().width(320).height(270)
+    const chart = venn.VennDiagram().width(330).height(300)
     const node = this.node
     const div = d3.select(node)
 
@@ -63,8 +59,8 @@ class Venn extends React.Component {
     d3.selectAll(".venn-circle path").style("fill-opacity", .65)
     d3.selectAll(".venn-area path").style("fill-opacity", .65)
     d3.selectAll(".label").style("fill", "white")
-                        .style("font-weight", "100")
-                        .style("font-size", "14px")
+                          .style("font-weight", "100")
+                          .style("font-size", "14px")
 
     d3.selectAll(".venn-area")
       .on("mouseover", function(d, i) {
@@ -74,7 +70,7 @@ class Venn extends React.Component {
                            .style("stroke", "red")
 
         node.select(".label").style("font-weight", "100")
-                           .style("font-size", "20px")
+                             .style("font-size", "20px")
         tooltip.style("opacity", .7)
         tooltip.text(d.size + " people");
       })
@@ -94,10 +90,6 @@ class Venn extends React.Component {
     d3.selectAll(".venn-area")
       .on("click", function(d, i){
         const node = d3.select(this)
-        console.log(self.state.allTableData)
-        console.log(self.props.tableData)
-        // self.props.handleUpdateTableData(self.state.allTableData, d['sets'])
-        console.log(d['sets'])
         self.props.handleUpdateSetStatus(d['sets'])
         tooltip.style("opacity", 0)
       })
@@ -105,7 +97,7 @@ class Venn extends React.Component {
 
   render() {
   	return (
-      <div style={{marginLeft: 15}}>
+      <div style={{marginLeft: 10}}>
         <g transform="translate(10, 30)" ref={node => this.node = node} />
         <p> * Left circle is always larger or equal</p>
         <RaisedButton
