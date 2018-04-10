@@ -1,5 +1,6 @@
 from flask import render_template, request, jsonify, Blueprint, url_for, send_file, make_response
 from flask_security import login_required
+from webapp.logger import logger
 import pandas as pd
 import datetime
 import json
@@ -22,6 +23,7 @@ def get_records_by_time():
     order_column = request.args.get('orderColumn')
     order = request.args.get('order')
     set_status = request.args.get('setStatus')
+    logger.info(f'Pulling data from {start_date} to {end_date}')
     records = query.get_records_by_time(
         start_date,
         end_date,

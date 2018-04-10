@@ -85,7 +85,8 @@ const styles = {
     overflowY: 'auto',
   },
   cardTitle: {
-    marginTop: 1
+    marginTop: 0,
+    padding: 8
   },
   table: {
     width: 'initial'
@@ -96,7 +97,7 @@ const styles = {
   tableColumn: {
     paddingLeft: '8px',
     paddingRight: '8x'
-  } 
+  }
 }
 
 function downloadURI(uri, name) {
@@ -179,6 +180,7 @@ export class Results extends React.Component {
   }
 
   handleSearch = () => {
+    console.log(this.assembleURLParams())
     this.props.updateMatchingResults(
       this.props.selectedJurisdictionSlug,
       this.assembleURLParams()
@@ -206,6 +208,9 @@ export class Results extends React.Component {
       var d = [2, "years", value]
     }
     this.setState({duration: d})
+    const endDate = this.props.filters.endDate
+    const startDate = moment(endDate).subtract(d[0], d[1]).format('YYYY-MM-DD')
+    this.props.updateDates(startDate, endDate)
   }
 
   handleDownloadChart = () => {
@@ -225,7 +230,7 @@ export class Results extends React.Component {
     const params = merge(this.props.filters, {jurisdiction: this.props.selectedJurisdictionSlug})
     return join('&', map(
       (key) => encodeURIComponent(key) + '=' + encodeURIComponent(params[key]),
-      keys(params) 
+      keys(params)
     ))
   }
 
@@ -297,7 +302,7 @@ export class Results extends React.Component {
         id='hmisbarchart'>
         <GridTile>
           <Card  style={styles.bar_chart}>
-            <CardTitle style={styles.cardTitle} title="Homeless: number of shelter days" titleStyle={{'fontSize': 18}} />
+            <CardTitle style={styles.cardTitle} title="Homeless: number of shelter days" titleStyle={{'fontSize': 16}} />
             <DurationBarChart
               data={this.props.filteredData.homelessDurationBarData}
               legendItemList={["0 day", "1 day", "2-9 days", "10-89 days", "90+ days"]} />
@@ -305,7 +310,7 @@ export class Results extends React.Component {
         </GridTile>
         <GridTile>
           <Card style={styles.bar_chart}>
-            <CardTitle style={styles.cardTitle} title="Homeless: number of contacts" titleStyle={{'fontSize': 18}} />
+            <CardTitle style={styles.cardTitle} title="Homeless: number of contacts" titleStyle={{'fontSize': 16}} />
             <DurationBarChart
               data={this.props.filteredData.homelessContactBarData}
               legendItemList={["1 contacts", "2-9 contacts", "10-99 contacts", "100-499 contacts", "500+ contacts"]} />
@@ -324,7 +329,7 @@ export class Results extends React.Component {
         id='jailbarchart'>
         <GridTile>
           <Card style={styles.bar_chart}>
-            <CardTitle style={styles.cardTitle} title={"Jail: number of days"}  titleStyle={{'fontSize': 18}} />
+            <CardTitle style={styles.cardTitle} title={"Jail: number of days"}  titleStyle={{'fontSize': 16}} />
             <DurationBarChart
               data={this.props.filteredData.jailDurationBarData}
               legendItemList={["0 day", "1 day", "2-9 days", "10-89 days", "90+ days"]} />
@@ -332,7 +337,7 @@ export class Results extends React.Component {
         </GridTile>
         <GridTile>
           <Card style={styles.bar_chart}>
-            <CardTitle style={styles.cardTitle} title="Jail: number of contacts" titleStyle={{'fontSize': 18}} />
+            <CardTitle style={styles.cardTitle} title="Jail: number of contacts" titleStyle={{'fontSize': 16}} />
             <DurationBarChart
               data={this.props.filteredData.jailContactBarData}
               legendItemList={["1 contact", "2-9 contacts", "10-99 contacts", "100-499 contacts", "500+ contacts"]} />

@@ -73,7 +73,7 @@ const initialState = {
       controlledDate: '',
       startDate: '',
       endDate: '',
-      limit: 20,
+      limit: 11,
       offset: 0,
       orderColumn: 'matched_id',
       order: 'asc',
