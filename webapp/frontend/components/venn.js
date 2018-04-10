@@ -4,7 +4,7 @@ import * as venn from 'venn.js'
 import { updateSetStatus } from '../actions'
 import { connect } from 'react-redux'
 import RaisedButton from 'material-ui/RaisedButton'
-
+import { filter } from 'ramda'
 
 function mapStateToProps(state) {
   return {
@@ -55,7 +55,9 @@ class Venn extends React.Component {
     const div = d3.select(node)
 
     var tooltip = d3.select(node).append("div").attr("class", "venntooltip")
-    div.datum(self.props.data).call(chart)
+    var isSizeNotZero = x => x.size !== 0
+    const venndata = filter(isSizeNotZero, self.props.data)
+    div.datum(venndata).call(chart)
     d3.selectAll(".venn-circle path").style("fill-opacity", .65)
     d3.selectAll(".venn-area path").style("fill-opacity", .65)
     d3.selectAll(".label").style("fill", "white")
