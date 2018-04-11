@@ -316,7 +316,7 @@ export class Results extends React.Component {
             <CardTitle style={styles.cardTitle} title="Homeless: number of contacts" titleStyle={{'fontSize': 16}} />
             <DurationBarChart
               data={this.props.filteredData.homelessContactBarData}
-              legendItemList={["1 contacts", "2-9 contacts", "10-99 contacts", "100-499 contacts", "500+ contacts"]} />
+              legendItemList={["1 contact", "2-9 contacts", "10-99 contacts", "100-499 contacts", "500+ contacts"]} />
           </Card>
         </GridTile>
       </GridList>
@@ -425,7 +425,7 @@ export class Results extends React.Component {
                 <div style={styles.datepicker}>
                   <h5>End Date:
                     <DatePicker
-                      hintText="Pick the data to go back"
+                      defaultDate={new moment().toDate()}
                       onChange={this.handleControlledDate} />
                   </h5>
                   <h5>Duration:</h5>
