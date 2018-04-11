@@ -49,7 +49,7 @@ class Venn extends React.Component {
 
   createVenn() {
     const self = this
-    const chart = venn.VennDiagram().width(340).height(300)
+    const chart = venn.VennDiagram().width(340).height(250)
     const node = this.node
     const div = d3.select(node)
     var isSizeNotZero = x => x.size !== 0
@@ -109,7 +109,7 @@ class Venn extends React.Component {
         <ReactTooltip id="intersection">
           <p>{this.props.both} people</p>
         </ReactTooltip>
-        <g transform="translate(10, 30)" ref={node => this.node = node} />
+        <g ref={node => this.node = node} />
         <p> * Left circle is always larger or equal</p>
       </div>
   	)

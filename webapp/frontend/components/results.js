@@ -32,10 +32,13 @@ const styles = {
     "marginTop": 6,
     marginLeft: 60,
   },
-  h5: {
+  summary: {
     "textAlign": "right",
     float:"right",
-    marginRight: 7
+    marginRight: 7,
+  },
+  h5: {
+    marginBottom: 2,
   },
   page: {
     margin: '5px',
@@ -305,7 +308,7 @@ export class Results extends React.Component {
         id='hmisbarchart'>
         <GridTile>
           <Card  style={styles.bar_chart}>
-            <CardTitle style={styles.cardTitle} title="Homeless: number of shelter days" titleStyle={{'fontSize': 16}} />
+            <CardTitle style={styles.cardTitle} title="Homeless: number of shelter days" titleStyle={{'fontSize': 16, 'marginLeft': 10}} />
             <DurationBarChart
               data={this.props.filteredData.homelessDurationBarData}
               legendItemList={["0 day", "1 day", "2-9 days", "10-89 days", "90+ days"]} />
@@ -313,7 +316,7 @@ export class Results extends React.Component {
         </GridTile>
         <GridTile>
           <Card style={styles.bar_chart}>
-            <CardTitle style={styles.cardTitle} title="Homeless: number of contacts" titleStyle={{'fontSize': 16}} />
+            <CardTitle style={styles.cardTitle} title="Homeless: number of contacts" titleStyle={{'fontSize': 16, 'marginLeft': 10}} />
             <DurationBarChart
               data={this.props.filteredData.homelessContactBarData}
               legendItemList={["1 contact", "2-9 contacts", "10-99 contacts", "100-499 contacts", "500+ contacts"]} />
@@ -332,7 +335,7 @@ export class Results extends React.Component {
         id='jailbarchart'>
         <GridTile>
           <Card style={styles.bar_chart}>
-            <CardTitle style={styles.cardTitle} title={"Jail: number of days"}  titleStyle={{'fontSize': 16}} />
+            <CardTitle style={styles.cardTitle} title={"Jail: number of days"}  titleStyle={{'fontSize': 16, 'marginLeft': 10}} />
             <DurationBarChart
               data={this.props.filteredData.jailDurationBarData}
               legendItemList={["0 day", "1 day", "2-9 days", "10-89 days", "90+ days"]} />
@@ -340,7 +343,7 @@ export class Results extends React.Component {
         </GridTile>
         <GridTile>
           <Card style={styles.bar_chart}>
-            <CardTitle style={styles.cardTitle} title="Jail: number of contacts" titleStyle={{'fontSize': 16}} />
+            <CardTitle style={styles.cardTitle} title="Jail: number of contacts" titleStyle={{'fontSize': 16, 'marginLeft': 10}} />
             <DurationBarChart
               data={this.props.filteredData.jailContactBarData}
               legendItemList={["1 contact", "2-9 contacts", "10-99 contacts", "100-499 contacts", "500+ contacts"]} />
@@ -410,11 +413,11 @@ export class Results extends React.Component {
             docked={true}
             width={'25%'}
             open={this.state.open}
-            containerStyle={{height: 'calc(100% - 48px)', top: 48}}
+            containerStyle={{height: 'calc(100% - 93px)', top: 48}}
             onRequestChange={(open) => this.setState({open})} >
             <div style={styles.container}>
               <Card style={styles.panel}>
-                <CardTitle title="Control Panel" titleStyle={{'fontSize': 20}} />
+                <CardTitle title="Control Panel" titleStyle={{'fontSize': 20, }} />
                 <FloatingActionButton
                   onClick={this.handleClose}
                   mini={true}
@@ -423,13 +426,13 @@ export class Results extends React.Component {
                   <NavigationClose />
                 </FloatingActionButton>
                 <div style={styles.datepicker}>
-                  <h5>End Date:
+                  <h5 style={styles.h5}>End Date:
                     <DatePicker
                       defaultDate={new moment().toDate()}
                       onChange={this.handleControlledDate} />
                   </h5>
-                  <h5>Duration:</h5>
-                  <h5>
+                  <h5 style={styles.h5}>Duration:</h5>
+                  <h5 style={styles.h5}>
                     <SelectField
                       value={this.state.duration[2]}
                       onChange={this.handleDurationChange}
@@ -485,7 +488,7 @@ export class Results extends React.Component {
         <div style={contentStyle}>
           <div>
             <h4 style={styles.h4}>Results - {this.props.filters.startDate} through {this.props.filters.endDate} - {this.props.filters.setStatus}</h4>
-            <h5 style={styles.h5}>
+            <h5 style={styles.summary}>
                 Total: <strong>{this.props.totalCount}</strong>&nbsp;
                 Jail: <strong>{this.props.jailCount}</strong>&nbsp;
                 HMIS: <strong>{this.props.homelessCount}</strong>&nbsp;
