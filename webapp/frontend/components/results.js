@@ -429,6 +429,9 @@ export class Results extends React.Component {
                   <h5 style={styles.h5}>End Date:
                     <DatePicker
                       defaultDate={new moment().toDate()}
+                      maxDate={new moment().toDate()}
+                      hintText="Pick a Date to go back"
+                      autoOk={true}
                       onChange={this.handleControlledDate} />
                   </h5>
                   <h5 style={styles.h5}>Duration:</h5>

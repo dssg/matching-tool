@@ -66,11 +66,19 @@ class Venn extends React.Component {
                                 if (d['sets'].length == 2) {
                                   return "intersection"
                                 } else if ("Jail" == d['sets'][0]) {
-                                  return "jail";
+                                  return "jail"
                                 } else if ("Homeless" == d['sets'][0]) {
-                                  return "homeless";
-                              }
-    })
+                                  return "homeless"}
+                                })
+
+    d3.selectAll(".venn-area path")
+        .style("fill", function(d, i){
+          if ("Jail" == d['sets'][0]) {
+            return "#1f77b4"
+          } else if ("Homeless" == d['sets'][0]) {
+            return "#ff7f0e"
+          }
+      })
 
     d3.selectAll(".venn-area")
       .on("mouseover", function(d, i) {
