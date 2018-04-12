@@ -126,7 +126,7 @@ def notify_matcher(jurisdiction, event_type, upload_id, filename):
         )
     )
     if matcher_response.status_code != 200:
-        raise RuntimeError(matcher_response.json())
+        raise RuntimeError(matcher_response.text)
 
 
 def lower_first(iterator):
