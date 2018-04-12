@@ -71,7 +71,7 @@ class Venn extends React.Component {
                                   return "homeless"}
                                 })
 
-    d3.selectAll(".venn-area path")
+    selectAll(".venn-area path")
         .style("fill", function(d, i){
           if ("Jail" == d['sets'][0]) {
             return "#1f77b4"
