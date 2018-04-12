@@ -63,25 +63,6 @@ describe("Results", () => {
     mountedResultsPage = undefined;
   });
   
-  describe('clicking search button', () => {
-    it("fires off updateMatchingResults", () => {
-      props.filters.controlledDate = '2017-01-01'
-      props.filters.endDate = '2017-01-01'
-      props.filters.startDate = '2016-01-01'
-      props.filters.offset = 0
-      props.filters.limit = 20
-      props.selectedJurisdictionSlug = 'testcounty'
-      const wrapper = resultsPage()
-      wrapper.find({label: "Search"}).simulate('click')
-      const updateCallback = props.updateMatchingResults
-      expect(updateCallback.mock.calls.length).toBe(1);
-      expect(updateCallback.mock.calls[0]).toEqual([
-        'testcounty',
-        'controlledDate=2017-01-01&startDate=2016-01-01&endDate=2017-01-01&limit=20&offset=0&orderColumn=matched_id&order=asc&setStatus=All&jurisdiction=testcounty'
-      ])
-    });
-  });
-
   describe('Table#onNextPageClick', () => {
     it("fires off nextPage", () => {
       props.totalTableRows = 10
