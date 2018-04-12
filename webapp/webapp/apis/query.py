@@ -102,11 +102,19 @@ def get_records_by_time(
         ("coalesce(max(bookings.last_name), max(hmis.last_name))", 'last_name'),
         ("to_char(max(jail_entry_date::timestamp), 'YYYY-MM-DD')", 'last_jail_contact'),
         ("to_char(max(client_location_start_date::timestamp), 'YYYY-MM-DD')", 'last_hmis_contact'),
-        ("count(bookings.internal_event_id)",  'jail_contact'),
-        ("count(hmis.internal_event_id)", 'hmis_contact'),
-        ("coalesce(sum(date_part('day', client_location_end_date::timestamp - client_location_start_date::timestamp)), 0)::int", 'cumu_hmis_days'),
-        ("coalesce(sum(date_part('day', jail_exit_date::timestamp - jail_entry_date::timestamp)), 0)::int", 'cumu_jail_days'),
-        ("count(bookings.internal_event_id) + count(hmis.internal_event_id)", 'total_contact'),
+        ("count(bookings.matched_id)",  'jail_contact'),
+        ("count(hmis.matched_id)", 'hmis_contact'),
+        ("coalesce(sum( \
+            case when client_location_end_date is not null \
+                then date_part('day', client_location_end_date::timestamp - client_location_start_date::timestamp) \
+            else \
+                date_part('day', hmis.updated_ts::timestamp - client_location_start_date::timestamp) end), 0)::int", 'cumu_hmis_days'),
+        ("coalesce(sum( \
+            case when jail_exit_date is not null \
+                then date_part('day', jail_exit_date::timestamp - jail_entry_date::timestamp) \
+            else \
+                date_part('day', bookings.updated_ts::timestamp - jail_entry_date::timestamp) end), 0)::int", 'cumu_jail_days'),
+        ("count(bookings.matched_id) + count(hmis.matched_id)", 'total_contact'),
     ]
     if not any(order_column for expression, alias in columns):
         raise ValueError('Given order column expression does not match any alias in query. Exiting to avoid SQL injection attacks')
