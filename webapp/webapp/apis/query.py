@@ -95,7 +95,7 @@ def get_records_by_time(
     )
     logging.info('Querying table records')
     columns = [
-        ("matched_id", 'matched_id'),
+        ("regexp_replace(matched_id, '[^\w]', '', 'g')", 'matched_id'),
         ("string_agg(coalesce(bookings.internal_person_id, bookings.inmate_number)::text, ',')", 'booking_id'),
         ("string_agg(hmis.internal_person_id::text, ',')", 'hmis_id'),
         ("coalesce(max(bookings.first_name), max(hmis.first_name))", 'first_name'),

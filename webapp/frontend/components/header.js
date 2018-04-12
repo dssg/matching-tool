@@ -28,20 +28,6 @@ class Header extends React.Component {
     return (
       <div>
         <MatchingAppBar location={this.props.location} handleToggle={this.handleToggle} />
-        <Drawer
-          open={this.state.open}
-          docked={false}
-          onRequestChange={this.handleToggle}
-          openSecondary={true}
-        >
-          <MenuItem primaryText='Welcome, Joe Walsh' />
-          <Divider />
-          <Link to='/'><MenuItem primaryText='Home' onTouchTap={this.handleToggle} /></Link>
-          <Link to='/upload'><MenuItem primaryText='Upload' onTouchTap={this.handleToggle} /></Link>
-          <Link to='/results'><MenuItem primaryText='Results' onTouchTap={this.handleToggle} /></Link>
-          <Divider />
-          <Link to='/logout' target="_self"><MenuItem value={'/logout'} primaryText='Logout' /></Link>
-        </Drawer>
       </div>
     )
   }

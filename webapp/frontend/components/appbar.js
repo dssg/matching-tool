@@ -63,8 +63,8 @@ class MatchingAppBar extends React.Component {
           <Tab value="/" label="Home" containerElement={<Link to="/"/>} />
           <Tab value="/upload" label="Upload Data" containerElement={<Link to="/upload"/>} />
           <Tab value="/results" label="Results" containerElement={<Link to="/results"/>} />
+          <Tab value="/logout" label="Logout" containerElement={<Link to="/logout" target="_self"/>} />
         </Tabs>
-      <IconButton onClick={this.props.handleToggle}><ActionHome color={grey50} /></IconButton>
       </AppBar>
     )
   }

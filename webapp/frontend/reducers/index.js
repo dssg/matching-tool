@@ -194,7 +194,9 @@ const app = createReducer(initialState, {
   [UPDATE_SET_STATUS]: (state, payload) => {
     const newState = update(state, {
       matchingFilters: {
-        setStatus: {$set: payload}
+        setStatus: {$set: payload},
+        offset: {$set: 0}
+
       }
     })
     return newState
