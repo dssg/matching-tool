@@ -41,6 +41,11 @@ module.exports = {
     ]
   },
   plugins: [
-    new ExtractTextPlugin('[name].[chunkhash].css')
+    new ExtractTextPlugin('[name].[chunkhash].css'),
+    new webpack.DefinePlugin({
+      'process.env': { 'NODE_ENV': '"production"' }
+    }),
+    new webpack.optimize.UglifyJsPlugin(),
+    new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/)
   ]
 }

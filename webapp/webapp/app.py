@@ -22,3 +22,8 @@ app.register_blueprint(jobs_api)
 @login_required
 def home(path):
     return render_template('index.html')
+
+
+@app.route('/health-check')
+def health_check():
+    return 'OK!'
