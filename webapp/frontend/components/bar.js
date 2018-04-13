@@ -52,7 +52,7 @@ export default class DurationBarChart extends React.Component {
                   ticks: {fontSize: 14}
                 }}
               />
-              {this.props.data.map((entry, idx) => (
+              {this.props.data[0].map((entry, idx) => (
                 <VerticalBarSeries
                   data={entry}
                   key={idx}
@@ -64,7 +64,7 @@ export default class DurationBarChart extends React.Component {
             <DiscreteColorLegend
               margin={{ left: 1, right: 1 }}
               orientation="vertical"
-              items={this.props.legendItemList} />
+              items={this.props.data[1]} />
           </div>
         </div>
       )
