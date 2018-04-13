@@ -15,7 +15,7 @@ import DataTables from 'material-ui-datatables'
 import Venn from './venn'
 import { connect } from 'react-redux'
 import { join, keys, map, merge, toPairs } from 'ramda'
-import { getMatchingResults, updateControlledDate, updateTableSort, nextTablePage, prevTablePage, updateSetStatus } from '../actions'
+import { getMatchingResults, updateControlledDate, updateTableSort, nextTablePage, prevTablePage, updateSetStatus, toggleBarFlag } from '../actions'
 import { Card, CardTitle } from 'material-ui/Card'
 import {GridList, GridTile} from 'material-ui/GridList';
 import html2canvas from 'html2canvas'
@@ -126,6 +126,7 @@ function mapStateToProps(state) {
     serverError: state.app.serverError,
     filters: state.app.matchingFilters,
     totalTableRows: state.app.matchingResults.totalTableRows,
+    barFlag: state.app.barFlag
   }
 }
 
@@ -152,6 +153,9 @@ function mapDispatchToProps(dispatch) {
     },
     handleUpdateSetStatus: (d) => {
       dispatch(updateSetStatus(d))
+    },
+    toggleBarFlag: () => {
+      dispatch(toggleBarFlag())
     }
   }
 }
@@ -161,7 +165,6 @@ export class Results extends React.Component {
     super(props);
     this.state = {
       open: true,
-      barFlag: false,
       flagJailBar: true,
       duration: [1, "year", 4]
     }
@@ -185,8 +188,11 @@ export class Results extends React.Component {
     this.props.updateDates(startDate, endDate)
   }
 
-  handleClick = () => {
-    this.setState({barFlag: !this.state.barFlag})
+  handleClickToggleChartAndList = () => {
+    if (this.props.filters.setStatus == "Intersection") {
+      this.props.handleUpdateSetStatus(["Jail"])
+    }
+    this.props.toggleBarFlag()
   }
 
   handleDurationChange = (event, index, value) => {
@@ -442,11 +448,11 @@ export class Results extends React.Component {
                     </SelectField>
                   </h5>
                   <RaisedButton
-                    label={ this.state.barFlag ? "Show List of Results" : "Show Duration Chart"}
+                    label={ this.props.barFlag ? "Show List of Results" : "Show Duration Chart"}
                     labelStyle={{fontSize: '10px',}}
                     style={styles.button}
                     primary={true}
-                    onClick={this.handleClick} />
+                    onClick={this.handleClickToggleChartAndList} />
                   <RaisedButton
                     label="All"
                     style={{margin: 5}}
@@ -474,10 +480,10 @@ export class Results extends React.Component {
             </div>
             <div style={styles.datepicker}>
               <RaisedButton
-                label={ this.state.barFlag ? "Download Charts" : "Download List" }
+                label={ this.props.barFlag ? "Download Charts" : "Download List" }
                 labelStyle={{fontSize: '10px',}}
                 secondary={true}
-                onClick={ this.state.barFlag? this.handleDownloadChart : this.handleDownloadList}
+                onClick={ this.props.barFlag? this.handleDownloadChart : this.handleDownloadList}
                 style={styles.button} />
             </div>
           </Drawer>
@@ -493,7 +499,7 @@ export class Results extends React.Component {
             </h5>
             <hr style={styles.hr}/>
           </div>
-          { this.state.barFlag ? this.renderBarChart() : this.renderTable() }
+          { this.props.barFlag ? this.renderBarChart() : this.renderTable() }
         </div>
       </div>
     )

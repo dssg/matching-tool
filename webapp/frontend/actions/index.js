@@ -22,7 +22,8 @@ import {
   VALIDATED_RESULT,
   FETCHING_RESULT,
   SHOW_JOBS,
-  SHOW_HISTORY
+  SHOW_HISTORY,
+  TOGGLE_BAR_FLAG
 } from '../constants/index'
 import { length, filter } from 'ramda'
 import { validJurisdictions } from '../utils/jurisdictions'
@@ -329,5 +330,11 @@ export function getHistory() {
       .then((data) => {
         dispatch(showHistory(data))
       })
+  }
+}
+
+export function toggleBarFlag() {
+  return {
+    type: TOGGLE_BAR_FLAG,
   }
 }

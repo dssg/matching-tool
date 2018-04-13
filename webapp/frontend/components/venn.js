@@ -10,7 +10,8 @@ import ReactTooltip from 'react-tooltip'
 function mapStateToProps(state) {
   return {
     tableData: state.app.matchingResults.filteredData.tableData,
-    filters: state.app.matchingFilters
+    filters: state.app.matchingFilters,
+    barFlag: state.app.barFlag
   }
 }
 
@@ -83,9 +84,11 @@ class Venn extends React.Component {
     selectAll(".venn-area")
       .on("mouseover", function(d, i) {
         const node = select(this)
-        node.select("path").style("fill-opacity", .8)
+        if (!self.props.barFlag || d['sets'].length == 1) {
+          node.select("path").style("fill-opacity", .8)
                            .style("stroke-width", 3)
                            .style("stroke", "red")
+        }
 
         node.select(".label").style("font-weight", "100")
                              .style("font-size", "20px")
@@ -101,7 +104,9 @@ class Venn extends React.Component {
     selectAll(".venn-area")
       .on("click", function(d, i){
         const node = select(this)
-        self.props.handleUpdateSetStatus(d['sets'])
+        if (!self.props.barFlag || d['sets'].length == 1) {
+          self.props.handleUpdateSetStatus(d['sets'])
+        }
       })
   }
 

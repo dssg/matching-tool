@@ -22,7 +22,8 @@ import {
   VALIDATED_RESULT,
   FETCHING_RESULT,
   SHOW_JOBS,
-  SHOW_HISTORY
+  SHOW_HISTORY,
+  TOGGLE_BAR_FLAG
 } from '../constants/index'
 
 import resetAppState from './reset-app-state'
@@ -40,6 +41,7 @@ const initialState = {
       name: '',
       slug: ''
     },
+    barFlag: false,
     filePicked: '',
     validationResponse: {
       message: '',
@@ -244,6 +246,12 @@ const app = createReducer(initialState, {
   [SET_ERROR_MESSAGE]: (state, payload) => {
     const newState = update(state, {
       serverError: {$set: payload}
+    })
+    return newState
+  },
+  [TOGGLE_BAR_FLAG]: (state, payload) => {
+    const newState = update(state, {
+      barFlag: {$set: !state.barFlag}
     })
     return newState
   }
