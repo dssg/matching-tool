@@ -19,7 +19,6 @@ import { getMatchingResults, updateControlledDate, updateTableSort, nextTablePag
 import { Card, CardTitle } from 'material-ui/Card'
 import {GridList, GridTile} from 'material-ui/GridList';
 import html2canvas from 'html2canvas'
-import ReactTooltip from 'react-tooltip'
 
 const styles = {
   hr: {
@@ -336,17 +335,13 @@ export class Results extends React.Component {
         <GridTile>
           <Card style={styles.bar_chart}>
             <CardTitle style={styles.cardTitle} title={"Jail: number of days"}  titleStyle={{'fontSize': 16, 'marginLeft': 10}} />
-            <DurationBarChart
-              data={this.props.filteredData.jailDurationBarData}
-              legendItemList={["0 day", "1 day", "2-9 days", "10-89 days", "90+ days"]} />
+            <DurationBarChart data={this.props.filteredData.jailDurationBarData} />
           </Card>
         </GridTile>
         <GridTile>
           <Card style={styles.bar_chart}>
             <CardTitle style={styles.cardTitle} title="Jail: number of contacts" titleStyle={{'fontSize': 16, 'marginLeft': 10}} />
-            <DurationBarChart
-              data={this.props.filteredData.jailContactBarData}
-              legendItemList={["1 contact", "2-9 contacts", "10-99 contacts", "100-499 contacts", "500+ contacts"]} />
+            <DurationBarChart data={this.props.filteredData.jailContactBarData} />
           </Card>
         </GridTile>
       </GridList>
@@ -401,7 +396,6 @@ export class Results extends React.Component {
     return (
       <div>
         <Header location={this.props.location} />
-        <ReactTooltip />
         <div style={styles.page}>
           <FloatingActionButton
             style={styles.floatingActionButtonAdd}
@@ -478,14 +472,14 @@ export class Results extends React.Component {
                 secondary={true}
                 style={styles.button} />
             </div>
-              <div style={styles.datepicker}>
-                <RaisedButton
-                  label={ this.state.barFlag ? "Download Charts" : "Download List" }
-                  labelStyle={{fontSize: '10px',}}
-                  secondary={true}
-                  onClick={ this.state.barFlag? this.handleDownloadChart : this.handleDownloadList}
-                  style={styles.button} />
-              </div>
+            <div style={styles.datepicker}>
+              <RaisedButton
+                label={ this.state.barFlag ? "Download Charts" : "Download List" }
+                labelStyle={{fontSize: '10px',}}
+                secondary={true}
+                onClick={ this.state.barFlag? this.handleDownloadChart : this.handleDownloadList}
+                style={styles.button} />
+            </div>
           </Drawer>
         </div>
         <div style={contentStyle}>
