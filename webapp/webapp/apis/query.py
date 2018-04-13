@@ -54,16 +54,23 @@ def window(iterable, size=2):
 
 def get_contact_dist(data, bins=None):
     data = data.groupby('matched_id').matched_id.count().as_matrix()
-    data.astype(int)
+    data = data.astype(int)
     one_contact = list(data).count(1)
     rest = np.delete(data, np.argwhere(data==1))
     if bins is not None:
         num, groups = np.histogram(rest, bins)
     else:
         num, groups = np.histogram(rest, 'auto')
+        if len(groups) > 4:
+            bins = 4
+            num, groups = np.histogram(rest, bins)
+        logger.info('Debugging')
+        logger.info(num)
+        logger.info(groups)
     hist = [one_contact] + list(num)
     index = [pd.Interval(1, 2, 'left')] + [pd.Interval(int(b[0]), int(b[1])+1, 'left') for b in list(window(list(groups), 2))]
     df_hist = pd.DataFrame({'contacts': hist}, index=contacts_interval_to_text(index))
+    logger.info(df_hist)
     return df_hist, groups
 
 
