@@ -3,6 +3,8 @@ import pandas as pd
 from webapp import db, app
 from webapp.utils import generate_matched_table_name, table_exists
 from collections import OrderedDict
+from webapp.logger import logger
+import numpy as np
 
 logging.basicConfig(
     format='%(asctime)s %(process)d %(levelname)s: %(message)s',
@@ -11,11 +13,10 @@ logging.basicConfig(
 
 def get_histogram_bar_chart_data(data, distribution_function, shared_ids, data_name):
     intersection_data = data[data.matched_id.isin(shared_ids)]
-    distribution = distribution_function(data)
-    distribution_intersection = distribution_function(intersection_data)
-
+    distribution, groups = distribution_function(data)
+    distribution_intersection, _ = distribution_function(intersection_data, groups)
     bins = []
-    for bin_index in range(0, 5):
+    for bin_index in range(len(distribution)):
         try:
             of_status = {
                 "x": data_name,
@@ -37,23 +38,61 @@ def get_histogram_bar_chart_data(data, distribution_function, shared_ids, data_n
                 "y": 0
             }
         bins.append((of_status, all_status))
-    return bins
+    return [bins, list(distribution.index)]
 
 
-def get_days_distribution(data):
-    return pd.cut(
-        data.groupby('matched_id').days.sum(),
-        [0, 1, 2, 10, 90, 1000],
-        right=False
-    ).value_counts(sort=False)
+def window(iterable, size=2):
+    i = iter(iterable)
+    win = []
+    for e in range(0, size):
+        win.append(next(i))
+    yield win
+    for e in i:
+        win = win[1:] + [e]
+        yield win
 
-def get_contacts_distribution(data):
-    contact = data.groupby('matched_id').matched_id.count()
-    return pd.cut(
-        contact,
-        bins=[1, 2, 10, 100, 500, 1000],
-        right=False
-    ).value_counts(sort=False)
+
+def get_contact_dist(data, bins=None):
+    data = data.groupby('matched_id').matched_id.count().as_matrix()
+    data.astype(int)
+    one_contact = list(data).count(1)
+    rest = np.delete(data, np.argwhere(data==1))
+    if bins is not None:
+        num, groups = np.histogram(rest, bins)
+    else:
+        num, groups = np.histogram(rest, 'auto')
+    hist = [one_contact] + list(num)
+    index = [pd.Interval(1, 2, 'left')] + [pd.Interval(int(b[0]), int(b[1])+1, 'left') for b in list(window(list(groups), 2))]
+    df_hist = pd.DataFrame({'contacts': hist}, index=contacts_interval_to_text(index))
+    return df_hist, groups
+
+
+def get_days_distribution(data, groups=None):
+    dist = pd.cut(
+            data.groupby('matched_id').days.sum(),
+            [0, 1, 2, 10, 90, 1000],
+            right=False
+        ).value_counts(sort=False)
+    logger.info(dist)
+    dist = pd.DataFrame({'days': dist.as_matrix()}, index=days_interval_to_text(dist.index))
+    return dist, []
+
+
+def contacts_interval_to_text(interval_list):
+    result = ['1 contact']
+    for i in interval_list[1:]:
+        result.append(f"{i.left}-{i.right - 1 if i.open_right else i.right} contacts")
+    return result
+
+
+def days_interval_to_text(interval_list):
+    result = ['< 1 day', '1 day']
+    for i in interval_list[2:-1]:
+        result.append(f"{i.left}-{i.right - 1 if i.open_right else i.right} days")
+
+    result = result + ['90+ days']
+    return result
+
 
 def get_records_by_time(
     start_time,
@@ -156,7 +195,7 @@ def get_records_by_time(
         count(distinct(hmis.matched_id)) as hmis_size,
         count(distinct(bookings.matched_id)) as bookings_size,
         count(distinct(case when hmis.matched_id = bookings.matched_id then hmis.matched_id else null end)) as shared_size,
-        count(*)
+        count(distinct(matched_id))
         from ({}) hmis
         full outer join ({}) bookings using (matched_id)
     '''.format(hmis_query, bookings_query),
@@ -201,6 +240,7 @@ def get_records_by_time(
         "filteredData": filtered_data
     }
 
+
 def retrieve_bar_data(query, matched_hmis_table, matched_bookings_table, start_time, end_time):
     filtered_hmis = pd.read_sql(
         query.format(
@@ -227,14 +267,14 @@ def retrieve_bar_data(query, matched_hmis_table, matched_bookings_table, start_t
     shared_ids = filtered_hmis[filtered_hmis.matched_id.isin(filtered_bookings.matched_id)].matched_id.unique()
 
     if len(shared_ids) == 0:
-        app.logger.warning("No matched between two services")
+        logger.warning("No matched between two services")
 
     # Handle the case that empty query results in ZeroDivisionError
     bar_data = {
         "jailDurationBarData": get_histogram_bar_chart_data(filtered_bookings, get_days_distribution, shared_ids, 'Jail'),
         "homelessDurationBarData": get_histogram_bar_chart_data(filtered_hmis, get_days_distribution, shared_ids, 'Homeless'),
-        "jailContactBarData": get_histogram_bar_chart_data(filtered_bookings, get_contacts_distribution, shared_ids, 'Jail'),
-        "homelessContactBarData": get_histogram_bar_chart_data(filtered_hmis, get_contacts_distribution, shared_ids, 'Homeless'),
+        "jailContactBarData": get_histogram_bar_chart_data(filtered_bookings, get_contact_dist, shared_ids, 'Jail'),
+        "homelessContactBarData": get_histogram_bar_chart_data(filtered_hmis, get_contact_dist, shared_ids, 'Homeless'),
     }
 
     return bar_data
