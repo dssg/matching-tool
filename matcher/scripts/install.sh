@@ -25,8 +25,14 @@ git clone https://${GITHUB_USER}:${GITHUB_PASSWORD}@github.com/dssg/csh.git
 
 echo "Building the infrastructure"
 cd csh
-./csh.sh build db redis matcher matcher_worker
+# TODO: this will need to be removed before merging
+git checkout environment_file
+
+echo "Copying the environment file to the repo"
+mv _env .env
 
 echo "Running the infrastructure"
-./csh.sh start
+
+./csh.sh build db redis matcher matcher_worker
+./csh.sh start db redis matcher matcher_worker
 

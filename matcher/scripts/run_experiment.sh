@@ -3,7 +3,7 @@
 set -e -u
 
 # Name of the ec2 machines
-NODE_NAME=csh-${USER}-
+NODE_NAME=csh-${USER}-experiment-
 
 # Number of experiments to run
 NUM_EXPERIMENTS=$(ls ../config/*.env | wc -l)
@@ -32,7 +32,7 @@ EOF
 function setup_machines() {
     counter=1
     for experiment in ../config/*.env
-    #for counter in $(seq 1 2)
+    # for counter in $(seq 1 2)
     do
 	 echo "Creating machine ${NODE_NAME}${counter} for experiment ${experiment##*/}"
 	 docker-machine create --driver ${MACHINE_DRIVER} --amazonec2-instance-type ${AWS_INSTANCE_TYPE} ${NODE_NAME}${counter}
@@ -53,9 +53,13 @@ function setup_machines() {
 function run_experiment() {
     for N in $(seq 1 $NUM_EXPERIMENTS)		      
     do
-	docker-machine scp run.sh ${NODE_NAME}${N}:/home/ubuntu/run.sh
-	docker-machine ssh ${NODE_NAME}${N} chmod +x /home/ubuntu/run.sh	
-	docker-machine ssh ${NODE_NAME}${N} /home/ubuntu/run.sh "${@}"
+	echo running in $N
+        echo copying run.sh
+        docker-machine scp run.sh ${NODE_NAME}${N}:/home/ubuntu/run.sh
+	echo changing permissions on run.sh
+        docker-machine ssh ${NODE_NAME}${N} chmod +x /home/ubuntu/run.sh	
+	echo running run .sh
+        docker-machine ssh ${NODE_NAME}${N} sudo -H /home/ubuntu/run.sh "${@}${N}"
     done
 }
 
