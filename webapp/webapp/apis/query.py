@@ -16,13 +16,17 @@ def get_histogram_bar_chart_data(data, distribution_function, shared_ids, data_n
     distribution, groups = distribution_function(data)
     distribution_intersection, _ = distribution_function(intersection_data, groups)
     bins = []
+    logger.info(data_name)
+    #logger.info(distribution)
+    logger.info(distribution_intersection)
+    logger.info(len(data.matched_id.unique()))
     for bin_index in range(len(distribution)):
         try:
             of_status = {
                 "x": data_name,
                 "y": int(distribution.iloc[bin_index])/len(data.matched_id.unique())*100
             }
-        except:
+        except ZeroDivisionError:
             of_status = {
                 "x": data_name,
                 "y": 0
@@ -62,10 +66,6 @@ def get_contact_dist(data, bins=None):
         logger.info("all ones!")
         return df_hist, 1
 
-    if len(np.unique(rest)) == 1:
-        df_hist = pd.DataFrame({'contacts': [one_contact, len(np.unique(rest))]}, index=['1 contact', f'{rest[0]} contacts'])
-        return df_hist, 1    
-
     if bins is not None:
         num, groups = np.histogram(rest, bins)
     else:
@@ -76,6 +76,9 @@ def get_contact_dist(data, bins=None):
     hist = [one_contact] + list(num)
     index = [pd.Interval(1, 2, 'left')] + [pd.Interval(int(b[0]), int(b[1])+1, 'left') for b in list(window(list(groups), 2))]
     df_hist = pd.DataFrame({'contacts': hist}, index=contacts_interval_to_text(index))
+    logger.info(num)
+    logger.info(groups)
+    logger.info(index)
     logger.info(df_hist)
     return df_hist, groups
 
@@ -94,8 +97,8 @@ def contacts_interval_to_text(interval_list):
     result = ['1 contact']
     for c, i in enumerate(interval_list[1:], 1):
         if c == 1:
-            if i.left == i.right - 1:
-                result.append(f"{i.left} contacts")
+            if i.right == 3:
+                result.append(f"2 contacts")
             else:
                 result.append(f"{i.left}-{i.right - 1 if i.open_right else i.right} contacts")
         else:
