@@ -37,16 +37,22 @@ KEYS = ast.literal_eval(os.getenv('KEYS'))
 
 
 # lookups
-EVENT_TYPES = [
-    'hmis_service_stays',
-    'jail_bookings'
-]
+EVENT_TYPES = {
+    'hmis_service_stays': {
+        'start_date_column_name': 'client_location_start_date',
+        'end_date_column_name': 'client_location_end_date'
+    },
+    'jail_bookings': {
+        'start_date_column_name': 'jail_entry_date',
+        'end_date_column_name': 'jail_exit_date'
+    }
+}
 
 
 
 def load_data_for_matching(jurisdiction:str, upload_id:str) -> tuple:
     # We will frame the record linkage problem as a deduplication problem
-    df = pd.concat([load_one_event_type(jurisdiction, event_type, upload_id) for event_type in EVENT_TYPES])
+    df = pd.concat([load_one_event_type(jurisdiction, event_type, upload_id) for event_type in EVENT_TYPES.keys()])
 
     ## and the upload_id
     df['upload_id'] = upload_id
@@ -126,7 +132,8 @@ def write_one_event_type(df:pd.DataFrame, jurisdiction:str, event_type:str, uplo
     write_matched_data_to_postgres(
         key=f'csh/matcher/{jurisdiction}/{event_type}/matched',
         table_name=utils.get_matched_table_name(jurisdiction, event_type),
-        column_names=df.columns.values
+        column_names=df.columns.values,
+        event_type=event_type
     )
     logger.info(f'Finished writing {jurisdiction} {event_type} to posgres.')
 
@@ -139,7 +146,7 @@ def write_dataframe_to_s3(df:pd.DataFrame, key:str) -> None:
     logger.info(f'Wrote data to s3://{S3_BUCKET}/{key}')
 
 
-def write_matched_data_to_postgres(key:str, table_name:str, column_names:list) -> None:
+def write_matched_data_to_postgres(key:str, table_name:str, column_names:list, event_type:str) -> None:
     conn = psycopg2.connect(**PG_CONNECTION)
     cur = conn.cursor()
 
@@ -149,6 +156,9 @@ def write_matched_data_to_postgres(key:str, table_name:str, column_names:list) -
 
     logger.info(f'Inserting data into {table_name}')
     insert_data_into_table(key, table_name, cur)
+
+    logger.info(f'Adding indexes to {table_name}')
+    create_indexes_on_matched_table(table_name, event_type, cur)
 
     conn.commit()
     cur.close()
@@ -186,6 +196,16 @@ def insert_data_into_table(key:str, table_name:str, cur) -> None:
             file=f
         )
     logger.info(f'Wrote data to {table_name}')
+
+
+def create_indexes_on_matched_table(table_name:str, event_type:str, cur) -> None:
+    index_query = f"""
+        CREATE INDEX ON {table_name} ({EVENT_TYPES[event_type]['start_date_column_name']});
+        CREATE INDEX ON {table_name} ({EVENT_TYPES[event_type]['end_date_column_name']});
+        CREATE INDEX ON {table_name} (matched_id);
+    """
+    cur.execute(index_query)
+    logger.info(f'Created start date, end date, and matched_id indexes on {table_name}')
 
 
 def read_data_from_postgres(table_name:str):
