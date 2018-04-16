@@ -48,13 +48,22 @@ class Venn extends React.Component {
     ReactTooltip.rebuild()
   }
 
+  filterVenn(data) {
+    var isSizeNotZero = x => x.size !==0
+    const filtered_venndata = filter(isSizeNotZero, data)
+    if (filtered_venndata.length == 0) {
+      return [{sets: [''], size: null}, {sets: [''], size: null}, {sets: [''], size: null}]
+    } else {
+      return filtered_venndata
+    }
+  }
+
   createVenn() {
     const self = this
     const chart = venn.VennDiagram().width(340).height(250)
     const node = this.node
     const div = select(node)
-    var isSizeNotZero = x => x.size !== 0
-    const venndata = filter(isSizeNotZero, self.props.data)
+    const venndata = self.filterVenn(self.props.data)
     div.datum(venndata).call(chart)
     selectAll(".venn-circle path").style("fill-opacity", .65)
     selectAll(".venn-area path").style("fill-opacity", .65)
