@@ -6,10 +6,6 @@ from collections import OrderedDict
 from webapp.logger import logger
 import numpy as np
 
-logging.basicConfig(
-    format='%(asctime)s %(process)d %(levelname)s: %(message)s',
-    level=logging.INFO
-)
 
 def get_histogram_bar_chart_data(data, distribution_function, shared_ids, data_name):
     intersection_data = data[data.matched_id.isin(shared_ids)]
@@ -128,6 +124,114 @@ def get_records_by_time(
     order,
     set_status
 ):
+    matched_hmis_table = generate_matched_table_name(jurisdiction, 'hmis_service_stays')
+    matched_bookings_table = generate_matched_table_name(jurisdiction, 'jail_bookings')
+    hmis_exists = table_exists(matched_hmis_table, db.engine)
+    bookings_exists = table_exists(matched_bookings_table, db.engine)
+    if not hmis_exists:
+        raise ValueError('HMIS matched table {} does not exist. Please try again later.'.format(matched_hmis_table))
+    if not bookings_exists:
+        raise ValueError('Bookings matched table {} does not exist. Please try again later.'.format(matched_bookings_table))
+    columns = [
+        ("matched_id", 'matched_id'),
+        ("coalesce(hmis_summary.first_name, jail_summary.first_name)", 'first_name'),
+        ("coalesce(hmis_summary.last_name, jail_summary.last_name)", 'last_name'),
+        ("hmis_summary.hmis_id", 'hmis_id'),
+        ("hmis_summary.hmis_contact", 'hmis_contact'),
+        ("hmis_summary.last_hmis_contact", 'last_hmis_contact'),
+        ("hmis_summary.cumu_hmis_days", 'cumu_hmis_days'),
+        ("jail_summary.jail_id", 'jail_id'),
+        ("jail_summary.jail_contact", 'jail_contact'),
+        ("jail_summary.last_jail_contact", 'last_jail_contact'),
+        ("jail_summary.cumu_jail_days", 'cumu_jail_days'),
+        ("coalesce(hmis_summary.hmis_contact, 0) + coalesce(jail_summary.jail_contact, 0)", 'total_contact'),
+    ]
+    if not any(order_column for expression, alias in columns):
+        raise ValueError('Given order column expression does not match any alias in query. Exiting to avoid SQL injection attacks')
+    base_query = """WITH hmis_summary AS (
+        SELECT
+            matched_id,
+            string_agg(distinct internal_person_id::text, ',') as hmis_id,
+            sum(
+                case when client_location_end_date is not null 
+                    then date_part('day', client_location_end_date::timestamp - client_location_start_date::timestamp) \
+                    else date_part('day', updated_ts::timestamp - client_location_start_date::timestamp) 
+                end
+            )::int as cumu_hmis_days,
+            count(*) AS hmis_contact,
+            to_char(max(client_location_start_date::timestamp), 'YYYY-MM-DD') as last_hmis_contact,
+            max(first_name) as first_name,
+            max(last_name) as last_name
+        FROM (
+            SELECT
+               *
+            FROM {hmis_table}
+            WHERE
+                not (client_location_start_date < %(start_date)s AND client_location_end_date < %(start_date)s) and
+                not (client_location_start_date > %(end_date)s AND client_location_end_date > %(end_date)s)
+        ) AS hmis
+        GROUP BY matched_id
+    ), jail_summary AS (
+        SELECT
+            matched_id,
+            string_agg(distinct coalesce(internal_person_id, inmate_number)::text, ',') as jail_id,
+            sum(
+                case when jail_exit_date is not null 
+                    then date_part('day', jail_exit_date::timestamp - jail_entry_date::timestamp) \
+                    else date_part('day', updated_ts::timestamp - jail_entry_date::timestamp) 
+                end
+            )::int as cumu_jail_days,
+            count(*) AS jail_contact,
+            to_char(max(jail_entry_date::timestamp), 'YYYY-MM-DD') as last_jail_contact,
+            max(first_name) as first_name,
+            max(last_name) as last_name
+        FROM (
+            SELECT
+               *
+            FROM {booking_table}
+            WHERE
+                not (jail_entry_date < %(start_date)s AND jail_exit_date < %(start_date)s) and
+                not (jail_entry_date > %(end_date)s AND jail_exit_date > %(end_date)s)
+        ) AS jail
+        GROUP BY matched_id
+    )
+    SELECT
+    {columns}
+    FROM hmis_summary
+    FULL OUTER JOIN jail_summary USING(matched_id)
+    """.format(
+        hmis_table=matched_hmis_table,
+        booking_table=matched_bookings_table,
+        columns=",\n".join("{} as {}".format(expression, alias) for expression, alias in columns),
+    )
+
+
+    logging.info('Querying table records')
+    if order not in {'asc', 'desc'}:
+        raise ValueError('Given order direction is not valid. Exiting to avoid SQL injection attacks')
+    if not isinstance(limit, int) and not limit.isdigit() and limit != 'ALL':
+        raise ValueError('Given limit is not valid. Existing to avoid SQL injection attacks')
+    filter_by_status = {
+        'Jail': 'jail_summary.matched_id is not null',
+        'HMIS': 'hmis_summary.matched_id is not null',
+        'Intersection': 'hmis_summary.matched_id = jail_summary.matched_id'
+    }
+    status_filter = filter_by_status.get(set_status, 'true')
+    rows_to_show = [dict(row) for row in db.engine.execute("""
+        {}
+        where {}
+        order by {} {}
+        limit {} offset %(offset)s""".format(
+            base_query,
+            status_filter,
+            order_column,
+            order,
+            limit
+        ),
+        start_date=start_time,
+        end_date=end_time,
+        offset=offset,
+    )]
     query = """
     SELECT
     *,
@@ -137,15 +241,6 @@ def get_records_by_time(
         not ({start} < %(start_time)s AND {exit} < %(start_time)s) and
         not ({start} > %(end_time)s AND {exit} > %(end_time)s)
     """
-    matched_hmis_table = generate_matched_table_name(jurisdiction, 'hmis_service_stays')
-    matched_bookings_table = generate_matched_table_name(jurisdiction, 'jail_bookings')
-    hmis_exists = table_exists(matched_hmis_table, db.engine)
-    bookings_exists = table_exists(matched_bookings_table, db.engine)
-    if not hmis_exists:
-        raise ValueError('HMIS matched table {} does not exist. Please try again later.'.format(matched_hmis_table))
-    if not bookings_exists:
-        raise ValueError('Bookings matched table {} does not exist. Please try again later.'.format(matched_bookings_table))
-
     hmis_query = query.format(
         table_name=matched_hmis_table,
         start="client_location_start_date",
@@ -156,63 +251,6 @@ def get_records_by_time(
         start="jail_entry_date",
         exit="jail_exit_date"
     )
-    logging.info('Querying table records')
-    columns = [
-        ("regexp_replace(matched_id, '[^\w]', '', 'g')", 'matched_id'),
-        ("string_agg(distinct coalesce(bookings.internal_person_id, bookings.inmate_number)::text, ',')", 'booking_id'),
-        ("string_agg(distinct hmis.internal_person_id::text, ',')", 'hmis_id'),
-        ("coalesce(max(bookings.first_name), max(hmis.first_name))", 'first_name'),
-        ("coalesce(max(bookings.last_name), max(hmis.last_name))", 'last_name'),
-        ("to_char(max(jail_entry_date::timestamp), 'YYYY-MM-DD')", 'last_jail_contact'),
-        ("to_char(max(client_location_start_date::timestamp), 'YYYY-MM-DD')", 'last_hmis_contact'),
-        ("count(bookings.matched_id)",  'jail_contact'),
-        ("count(hmis.matched_id)", 'hmis_contact'),
-        ("coalesce(sum( \
-            case when client_location_end_date is not null \
-                then date_part('day', client_location_end_date::timestamp - client_location_start_date::timestamp) \
-            else \
-                date_part('day', hmis.updated_ts::timestamp - client_location_start_date::timestamp) end), 0)::int", 'cumu_hmis_days'),
-        ("coalesce(sum( \
-            case when jail_exit_date is not null \
-                then date_part('day', jail_exit_date::timestamp - jail_entry_date::timestamp) \
-            else \
-                date_part('day', bookings.updated_ts::timestamp - jail_entry_date::timestamp) end), 0)::int", 'cumu_jail_days'),
-        ("count(bookings.matched_id) + count(hmis.matched_id)", 'total_contact'),
-    ]
-    if not any(order_column for expression, alias in columns):
-        raise ValueError('Given order column expression does not match any alias in query. Exiting to avoid SQL injection attacks')
-    if order not in {'asc', 'desc'}:
-        raise ValueError('Given order direction is not valid. Exiting to avoid SQL injection attacks')
-    if not isinstance(limit, int) and not limit.isdigit() and limit != 'ALL':
-        raise ValueError('Given limit is not valid. Existing to avoid SQL injection attacks')
-    filter_by_status = {
-        'Jail': 'bookings.matched_id is not null',
-        'HMIS': 'hmis.matched_id is not null',
-        'Intersection': 'hmis.matched_id = bookings.matched_id'
-    }
-    status_filter = filter_by_status.get(set_status, 'true')
-    rows_to_show = [dict(row) for row in db.engine.execute("""
-        select
-        {}
-        from
-        ({}) hmis
-        full outer join ({}) bookings using (matched_id)
-        where {}
-        group by matched_id
-        order by {} {}
-        limit {} offset %(offset)s""".format(
-            ",\n".join("{} as {}".format(expression, alias) for expression, alias in columns),
-            hmis_query,
-            bookings_query,
-            status_filter,
-            order_column,
-            order,
-            limit
-        ),
-        start_time=start_time,
-        end_time=end_time,
-        offset=offset,
-    )]
     logging.info('Done querying table records')
     logging.info('Querying venn diagram stats')
     venn_diagram_stats = next(db.engine.execute('''select
@@ -255,7 +293,7 @@ def get_records_by_time(
         }
     ]
     logging.info('Retrieving bar data from database')
-    filtered_data = retrieve_bar_data(query, matched_hmis_table, matched_bookings_table, start_time, end_time)
+    filtered_data = retrieve_bar_data(matched_hmis_table, matched_bookings_table, start_time, end_time)
     logging.info('Done retrieving bar data from database')
     filtered_data['tableData'] = rows_to_show
     return {
@@ -265,7 +303,16 @@ def get_records_by_time(
     }
 
 
-def retrieve_bar_data(query, matched_hmis_table, matched_bookings_table, start_time, end_time):
+def retrieve_bar_data(matched_hmis_table, matched_bookings_table, start_time, end_time):
+    query = """
+    SELECT
+    *,
+    DATE_PART('day', {exit}::timestamp - {start}::timestamp) as days
+    FROM {table_name}
+    WHERE
+        not ({start} < %(start_time)s AND {exit} < %(start_time)s) and
+        not ({start} > %(end_time)s AND {exit} > %(end_time)s)
+    """
     filtered_hmis = pd.read_sql(
         query.format(
             table_name=matched_hmis_table,
