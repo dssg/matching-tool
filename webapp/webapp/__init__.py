@@ -17,6 +17,7 @@ app.config['DEBUG'] = os.environ['DEBUG']
 app.config['SECURITY_PASSWORD_SALT'] = os.environ['SECURITY_PASSWORD_SALT']
 app.config['SQLALCHEMY_DATABASE_URI'] = dburl
 app.config["JSON_SORT_KEYS"] = False
+app.config["SECURITY_RECOVERABLE"] = True
 
 
 db = SQLAlchemy(app)
