@@ -16,6 +16,10 @@ def get_histogram_bar_chart_data(data, distribution_function, shared_ids, data_n
     distribution, groups = distribution_function(data)
     distribution_intersection, _ = distribution_function(intersection_data, groups)
     bins = []
+    logger.info(data_name)
+    #logger.info(distribution)
+    logger.info(distribution_intersection)
+    logger.info(len(data.matched_id.unique()))
     for bin_index in range(len(distribution)):
         try:
             of_status = {
@@ -32,7 +36,7 @@ def get_histogram_bar_chart_data(data, distribution_function, shared_ids, data_n
                 "x": "Jail & Homeless",
                 "y": int(distribution_intersection.iloc[bin_index])/len(intersection_data.matched_id.unique())*100
             }
-        except ZeroDivisionError:
+        except:
             all_status = {
                 "x": "Jail & Homeless",
                 "y": 0
@@ -54,16 +58,28 @@ def window(iterable, size=2):
 
 def get_contact_dist(data, bins=None):
     data = data.groupby('matched_id').matched_id.count().as_matrix()
-    data.astype(int)
+    data = data.astype(int)
     one_contact = list(data).count(1)
     rest = np.delete(data, np.argwhere(data==1))
+    if one_contact == len(data):
+        df_hist = pd.DataFrame({'contacts': [one_contact]}, index=['1 contact'])
+        logger.info("all ones!")
+        return df_hist, 1
+
     if bins is not None:
         num, groups = np.histogram(rest, bins)
     else:
         num, groups = np.histogram(rest, 'auto')
+        if len(groups) > 4:
+            bins = 4
+            num, groups = np.histogram(rest, bins)
     hist = [one_contact] + list(num)
     index = [pd.Interval(1, 2, 'left')] + [pd.Interval(int(b[0]), int(b[1])+1, 'left') for b in list(window(list(groups), 2))]
     df_hist = pd.DataFrame({'contacts': hist}, index=contacts_interval_to_text(index))
+    logger.info(num)
+    logger.info(groups)
+    logger.info(index)
+    logger.info(df_hist)
     return df_hist, groups
 
 
@@ -73,15 +89,23 @@ def get_days_distribution(data, groups=None):
             [0, 1, 2, 10, 90, 1000],
             right=False
         ).value_counts(sort=False)
-    logger.info(dist)
     dist = pd.DataFrame({'days': dist.as_matrix()}, index=days_interval_to_text(dist.index))
     return dist, []
 
 
 def contacts_interval_to_text(interval_list):
     result = ['1 contact']
-    for i in interval_list[1:]:
-        result.append(f"{i.left}-{i.right - 1 if i.open_right else i.right} contacts")
+    for c, i in enumerate(interval_list[1:], 1):
+        if c == 1:
+            if i.right == 3:
+                result.append(f"2 contacts")
+            else:
+                result.append(f"{i.left}-{i.right - 1 if i.open_right else i.right} contacts")
+        else:
+            if i.left + 1 == i.right - 1:
+                result.append(f"{i.left + 1} contacts")
+            else:
+                result.append(f"{i.left + 1}-{i.right - 1 if i.open_right else i.right} contacts")
     return result
 
 
