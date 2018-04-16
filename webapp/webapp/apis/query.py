@@ -133,7 +133,7 @@ def get_records_by_time(
     if not bookings_exists:
         raise ValueError('Bookings matched table {} does not exist. Please try again later.'.format(matched_bookings_table))
     columns = [
-        ("matched_id", 'matched_id'),
+        ("regexp_replace(matched_id, '[^\w]', '', 'g')", 'matched_id'),
         ("coalesce(hmis_summary.first_name, jail_summary.first_name)", 'first_name'),
         ("coalesce(hmis_summary.last_name, jail_summary.last_name)", 'last_name'),
         ("hmis_summary.hmis_id", 'hmis_id'),
@@ -146,7 +146,7 @@ def get_records_by_time(
         ("jail_summary.cumu_jail_days", 'cumu_jail_days'),
         ("coalesce(hmis_summary.hmis_contact, 0) + coalesce(jail_summary.jail_contact, 0)", 'total_contact'),
     ]
-    if not any(order_column for expression, alias in columns):
+    if not any(alias == order_column for expression, alias in columns):
         raise ValueError('Given order column expression does not match any alias in query. Exiting to avoid SQL injection attacks')
     base_query = """WITH hmis_summary AS (
         SELECT
