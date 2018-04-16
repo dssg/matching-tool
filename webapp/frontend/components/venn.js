@@ -64,6 +64,9 @@ class Venn extends React.Component {
     const node = this.node
     const div = select(node)
     const venndata = self.filterVenn(self.props.data)
+    if (venndata.length == 1) {
+      self.props.handleUpdateSetStatus(venndata[0]['sets'])
+    }
     div.datum(venndata).call(chart)
     selectAll(".venn-circle path").style("fill-opacity", .65)
     selectAll(".venn-area path").style("fill-opacity", .65)
