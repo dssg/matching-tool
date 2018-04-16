@@ -3,6 +3,7 @@ import * as constants from '../constants'
 import configureMockStore from 'redux-mock-store'
 import fetchMock from 'fetch-mock'
 import thunk from 'redux-thunk'
+import endpointJSON from './utils'
 import fs from 'fs'
 
 
@@ -20,11 +21,6 @@ describe('actions', () => {
 
 const middlewares = [thunk]
 const mockStore = configureMockStore(middlewares)
-
-function endpointJSON(user, endpoint) {
-  var fname = '../sample_data/user_endpoints/' + user + '/' + endpoint
-  return JSON.parse(fs.readFileSync(fname))
-}
 
 describe('syncRoleAction', () => {
   it('should create actions to fetch and save available roles from the server', () => {
@@ -70,19 +66,22 @@ describe('confirmUpload', () => {
 
 describe('getMatchingResults', () => {
   it('should query and get the matched result based on the start and end time', () => {
-    const mockReturnJSON = JSON.parse(fs.readFileSync('../sample_data/results_input/results_12012017_01012018.json'))
+    const mockReturnJSON = JSON.parse(fs.readFileSync('../sample_data/results_input/results_12012017_01012018_page1.json'))
+    const urlParams = 'startDate=2017-12-01&endDate=2018-01-01&jurisdiction=test_jurisdiction&limit=3&offset=0'
     fetchMock.getOnce(
-      'api/chart/get_schema?start=2017-12-01&end=2018-01-01',
+      'api/chart/get_schema?' + urlParams,
       {
         body: mockReturnJSON,
         headers: { 'content-type': 'application/json' }
       }
     )
     const expectedActions = [
+      { type: constants.MATCHING_IS_LOADING, payload: true },
       { type: constants.MATCHING_RESULTS, payload: mockReturnJSON.results },
+      { type: constants.MATCHING_IS_LOADING, payload: false },
     ]
     const store = mockStore({matchingResults: {}})
-    return store.dispatch(actions.getMatchingResults('2017-12-01', '2018-01-01')).then(() => {
+    return store.dispatch(actions.getMatchingResults(urlParams)).then(() => {
       expect(store.getActions()).toEqual(expectedActions)
     })
   })

@@ -1,24 +1,23 @@
 import React from 'react'
-import d3 from 'd3'
+import { event, select, selectAll } from 'd3-selection'
 import * as venn from 'venn.js'
-import { updateTableData, getMatchingResults, updateSetStatus } from '../actions'
+import { updateSetStatus } from '../actions'
 import { connect } from 'react-redux'
 import RaisedButton from 'material-ui/RaisedButton'
-
+import { filter } from 'ramda'
+import ReactTooltip from 'react-tooltip'
 
 function mapStateToProps(state) {
   return {
-    matchingResults: state.app.matchingResults,
     tableData: state.app.matchingResults.filteredData.tableData,
+    filters: state.app.matchingFilters,
+    barFlag: state.app.barFlag
   }
 }
 
 
 function mapDispatchToProps(dispatch) {
   return {
-    handleUpdateTableData: (data, section) => {
-      dispatch(updateTableData(data, section))
-    },
     handleUpdateSetStatus: (d) => {
       dispatch(updateSetStatus(d))
     },
@@ -29,87 +28,102 @@ class Venn extends React.Component {
 	constructor(props) {
 		super(props)
     this.state = {
-      allTableData: props.matchingResults.filteredData.tableData,
+      allTableData: props.tableData,
     }
 	}
 
-  handleReset = () => {
-    this.props.handleUpdateTableData(this.state.allTableData, "All")
-    this.props.handleUpdateSetStatus(["All"])
-  }
-
   componentDidMount() {
     this.createVenn()
+    ReactTooltip.rebuild()
   }
 
   componentWillReceiveProps(nextProps) {
-    if (this.props.matchingResults.filters.startDate != nextProps.matchingResults.filters.startDate) {
-      this.setState({ allTableData: nextProps.matchingResults.filteredData.tableData})
+    if (this.props.filters.startDate != nextProps.filters.startDate) {
+      this.setState({ allTableData: nextProps.tableData})
     }
   }
 
   componentDidUpdate() {
     this.createVenn()
+    ReactTooltip.rebuild()
   }
 
   createVenn() {
     const self = this
-    const chart = venn.VennDiagram().width(320).height(270)
+    const chart = venn.VennDiagram().width(340).height(250)
     const node = this.node
-    const div = d3.select(node)
+    const div = select(node)
+    var isSizeNotZero = x => x.size !== 0
+    const venndata = filter(isSizeNotZero, self.props.data)
+    div.datum(venndata).call(chart)
+    selectAll(".venn-circle path").style("fill-opacity", .65)
+    selectAll(".venn-area path").style("fill-opacity", .65)
+    selectAll(".label").style("fill", "white")
+                          .style("font-weight", "100")
+                          .style("font-size", "14px")
 
-    var tooltip = d3.select(node).append("div").attr("class", "venntooltip")
-    div.datum(self.props.data).call(chart)
-    d3.selectAll(".venn-circle path").style("fill-opacity", .65)
-    d3.selectAll(".venn-area path").style("fill-opacity", .65)
-    d3.selectAll(".label").style("fill", "white")
-                        .style("font-weight", "100")
-                        .style("font-size", "14px")
+    selectAll(".venn-area").attr("data-tip", "true")
+                              .attr("data-for", function(d, i) {
+                                if (d['sets'].length == 2) {
+                                  return "intersection"
+                                } else if ("Jail" == d['sets'][0]) {
+                                  return "jail"
+                                } else if ("Homeless" == d['sets'][0]) {
+                                  return "homeless"}
+                                })
 
-    d3.selectAll(".venn-area")
+    selectAll(".venn-area path")
+        .style("fill", function(d, i){
+          if ("Jail" == d['sets'][0]) {
+            return "#1f77b4"
+          } else if ("Homeless" == d['sets'][0]) {
+            return "#ff7f0e"
+          }
+      })
+
+    selectAll(".venn-area")
       .on("mouseover", function(d, i) {
-        const node = d3.select(this)
-        node.select("path").style("fill-opacity", .8)
+        const node = select(this)
+        if (!self.props.barFlag || d['sets'].length == 1) {
+          node.select("path").style("fill-opacity", .8)
                            .style("stroke-width", 3)
                            .style("stroke", "red")
+        }
 
         node.select(".label").style("font-weight", "100")
-                           .style("font-size", "20px")
-        tooltip.style("opacity", .7)
-        tooltip.text(d.size + " people");
+                             .style("font-size", "20px")
       })
       .on("mouseout", function(d, i) {
-        const node = d3.select(this)
+        const node = select(this)
         node.select("path").style("fill-opacity", .65)
                            .style("stroke-width", 0)
         node.select("text").style("font-weight", "100")
                            .style("font-size", "14px")
-        tooltip.style("opacity", 0)
-      })
-      .on("mousemove", function() {
-        tooltip.style("left", (d3.event.pageX) + "px")
-               .style("top", (d3.event.pageY - 28) + "px")
       })
 
-    d3.selectAll(".venn-area")
+    selectAll(".venn-area")
       .on("click", function(d, i){
-        const node = d3.select(this)
-        self.props.handleUpdateTableData(self.state.allTableData, d['sets'])
-        self.props.handleUpdateSetStatus(d['sets'])
-        tooltip.style("opacity", 0)
+        const node = select(this)
+        if (!self.props.barFlag || d['sets'].length == 1) {
+          self.props.handleUpdateSetStatus(d['sets'])
+        }
       })
   }
 
   render() {
   	return (
-      <div style={{marginLeft: 15}}>
-        <g transform="translate(10, 30)" ref={node => this.node = node} />
+      <div style={{marginLeft: 10}}>
+        <ReactTooltip id="jail">
+          <p>{this.props.jail} people</p>
+        </ReactTooltip>
+        <ReactTooltip id="homeless">
+          <p>{this.props.homeless} people</p>
+        </ReactTooltip>
+        <ReactTooltip id="intersection">
+          <p>{this.props.both} people</p>
+        </ReactTooltip>
+        <g ref={node => this.node = node} />
         <p> * Left circle is always larger or equal</p>
-        <RaisedButton
-          label="Reset"
-          style={{margin: 5}}
-          onClick={this.handleReset}
-          labelStyle={{fontSize: '10px',}} />
       </div>
   	)
   }

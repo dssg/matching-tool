@@ -1,4 +1,5 @@
 include README.md
 include requirements.txt
 include requirements_dev.txt
+include webapp/uploader_logging.ini
 recursive-include webapp/tests *

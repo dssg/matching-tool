@@ -23,7 +23,7 @@
 <body>
 
   <!-- Scripts -->
-    <div class="center-container nopadding">
+    <div class="center-container nopadding main-container">
       <!-- messages -->
       {% for category, message in get_flashed_messages(with_categories=true) %}
         <div class="alert alert-{{ category }} alert-dismissible" role="alert">
@@ -47,6 +47,6 @@
   <script type='text/javascript' src="{{ url_for('static', filename='output.js') }}"></script>
 </body>
 <div class="footer">
-  <img src="{{ url_for('static', filename='dsapp-logo.png')}}" height="25" >
+  <img src="{{ url_for('static', filename='dsapp-logo.png')}}" height="20" >
 </div>
 </html>

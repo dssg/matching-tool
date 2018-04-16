@@ -2,6 +2,7 @@
 
 import os
 import json
+import ast
 
 from flask import Flask, jsonify, request
 from flask import make_response
@@ -10,8 +11,9 @@ import datetime
 
 from rq.registry import StartedJobRegistry
 from redis import Redis
-from rq import Queue
+from rq import Queue, get_current_job
 from rq.job import Job
+from rq.registry import StartedJobRegistry
 
 from dotenv import load_dotenv
 
@@ -37,6 +39,7 @@ CLUSTERING_PARAMS = {
     'leaf_size': int(os.getenv('LEAF_SIZE')),
     'n_jobs': int(os.getenv('N_JOBS')),
 }
+BLOCKING_RULES = ast.literal_eval(os.getenv('BLOCKING_RULES'))
 
 
 # Initialize the app
@@ -65,8 +68,8 @@ def list_jobs():
 	'enqueue_at': [job.enqueued_at for job in queued_jobs]
     })
 
-@app.route('/match/<jurisdiction>/<event_type>', methods=['GET'])
-def match(jurisdiction, event_type):
+@app.route('/match/<jurisdiction>/<event_type>/<filename>', methods=['GET'])
+def match(jurisdiction, event_type, filename):
     upload_id = request.args.get('uploadId', None)   ## QUESTION: Why is this a request arg and is not in the route? Also, Why in CamelCase?
     if not upload_id:
         return jsonify(status='invalid', reason='uploadId not present')
@@ -77,7 +80,8 @@ def match(jurisdiction, event_type):
         func=do_match,
         args=(jurisdiction, event_type, upload_id),
         result_ttl=5000,
-        timeout=100000
+        timeout=100000,
+        meta={'event_type': event_type, 'filename': filename}
     )
 
     logger.info(f"Job id {job.get_id()}")
@@ -138,7 +142,7 @@ def do_match(jurisdiction, event_type, upload_id):
 
     # Matching: block the data, generate pairs and features, and cluster entities
     logger.info(f"Running matcher")
-    matches = matcher.run(df=df, clustering_params=CLUSTERING_PARAMS, jurisdiction=jurisdiction, upload_id=upload_id)
+    matches = matcher.run(df=df, clustering_params=CLUSTERING_PARAMS, jurisdiction=jurisdiction, upload_id=upload_id, blocking_rules=BLOCKING_RULES)
     data_matched_time = datetime.datetime.now()
     logger.debug('Matching done!')
 
@@ -166,6 +170,7 @@ def do_match(jurisdiction, event_type, upload_id):
     match_id = utils.unique_match_id()
 
     ioutils.insert_info_to_match_log(match_id, upload_id, start_time, data_written_time, total_match_time)
+    logger.info('Finished')
 
     return {
         'status': 'done',
