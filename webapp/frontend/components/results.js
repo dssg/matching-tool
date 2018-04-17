@@ -313,7 +313,10 @@ export class Results extends React.Component {
         id='hmisbarchart'>
         <GridTile>
           <Card  style={styles.bar_chart}>
-            <CardTitle style={styles.cardTitle} title="Homeless: number of shelter days" titleStyle={{'fontSize': 16, 'marginLeft': 10}} />
+            <CardTitle
+              style={styles.cardTitle}
+              title={"Homeless: number of shelter days - " + this.props.filters.startDate + " to " + this.props.filters.endDate}
+              titleStyle={{'fontSize': 16, 'marginLeft': 10}} />
             <DurationBarChart
               data={this.props.filteredData.homelessDurationBarData}
               legendItemList={["0 day", "1 day", "2-9 days", "10-89 days", "90+ days"]} />
@@ -321,7 +324,10 @@ export class Results extends React.Component {
         </GridTile>
         <GridTile>
           <Card style={styles.bar_chart}>
-            <CardTitle style={styles.cardTitle} title="Homeless: number of contacts" titleStyle={{'fontSize': 16, 'marginLeft': 10}} />
+            <CardTitle
+              style={styles.cardTitle}
+              title={"Homeless: number of contacts - " + this.props.filters.startDate + " to " + this.props.filters.endDate}
+              titleStyle={{'fontSize': 16, 'marginLeft': 10}} />
             <DurationBarChart
               data={this.props.filteredData.homelessContactBarData}
               legendItemList={["1 contact", "2-9 contacts", "10-99 contacts", "100-499 contacts", "500+ contacts"]} />
@@ -340,13 +346,19 @@ export class Results extends React.Component {
         id='jailbarchart'>
         <GridTile>
           <Card style={styles.bar_chart}>
-            <CardTitle style={styles.cardTitle} title={"Jail: number of days"}  titleStyle={{'fontSize': 16, 'marginLeft': 10}} />
+            <CardTitle
+              style={styles.cardTitle}
+              title={"Jail: number of days - " + this.props.filters.startDate + " to " + this.props.filters.endDate}
+              titleStyle={{'fontSize': 16, 'marginLeft': 10}} />
             <DurationBarChart data={this.props.filteredData.jailDurationBarData} />
           </Card>
         </GridTile>
         <GridTile>
           <Card style={styles.bar_chart}>
-            <CardTitle style={styles.cardTitle} title="Jail: number of contacts" titleStyle={{'fontSize': 16, 'marginLeft': 10}} />
+            <CardTitle
+              style={styles.cardTitle}
+              title={"Jail: number of contacts - " + this.props.filters.startDate + " to " + this.props.filters.endDate}
+              titleStyle={{'fontSize': 16, 'marginLeft': 10}} />
             <DurationBarChart data={this.props.filteredData.jailContactBarData} />
           </Card>
         </GridTile>
