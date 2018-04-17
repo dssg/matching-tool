@@ -483,13 +483,13 @@ export class Results extends React.Component {
                 label="Download Source HMIS"
                 labelStyle={{fontSize: '10px',}}
                 secondary={true}
-                disabled={true}
+                disabled={false}
                 style={styles.button} />
               <RaisedButton
                 label="Download Source Jail"
                 labelStyle={{fontSize: '10px',}}
                 secondary={true}
-                disabled={true}
+                disabled={false}
                 style={styles.button} />
             </div>
             <div style={styles.datepicker}>
