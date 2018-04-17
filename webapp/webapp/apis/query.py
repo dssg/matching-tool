@@ -13,7 +13,6 @@ def get_histogram_bar_chart_data(data, distribution_function, shared_ids, data_n
     distribution_intersection, _ = distribution_function(intersection_data, groups)
     bins = []
     logger.info(data_name)
-    #logger.info(distribution)
     logger.info(distribution_intersection)
     logger.info(len(data.matched_id.unique()))
     for bin_index in range(len(distribution)):
@@ -62,13 +61,19 @@ def get_contact_dist(data, bins=None):
         logger.info("all ones!")
         return df_hist, 1
 
+    if len(np.unique(rest)) == 1:
+        df_hist = pd.DataFrame({'contacts': [one_contact, len(rest)]}, index=['1 contact', f"{np.unique(rest)[0]} contacts"])
+        return df_hist, 1
+
     if bins is not None:
         num, groups = np.histogram(rest, bins)
     else:
         num, groups = np.histogram(rest, 'auto')
+        num, groups = np.histogram(rest, np.unique(groups.round()))
         if len(groups) > 4:
             bins = 4
             num, groups = np.histogram(rest, bins)
+            num, groups = np.histogram(rest, np.unique(groups.round()))
     hist = [one_contact] + list(num)
     index = [pd.Interval(1, 2, 'left')] + [pd.Interval(int(b[0]), int(b[1])+1, 'left') for b in list(window(list(groups), 2))]
     df_hist = pd.DataFrame({'contacts': hist}, index=contacts_interval_to_text(index))
@@ -153,9 +158,9 @@ def get_records_by_time(
             matched_id,
             string_agg(distinct internal_person_id::text, ',') as hmis_id,
             sum(
-                case when client_location_end_date is not null 
+                case when client_location_end_date is not null
                     then date_part('day', client_location_end_date::timestamp - client_location_start_date::timestamp) \
-                    else date_part('day', updated_ts::timestamp - client_location_start_date::timestamp) 
+                    else date_part('day', updated_ts::timestamp - client_location_start_date::timestamp)
                 end
             )::int as cumu_hmis_days,
             count(*) AS hmis_contact,
@@ -176,9 +181,9 @@ def get_records_by_time(
             matched_id,
             string_agg(distinct coalesce(internal_person_id, inmate_number)::text, ',') as jail_id,
             sum(
-                case when jail_exit_date is not null 
+                case when jail_exit_date is not null
                     then date_part('day', jail_exit_date::timestamp - jail_entry_date::timestamp) \
-                    else date_part('day', updated_ts::timestamp - jail_entry_date::timestamp) 
+                    else date_part('day', updated_ts::timestamp - jail_entry_date::timestamp)
                 end
             )::int as cumu_jail_days,
             count(*) AS jail_contact,
