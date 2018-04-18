@@ -61,11 +61,11 @@ class Contraster:
 
     def compare_swap_month_days(self, col_name:str, args):
         logger.debug(f'Checking if the month and day are swapped in {col_name}')
-        self.contraster.date(col_name, col_name, **args)
+        self.contraster.date(col_name, col_name, label=f'{col_name}_swap_month_days_distance', **args)
 
     def compare_numeric_distance(self, col_name:str, args):
         logger.debug(f'Doing a numeric distance calculation on {col_name}')
-        self.contraster.date(col_name, col_name, **args)
+        self.contraster.date(col_name, col_name, label=f'{col_name}_numeric_{args}_distance', **args)
 
     def compare_list(self, col_name:str, args):
         if args['method'] == 'any':
