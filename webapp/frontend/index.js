@@ -12,6 +12,7 @@ import configureStore from './store/configureStore'
 import { rootReducer, initialState } from './reducers'
 
 const store = configureStore(initialState)
+Raven.config('https://6ff53a7b40c940eb8917a6262c04bcc8@sentry.io/1191014').install()
 //const history = syncHistoryWithStore(browserHistory, store)
 
 render((
