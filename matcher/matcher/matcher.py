@@ -19,7 +19,7 @@ def unpack_blocking_rule(df, column_name, position):
     elif position > 0:
         return df[column_name].astype(str).str[:position]
     else:
-        raise ValueError('I cannot split a string on this value {value}')
+        raise ValueError('I cannot split a string at this position: {position}')
 
 
 def run(df:pd.DataFrame, clustering_params:dict, jurisdiction:str, upload_id:str, blocking_rules:dict) -> pd.DataFrame:
