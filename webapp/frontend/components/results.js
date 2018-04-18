@@ -3,6 +3,7 @@ import DatePicker from 'material-ui/DatePicker'
 import Drawer from 'material-ui/Drawer'
 import DurationBarChart from './bar'
 import FloatingActionButton from 'material-ui/FloatingActionButton'
+import Loadable from 'react-loading-overlay'
 import Header from './header'
 import moment from 'moment'
 import MenuItem from 'material-ui/MenuItem'
@@ -10,10 +11,11 @@ import NavigationClose from 'material-ui/svg-icons/navigation/close'
 import RaisedButton from 'material-ui/RaisedButton'
 import React from 'react'
 import SelectField from 'material-ui/SelectField'
-import TableList from './table'
+import DataTables from 'material-ui-datatables'
 import Venn from './venn'
 import { connect } from 'react-redux'
-import { getMatchingResults, updateControlledDate } from '../actions'
+import { join, keys, map, merge, toPairs } from 'ramda'
+import { getMatchingResults, updateControlledDate, updateTableSort, nextTablePage, prevTablePage, updateSetStatus, toggleBarFlag } from '../actions'
 import { Card, CardTitle } from 'material-ui/Card'
 import {GridList, GridTile} from 'material-ui/GridList';
 import html2canvas from 'html2canvas'
@@ -29,10 +31,13 @@ const styles = {
     "marginTop": 6,
     marginLeft: 60,
   },
-  h5: {
+  summary: {
     "textAlign": "right",
     float:"right",
-    marginRight: 7
+    marginRight: 7,
+  },
+  h5: {
+    marginBottom: 2,
   },
   page: {
     margin: '5px',
@@ -83,7 +88,18 @@ const styles = {
     overflowY: 'auto',
   },
   cardTitle: {
-    marginTop: 1
+    marginTop: 0,
+    padding: 8
+  },
+  table: {
+    width: 'initial'
+  },
+  tableBody: {
+    overflowX: 'auto'
+  },
+  tableColumn: {
+    paddingLeft: '8px',
+    paddingRight: '8x'
   }
 }
 
@@ -98,36 +114,57 @@ function downloadURI(uri, name) {
 
 function mapStateToProps(state) {
   return {
-    matchingResults: state.app.matchingResults,
-    controlledDate: state.app.matchingResults.filters.controlledDate,
-    startDate: state.app.matchingResults.filters.startDate,
-    endDate: state.app.matchingResults.filters.endDate,
+    filteredData: state.app.matchingResults.filteredData,
+    vennDiagramData: state.app.matchingResults.vennDiagramData,
     jailCount: state.app.matchingResults.vennDiagramData[0]["size"],
     homelessCount: state.app.matchingResults.vennDiagramData[1]["size"],
     bothCount: state.app.matchingResults.vennDiagramData[2]["size"],
     totalCount: state.app.matchingResults.vennDiagramData[0]["size"]
       + state.app.matchingResults.vennDiagramData[1]["size"] - state.app.matchingResults.vennDiagramData[2]["size"],
-    setStatus: state.app.matchingResults.filters.setStatus,
+    selectedJurisdictionSlug: state.app.selectedJurisdiction.slug,
+    matchingIsLoading: state.app.matchingIsLoading,
+    serverError: state.app.serverError,
+    filters: state.app.matchingFilters,
+    totalTableRows: state.app.matchingResults.totalTableRows,
+    barFlag: state.app.barFlag
   }
 }
 
 function mapDispatchToProps(dispatch) {
   return {
-    updateMatchingResults: (start, end) => {
-      dispatch(getMatchingResults(start, end))
+    updateMatchingResults: (jurisdiction, matchingUrlParams) => {
+      if(jurisdiction !== '') {
+        dispatch(getMatchingResults(matchingUrlParams))
+      } else {
+        console.log('Short-circuiting matching results querying because no jurisdiction is selected yet')
+      }
     },
-    handleControlledDate: (event, date) => {
-      dispatch(updateControlledDate(date))
+    updateDates: (startDate, endDate) => {
+      dispatch(updateControlledDate(startDate, endDate))
     },
+    updateTableSort: (orderColumn, order) => {
+      dispatch(updateTableSort(orderColumn, order))
+    },
+    nextPage: (event) => {
+      dispatch(nextTablePage())
+    },
+    prevPage: (event) => {
+      dispatch(prevTablePage())
+    },
+    handleUpdateSetStatus: (d) => {
+      dispatch(updateSetStatus(d))
+    },
+    toggleBarFlag: () => {
+      dispatch(toggleBarFlag())
+    }
   }
 }
 
-class Results extends React.Component {
+export class Results extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       open: true,
-      barFlag: false,
       flagJailBar: true,
       duration: [1, "year", 4]
     }
@@ -145,14 +182,17 @@ class Results extends React.Component {
     })
   }
 
-  handleSearch = () => {
-    var date = moment(this.props.controlledDate).format('YYYY-MM-DD')
-    var newdate = moment(date).subtract(this.state.duration[0], this.state.duration[1]).format('YYYY-MM-DD')
-    this.props.updateMatchingResults(newdate, date)
+  handleControlledDate = (event, date) => {
+    const endDate = moment(date).format('YYYY-MM-DD')
+    const startDate = moment(date).subtract(this.state.duration[0], this.state.duration[1]).format('YYYY-MM-DD')
+    this.props.updateDates(startDate, endDate)
   }
 
-  handleClick = () => {
-    this.setState({barFlag: !this.state.barFlag})
+  handleClickToggleChartAndList = () => {
+    if (this.props.filters.setStatus == "Intersection") {
+      this.props.handleUpdateSetStatus(["Jail"])
+    }
+    this.props.toggleBarFlag()
   }
 
   handleDurationChange = (event, index, value) => {
@@ -172,10 +212,13 @@ class Results extends React.Component {
       var d = [2, "years", value]
     }
     this.setState({duration: d})
+    const endDate = this.props.filters.endDate
+    const startDate = moment(endDate).subtract(d[0], d[1]).format('YYYY-MM-DD')
+    this.props.updateDates(startDate, endDate)
   }
 
   handleDownloadChart = () => {
-    if (this.props.setStatus == "Jail" | this.props.setStatus == "All") {
+    if (this.props.filters.setStatus == "Jail" | this.props.filters.setStatus == "All") {
       var id = "#jailbarchart"
     }
     else {
@@ -187,8 +230,21 @@ class Results extends React.Component {
     })
   }
 
+  assembleURLParams = () => {
+    const params = merge(this.props.filters, {jurisdiction: this.props.selectedJurisdictionSlug})
+    return join('&', map(
+      (key) => encodeURIComponent(key) + '=' + encodeURIComponent(params[key]),
+      keys(params)
+    ))
+  }
+
   handleDownloadList = () => {
-    downloadURI("/api/chart/download_list")
+    const url = '/api/chart/download_list?' + this.assembleURLParams()
+    downloadURI(url)
+  }
+
+  handleAll = () => {
+    this.props.handleUpdateSetStatus(["All"])
   }
 
   intersectionPercentage = () => {
@@ -202,16 +258,47 @@ class Results extends React.Component {
   }
 
   componentDidMount() {
-    var today = new moment().format("YYYY-MM-DD")
-    var oneYearAgo = moment(today).subtract(1, "year").format("YYYY-MM-DD")
-    this.props.updateMatchingResults(oneYearAgo, today)
+    this.handleControlledDate('blah', new moment())
+  }
+
+  componentDidUpdate(prevProps) {
+    if (this.props.filters != prevProps.filters || this.props.selectedJurisdictionSlug != prevProps.selectedJurisdictionSlug) {
+      this.props.updateMatchingResults(
+        this.props.selectedJurisdictionSlug,
+        this.assembleURLParams()
+      )
+    }
   }
 
   renderTable() {
+    const columns = map(
+      function(k) { return {key: k, label: k, sortable: true, style: styles.tableColumn}; },
+      keys(this.props.filteredData.tableData[0])
+    )
     return (
       <div style={styles.container}>
         <Card style={styles.card_close}>
-          <TableList data={this.props.matchingResults.filteredData.tableData} />
+          <Loadable
+            active={this.props.matchingIsLoading}
+            color='#999999'
+            spinner
+            text='Loading records'
+          >
+            <DataTables
+              tableBodyStyle={styles.tableBody}
+              tableStyle={styles.table}
+              columns={columns}
+              data={this.props.filteredData.tableData}
+              count={this.props.totalTableRows}
+              rowSize={Number(this.props.filters.limit)}
+              onNextPageClick={this.props.nextPage}
+              onPreviousPageClick={this.props.prevPage}
+              initialSort={{column: this.props.filters.orderColumn, order: this.props.filters.order}}
+              onSortOrderChange={this.props.updateTableSort}
+              page={1+(Number(this.props.filters.offset) / Number(this.props.filters.limit))}
+              showRowSizeControls={false}
+              showCheckboxes={false} />
+          </Loadable>
         </Card>
       </div>
     )
@@ -226,18 +313,24 @@ class Results extends React.Component {
         id='hmisbarchart'>
         <GridTile>
           <Card  style={styles.bar_chart}>
-            <CardTitle style={styles.cardTitle} title="Homeless: number of shelter days" titleStyle={{'fontSize': 18}} />
+            <CardTitle
+              style={styles.cardTitle}
+              title={"Homeless: number of shelter days - " + this.props.filters.startDate + " to " + this.props.filters.endDate}
+              titleStyle={{'fontSize': 16, 'marginLeft': 10}} />
             <DurationBarChart
-              data={this.props.matchingResults.filteredData.homelessDurationBarData}
+              data={this.props.filteredData.homelessDurationBarData}
               legendItemList={["0 day", "1 day", "2-9 days", "10-89 days", "90+ days"]} />
           </Card>
         </GridTile>
         <GridTile>
           <Card style={styles.bar_chart}>
-            <CardTitle style={styles.cardTitle} title="Homeless: number of contacts" titleStyle={{'fontSize': 18}} />
+            <CardTitle
+              style={styles.cardTitle}
+              title={"Homeless: number of contacts - " + this.props.filters.startDate + " to " + this.props.filters.endDate}
+              titleStyle={{'fontSize': 16, 'marginLeft': 10}} />
             <DurationBarChart
-              data={this.props.matchingResults.filteredData.homelessContactBarData}
-              legendItemList={["1 contacts", "2-9 contacts", "10-99 contacts", "100-499 contacts", "500+ contacts"]} />
+              data={this.props.filteredData.homelessContactBarData}
+              legendItemList={["1 contact", "2-9 contacts", "10-99 contacts", "100-499 contacts", "500+ contacts"]} />
           </Card>
         </GridTile>
       </GridList>
@@ -253,18 +346,20 @@ class Results extends React.Component {
         id='jailbarchart'>
         <GridTile>
           <Card style={styles.bar_chart}>
-            <CardTitle style={styles.cardTitle} title={"Jail: number of days"}  titleStyle={{'fontSize': 18}} />
-            <DurationBarChart
-              data={this.props.matchingResults.filteredData.jailDurationBarData}
-              legendItemList={["0 day", "1 day", "2-9 days", "10-89 days", "90+ days"]} />
+            <CardTitle
+              style={styles.cardTitle}
+              title={"Jail: number of days - " + this.props.filters.startDate + " to " + this.props.filters.endDate}
+              titleStyle={{'fontSize': 16, 'marginLeft': 10}} />
+            <DurationBarChart data={this.props.filteredData.jailDurationBarData} />
           </Card>
         </GridTile>
         <GridTile>
           <Card style={styles.bar_chart}>
-            <CardTitle style={styles.cardTitle} title="Jail: number of contacts" titleStyle={{'fontSize': 18}} />
-            <DurationBarChart
-              data={this.props.matchingResults.filteredData.jailContactBarData}
-              legendItemList={["1 contact", "2-9 contacts", "10-99 contacts", "100-499 contacts", "500+ contacts"]} />
+            <CardTitle
+              style={styles.cardTitle}
+              title={"Jail: number of contacts - " + this.props.filters.startDate + " to " + this.props.filters.endDate}
+              titleStyle={{'fontSize': 16, 'marginLeft': 10}} />
+            <DurationBarChart data={this.props.filteredData.jailContactBarData} />
           </Card>
         </GridTile>
       </GridList>
@@ -272,13 +367,13 @@ class Results extends React.Component {
   }
 
   renderBarChart() {
-    if (this.props.setStatus == "Jail" | this.props.setStatus == "All") {
+    if (this.props.filters.setStatus == "Jail" | this.props.filters.setStatus == "All") {
       return (
         <div style={styles.container}>
           {this.renderJailBarChart()}
         </div>
       )
-    } else if (this.props.setStatus == "HMIS") {
+    } else if (this.props.filters.setStatus == "HMIS") {
       return (
         <div style={styles.container}>
           {this.renderHomelessBarChart()}
@@ -306,6 +401,16 @@ class Results extends React.Component {
     if (this.state.open) {
       contentStyle.marginLeft = '25%'
     }
+    if (this.props.serverError) {
+      return (
+        <div>
+          <Header location={this.props.location} />
+          <div style={styles.page}>
+            Error: {this.props.serverError}
+          </div>
+        </div>
+      )
+    }
     return (
       <div>
         <Header location={this.props.location} />
@@ -320,11 +425,11 @@ class Results extends React.Component {
             docked={true}
             width={'25%'}
             open={this.state.open}
-            containerStyle={{height: 'calc(100% - 48px)', top: 48}}
+            containerStyle={{height: 'calc(100% - 93px)', top: 48}}
             onRequestChange={(open) => this.setState({open})} >
             <div style={styles.container}>
               <Card style={styles.panel}>
-                <CardTitle title="Control Panel" titleStyle={{'fontSize': 20}} />
+                <CardTitle title="Control Panel" titleStyle={{'fontSize': 20, }} />
                 <FloatingActionButton
                   onClick={this.handleClose}
                   mini={true}
@@ -333,13 +438,16 @@ class Results extends React.Component {
                   <NavigationClose />
                 </FloatingActionButton>
                 <div style={styles.datepicker}>
-                  <h5>End Date:
+                  <h5 style={styles.h5}>End Date:
                     <DatePicker
-                      hintText="Pick the data to go back"
-                      onChange={this.props.handleControlledDate} />
+                      defaultDate={new moment().toDate()}
+                      maxDate={new moment().toDate()}
+                      hintText="Pick a Date to go back"
+                      autoOk={true}
+                      onChange={this.handleControlledDate} />
                   </h5>
-                  <h5>Duration:</h5>
-                  <h5>
+                  <h5 style={styles.h5}>Duration:</h5>
+                  <h5 style={styles.h5}>
                     <SelectField
                       value={this.state.duration[2]}
                       onChange={this.handleDurationChange}
@@ -352,20 +460,22 @@ class Results extends React.Component {
                     </SelectField>
                   </h5>
                   <RaisedButton
-                    label="Search"
-                    labelStyle={{fontSize: '10px',}}
-                    style={styles.button}
-                    onClick={this.handleSearch}/>
-                  <RaisedButton
-                    label={ this.state.barFlag ? "Show List of Results" : "Show Duration Chart"}
+                    label={ this.props.barFlag ? "Show List of Results" : "Show Duration Chart"}
                     labelStyle={{fontSize: '10px',}}
                     style={styles.button}
                     primary={true}
-                    onClick={this.handleClick} />
+                    onClick={this.handleClickToggleChartAndList} />
+                  <RaisedButton
+                    label="All"
+                    style={{margin: 5}}
+                    onClick={this.handleAll}
+                    labelStyle={{fontSize: '10px',}} />
                 </div>
                 <Venn
-                  data={this.props.matchingResults.vennDiagramData}
-                  local_table_data={this.props.matchingResults.filteredData.tableData}/>
+                  data={this.props.vennDiagramData}
+                  jail={this.props.jailCount}
+                  homeless={this.props.homelessCount}
+                  both={this.props.bothCount} />
               </Card>
             </div>
             <div style={styles.datepicker}>
@@ -373,27 +483,29 @@ class Results extends React.Component {
                 label="Download Source HMIS"
                 labelStyle={{fontSize: '10px',}}
                 secondary={true}
+                disabled={true}
                 style={styles.button} />
               <RaisedButton
                 label="Download Source Jail"
                 labelStyle={{fontSize: '10px',}}
                 secondary={true}
+                disabled={true}
                 style={styles.button} />
             </div>
-              <div style={styles.datepicker}>
-                <RaisedButton
-                  label={ this.state.barFlag ? "Download Charts" : "Download List" }
-                  labelStyle={{fontSize: '10px',}}
-                  secondary={true}
-                  onClick={ this.state.barFlag? this.handleDownloadChart : this.handleDownloadList}
-                  style={styles.button} />
-              </div>
+            <div style={styles.datepicker}>
+              <RaisedButton
+                label={ this.props.barFlag ? "Download Charts" : "Download List" }
+                labelStyle={{fontSize: '10px',}}
+                secondary={true}
+                onClick={ this.props.barFlag? this.handleDownloadChart : this.handleDownloadList}
+                style={styles.button} />
+            </div>
           </Drawer>
         </div>
         <div style={contentStyle}>
           <div>
-            <h4 style={styles.h4}>Results - {this.props.startDate} through {this.props.endDate} - {this.props.setStatus}</h4>
-            <h5 style={styles.h5}>
+            <h4 style={styles.h4}>Results - {this.props.filters.startDate} through {this.props.filters.endDate} - {this.props.filters.setStatus}</h4>
+            <h5 style={styles.summary}>
                 Total: <strong>{this.props.totalCount}</strong>&nbsp;
                 Jail: <strong>{this.props.jailCount}</strong>&nbsp;
                 HMIS: <strong>{this.props.homelessCount}</strong>&nbsp;
@@ -401,7 +513,7 @@ class Results extends React.Component {
             </h5>
             <hr style={styles.hr}/>
           </div>
-          { this.state.barFlag ? this.renderBarChart() : this.renderTable() }
+          { this.props.barFlag ? this.renderBarChart() : this.renderTable() }
         </div>
       </div>
     )

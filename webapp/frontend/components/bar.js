@@ -1,14 +1,10 @@
-import {
-  DiscreteColorLegend,
-  HorizontalGridLines,
-  makeWidthFlexible,
-  onValueClick,
-  onItemClick,
-  VerticalBarSeries,
-  XAxis,
-  XYPlot,
-  YAxis,
-} from 'react-vis'
+import { DiscreteColorLegend } from 'react-vis'
+import { HorizontalGridLines } from 'react-vis'
+import { makeWidthFlexible } from 'react-vis'
+import { VerticalBarSeries } from 'react-vis'
+import { XAxis } from 'react-vis'
+import { XYPlot } from 'react-vis'
+import { YAxis } from 'react-vis'
 import React from 'react'
 
 const FlexibleXYPlot = makeWidthFlexible(XYPlot)
@@ -35,7 +31,7 @@ export default class DurationBarChart extends React.Component {
               xType="ordinal"
               stackBy="y"
               width={300}
-              height={280}>
+              height={270}>
               <HorizontalGridLines />
               <YAxis
                 tickFormat={v => `${v}%`}
@@ -56,7 +52,7 @@ export default class DurationBarChart extends React.Component {
                   ticks: {fontSize: 14}
                 }}
               />
-              {this.props.data.map((entry, idx) => (
+              {this.props.data[0].map((entry, idx) => (
                 <VerticalBarSeries
                   data={entry}
                   key={idx}
@@ -68,7 +64,7 @@ export default class DurationBarChart extends React.Component {
             <DiscreteColorLegend
               margin={{ left: 1, right: 1 }}
               orientation="vertical"
-              items={this.props.legendItemList} />
+              items={this.props.data[1]} />
           </div>
         </div>
       )

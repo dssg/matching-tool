@@ -4,6 +4,7 @@ import FlatButton from 'material-ui/FlatButton';
 import IconButton from 'material-ui/IconButton';
 import Tab from 'material-ui/Tabs/Tab'
 import Tabs from 'material-ui/Tabs/Tabs'
+import React from 'react'
 import { Link } from 'react-router-dom'
 import { browserHistory } from 'react-router'
 import { connect } from 'react-redux'
@@ -62,8 +63,8 @@ class MatchingAppBar extends React.Component {
           <Tab value="/" label="Home" containerElement={<Link to="/"/>} />
           <Tab value="/upload" label="Upload Data" containerElement={<Link to="/upload"/>} />
           <Tab value="/results" label="Results" containerElement={<Link to="/results"/>} />
+          <Tab value="/logout" label="Logout" containerElement={<Link to="/logout" target="_self"/>} />
         </Tabs>
-      <IconButton onClick={this.props.handleToggle}><ActionHome color={grey50} /></IconButton>
       </AppBar>
     )
   }

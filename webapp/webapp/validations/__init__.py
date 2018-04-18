@@ -303,9 +303,11 @@ class DuplicatePrimaryKey(object):
 
             # Add error
             if references:
-                message = "Row {row_number} has duplicate primary key to row(s) {row_numbers}"
+                message = "Row number {row_number}: The value {value} in  column {pk_name} has duplicate primary key to row(s) {row_numbers}"
                 message = message.format(
                     row_number=row_number,
+                    value=','.join([cell['value'] for cell in pk_cells]),
+                    pk_name=','.join([cell['field'].descriptor.get('name') for cell in pk_cells]),
                     row_numbers=', '.join(map(str, references)))
                 errors.append({
                     'code': 'composite-primary-key-constraint',

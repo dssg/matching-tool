@@ -13,40 +13,91 @@ import unicodecsv as csv
 import pandas as pd
 
 GOOD_HMIS_FILE = 'sample_data/uploader_input/hmis_service_stays/good.csv'
+ROWS_IN_GOOD_HMIS_FILE = 11
 HMIS_FILE_WITH_DUPLICATES = 'sample_data/uploader_input/hmis_service_stays/duplicates.csv'
 BOOKINGS_FILE = 'sample_data/uploader_input/jail_bookings/missing-fields.csv'
 MATCHED_BOOKING_FILE = 'sample_data/matched/matched_bookings_data_20171207.csv'
 MATCHED_HMIS_FILE = 'sample_data/matched/matched_hmis_data_20171207.csv'
+BOOTSTRAPPED_HMIS_FILE = 'sample_data/matched/bootstrapped_hmis_data_20180401.csv'
+BOOTSTRAPPED_BOOKING_FILE = 'sample_data/matched/bootstrapped_bookings_data_20180401.csv'
 
 
 class GetMatchedResultsCase(unittest.TestCase):
-    def test_matched_results(self):
-        with rig_test_client_with_engine() as (app, engine):
-            authenticate(app)
+    def both_schema_test(self, booking_file, hmis_file, url, expected_data):
+        with rig_all_the_things() as (app, engine):
             # Create matched jail_bookings
             table_name = 'jail_bookings'
-            create_and_populate_matched_table(table_name, MATCHED_BOOKING_FILE, engine)
+            create_and_populate_matched_table(table_name, engine, booking_file)
             # Create matched hmis_service_stays
             table_name = 'hmis_service_stays'
-            create_and_populate_matched_table(table_name, MATCHED_HMIS_FILE, engine)
-            response = app.get(
-                '/api/chart/get_schema?start=2017-12-01&end=2018-01-01',
-            )
+            create_and_populate_matched_table(table_name, engine, hmis_file)
+            response = app.get(url)
             self.assertEqual(response.status_code, 200)
 
             response_data = json.loads(response.get_data().decode('utf-8'))
-            expected_data = load_json_example('sample_data/results_input/results_12012017_01012018.json')
-            self.assertDictEqual(response_data['results']['filters'], expected_data['results']['filters'])
-
             set_of_venn_size = lambda venn: set(map(lambda x: x['size'], venn))
             self.assertEqual(set_of_venn_size(response_data['results']['vennDiagramData']), set_of_venn_size(expected_data['results']['vennDiagramData']))
 
-            self.assertDictEqual(response_data, expected_data)
+            for expected_row, response_row in zip(
+                expected_data['results']['filteredData']['tableData'],
+                response_data['results']['filteredData']['tableData']
+            ):
+                self.assertDictEqual(expected_row, response_row)
+            for bar_key in [
+                'jailDurationBarData',
+                'homelessDurationBarData',
+                'jailContactBarData',
+                'homelessContactBarData',
+            ]:
+                self.assertEqual(
+                    expected_data['results']['filteredData'][bar_key],
+                    response_data['results']['filteredData'][bar_key],
+                    bar_key
+                )
 
+    def test_all_on_one_page(self):
+        self.both_schema_test(
+            booking_file=MATCHED_BOOKING_FILE,
+            hmis_file=MATCHED_HMIS_FILE,
+            url='/api/chart/get_schema?startDate=2017-12-01&endDate=2018-01-01&jurisdiction=boone&limit=10&offset=0&orderColumn=matched_id&order=asc&setStatus=All',
+            expected_data=load_json_example('sample_data/results_input/results_12012017_01012018.json')
+        )
+
+    def test_page_one(self):
+        self.both_schema_test(
+            booking_file=MATCHED_BOOKING_FILE,
+            hmis_file=MATCHED_HMIS_FILE,
+            url='/api/chart/get_schema?startDate=2017-12-01&endDate=2018-01-01&jurisdiction=boone&limit=5&offset=0&orderColumn=matched_id&order=asc&setStatus=All',
+            expected_data=load_json_example('sample_data/results_input/results_12012017_01012018_page1.json')
+        )
+
+    def test_page_two(self):
+        self.both_schema_test(
+            booking_file=MATCHED_BOOKING_FILE,
+            hmis_file=MATCHED_HMIS_FILE,
+            url='/api/chart/get_schema?startDate=2017-12-01&endDate=2018-01-01&jurisdiction=boone&limit=5&offset=5&orderColumn=matched_id&order=asc&setStatus=All',
+            expected_data=load_json_example('sample_data/results_input/results_12012017_01012018_page2.json')
+        )
+
+    def test_missing_bookings(self):
+        self.both_schema_test(
+            booking_file=None,
+            hmis_file=MATCHED_HMIS_FILE,
+            url='/api/chart/get_schema?startDate=2017-12-01&endDate=2018-01-01&jurisdiction=boone&limit=10&offset=0&orderColumn=matched_id&order=asc&setStatus=All',
+            expected_data=load_json_example('sample_data/results_input/results_04012018_missing_bookings.json')
+        )
+
+    def test_missing_hmis(self):
+        self.both_schema_test(
+            booking_file=MATCHED_BOOKING_FILE,
+            hmis_file=None,
+            url='/api/chart/get_schema?startDate=2017-12-01&endDate=2018-01-01&jurisdiction=boone&limit=10&offset=0&orderColumn=matched_id&order=asc&setStatus=All',
+            expected_data=load_json_example('sample_data/results_input/results_04012018_missing_hmis.json')
+        )
 
 class UploadFileTestCase(unittest.TestCase):
     def test_good_file(self):
-        with rig_all_the_things() as app:
+        with rig_all_the_things() as (app, engine):
             response = app.post(
                 '/api/upload/upload_file?jurisdiction=boone&eventType=hmis_service_stays',
                 content_type='multipart/form-data',
@@ -88,7 +139,7 @@ class UploadFileTestCase(unittest.TestCase):
             assert db_session.query(Upload).filter(Upload.id == response_data['upload_result']['uploadId']).one
 
     def test_file_with_duplicates(self):
-        with rig_all_the_things() as app:
+        with rig_all_the_things() as (app, engine):
             response = app.post(
                 '/api/upload/upload_file?jurisdiction=boone&eventType=hmis_service_stays',
                 content_type='multipart/form-data',
@@ -133,7 +184,7 @@ class MergeFileTestCase(unittest.TestCase):
 
     @requests_mock.mock()
     def test_good_file(self, request_mock):
-        with rig_all_the_things() as app:
+        with rig_all_the_things() as (app, engine):
             upload_id = self.do_upload(app, request_mock)
             # okay, here's what we really want to test.
             # call the merge endpoint
@@ -144,14 +195,24 @@ class MergeFileTestCase(unittest.TestCase):
             expected_s3_path = 's3://test-bucket/boone/hmis_service_stays/merged'
             with smart_open(expected_s3_path, 'rb') as expected_s3_file:
                 reader = csv.reader(expected_s3_file)
-                assert len([row for row in reader]) == 11
+                assert len([row for row in reader]) == ROWS_IN_GOOD_HMIS_FILE
 
             # and make sure that the merge log has a record of this
             assert db_session.query(MergeLog).filter(MergeLog.upload_id == '123-456').one
 
+            # make sure that the matched table has been bootstrapped
+            total_rows = db_session.query('count(*) from matched.boone_hmis_service_stays').one()
+            assert total_rows == (ROWS_IN_GOOD_HMIS_FILE - 1, )
+
+            # make sure that we filled in some source ids
+            total_rows = db_session.query(
+                'count(source_id is not null) from matched.boone_hmis_service_stays'
+            ).one()
+            assert total_rows == (ROWS_IN_GOOD_HMIS_FILE - 1, )
+
     @requests_mock.mock()
     def test_error_transaction(self, request_mock):
-        with rig_all_the_things() as app:
+        with rig_all_the_things() as (app, engine):
             upload_id = self.do_upload(app, request_mock)
             # try and merge an id that doesn't exist, should cause error
             response = app.post('/api/upload/merge_file?uploadId={}'.format('garbage'))
@@ -184,7 +245,7 @@ class MergeBookingsFileTestCase(unittest.TestCase):
         assert response_data['status'] == 'validating'
         response = app.get('/api/upload/validated_result/' + job_key)
         response_data = json.loads(response.get_data().decode('utf-8'))
-        assert response_data['validation']['status'] == 'valid'
+        assert response_data['validation']['status'] == 'valid', response_data['upload_result']['errorReport']
         upload_id = response_data['upload_result']['uploadId']
         compiled_regex = re.compile('/match/boone/jail_bookings\?uploadId={upload_id}'.format(upload_id=upload_id))
         request_mock.get(compiled_regex, text='stuff')
@@ -192,7 +253,7 @@ class MergeBookingsFileTestCase(unittest.TestCase):
 
     @requests_mock.mock()
     def test_good_file(self, request_mock):
-        with rig_all_the_things() as app:
+        with rig_all_the_things() as (app, engine):
             upload_id = self.do_upload(app, request_mock)
             # okay, here's what we really want to test.
             # call the merge endpoint

@@ -124,10 +124,11 @@ def write_one_event_type(df:pd.DataFrame, jurisdiction:str, event_type:str, uplo
     # Write the current match to postgres for use by the webapp
     logger.info(f'Writing data for {jurisdiction} {event_type} to postgres.')
     write_matched_data_to_postgres(
-        key=key,
+        key=f'csh/matcher/{jurisdiction}/{event_type}/matched',
         table_name=utils.get_matched_table_name(jurisdiction, event_type),
         column_names=df.columns.values
     )
+    logger.info(f'Finished writing {jurisdiction} {event_type} to posgres.')
 
 
 def write_dataframe_to_s3(df:pd.DataFrame, key:str) -> None:

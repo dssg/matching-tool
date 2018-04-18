@@ -2,7 +2,7 @@ from webapp import app
 from webapp.app import security
 from webapp.models import User, Role
 from webapp.database import Base, db_session
-from webapp.utils import create_statement_from_goodtables_schema, load_schema_file
+from webapp.utils import create_statement_from_goodtables_schema, load_schema_file, generate_master_table_name, master_table_column_list, create_statement_from_column_list
 from sqlalchemy import create_engine
 import contextlib
 import testing.postgresql
@@ -110,8 +110,8 @@ DATA_FIELDS = {
         country                 text,
         birth_place             text,
         booking_number          text,
-        jail_entry_date         timestamp,
-        jail_exit_date          timestamp,
+        jail_entry_date         text,
+        jail_exit_date          text,
         homeless                text,
         mental_health           text,
         veteran                 text,
@@ -162,7 +162,7 @@ def rig_test_client():
         app.config['WTF_CSRF_ENABLED'] = False
         init_app_with_options(app, user_datastore)
         try:
-            yield app.test_client()
+            yield app.test_client(), engine
         finally:
             db_session.remove()
             engine.dispose()
@@ -176,12 +176,12 @@ def rig_all_the_things():
     with patch('webapp.apis.upload.get_redis_connection', return_value=fake_redis_connection):
         with patch('webapp.apis.upload.get_q', return_value=queue):
             with patch.dict('webapp.utils.app_config', SAMPLE_CONFIG):
-                with rig_test_client() as app:
+                with rig_test_client() as (app, engine):
                     authenticate(app)
                     with mock_s3_deprecated():
                         s3_conn = boto.connect_s3()
                         s3_conn.create_bucket('test-bucket')
-                        yield app
+                        yield app, engine
 
 
 @contextlib.contextmanager
@@ -190,7 +190,9 @@ def rig_test_client_with_engine():
         dburl = postgresql.url()
         engine = create_engine(dburl)
         app.config['SQLALCHEMY_DATABASE_URI'] = dburl
-        yield app.test_client(), engine.connect()
+        client = app.test_client()
+        authenticate(client)
+        yield client, engine.connect()
 
 def authenticate(
         client,
@@ -247,21 +249,22 @@ def init_app_with_options(app, datastore, **options):
     security.datastore = datastore
     populate_data(app, datastore)
 
-def create_and_populate_matched_table(table_name, file_path, db_engine):
+def create_and_populate_matched_table(table_name, db_engine, file_path=None):
     create_table_query = f"""
             CREATE SCHEMA IF NOT EXISTS matched;
-            DROP TABLE IF EXISTS matched.{table_name};
-            CREATE TABLE matched.{table_name} ({DATA_FIELDS[table_name]})"""
+            DROP TABLE IF EXISTS matched.boone_{table_name};
+            CREATE TABLE matched.boone_{table_name} ({DATA_FIELDS[table_name]})"""
     db_engine.execute(create_table_query)
 
-    df = pd.read_csv(file_path)
-    if table_name == "jail_bookings":
-        df['jail_entry_date'] = pd.to_datetime(df['jail_entry_date'])
-        df['jail_exit_date'] = pd.to_datetime(df['jail_exit_date'])
-    elif table_name == "hmis_service_stays":
-        df['client_location_start_date'] = pd.to_datetime(df['client_location_start_date'])
-        df['client_location_end_date'] = pd.to_datetime(df['client_location_end_date'])
-    df.to_sql(table_name, db_engine, schema='matched', if_exists='replace')
+    if file_path:
+        df = pd.read_csv(file_path)
+        if table_name == "jail_bookings":
+            df['jail_entry_date'] = pd.to_datetime(df['jail_entry_date'])
+            df['jail_exit_date'] = pd.to_datetime(df['jail_exit_date'])
+        elif table_name == "hmis_service_stays":
+            df['client_location_start_date'] = pd.to_datetime(df['client_location_start_date'])
+            df['client_location_end_date'] = pd.to_datetime(df['client_location_end_date'])
+        df.to_sql('boone_' + table_name, db_engine, schema='matched', if_exists='replace')
 
 def create_and_populate_raw_table(raw_table, data, db_engine):
     schema = load_schema_file('test')
@@ -275,3 +278,17 @@ def create_and_populate_raw_table(raw_table, data, db_engine):
     for row in data:
         db_engine.execute('insert into "{}" values ({})'.format(raw_table, placeholder_string), *row)
     db_engine.execute('insert into upload_log (id, jurisdiction_slug, event_type_slug) values (%s, %s, %s)', raw_table, 'test', 'test')
+
+
+def create_and_populate_merged_table(table_name, data, db_engine):
+    schema = load_schema_file('test')
+    n_fields = len(schema['fields'])
+    for row in data:
+        assert len(row) == n_fields, "sample merged data must have same # of fields as test schema"
+    placeholder_string = ', '.join(['%s'] * n_fields)
+    master_table_name = generate_master_table_name('test', 'test')
+    column_list = master_table_column_list(schema)
+    create = create_statement_from_column_list(column_list)
+    db_engine.execute(create)
+    for row in data:
+        db_engine.execute('insert into "{}" values ({}, now(), now())'.format(master_table_name, placeholder_string), *row)

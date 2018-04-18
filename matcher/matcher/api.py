@@ -170,6 +170,7 @@ def do_match(jurisdiction, event_type, upload_id):
     match_id = utils.unique_match_id()
 
     ioutils.insert_info_to_match_log(match_id, upload_id, start_time, data_written_time, total_match_time)
+    logger.info('Finished')
 
     return {
         'status': 'done',

@@ -4,7 +4,7 @@ import pandas as pd
 
 from typing import List
 
-import matcher.featurizer as featurizer
+import matcher.contraster as contraster
 import matcher.rules as rules
 import matcher.cluster as cluster
 import matcher.ioutils as ioutils
@@ -13,12 +13,21 @@ from matcher.logger import logger
 
 import recordlinkage as rl
 
+def unpack_blocking_rule(df, column_name, position):
+    if position < 0:
+        return df[column_name].astype(str).str[position:]
+    elif position > 0:
+        return df[column_name].astype(str).str[:position]
+    else:
+        raise ValueError('I cannot split a string at this position: {position}')
+
+
 def run(df:pd.DataFrame, clustering_params:dict, jurisdiction:str, upload_id:str, blocking_rules:dict) -> pd.DataFrame:
 
     ## We will split-apply-combine
     logger.debug(f'df sent to matcher has the following columns: {df.dtypes}')
     logger.info(f'Blocking by {blocking_rules}')
-    grouped = df.groupby([df[key].astype(str).str[:blocking_rules[key]] for key in blocking_rules.keys()])
+    grouped = df.groupby([unpack_blocking_rule(df, column_name, position) for column_name, position in blocking_rules.items()])
     logger.info(f'Applying matcher to {len(grouped)} blocks.')
 
     matches = {}
@@ -34,8 +43,8 @@ def run(df:pd.DataFrame, clustering_params:dict, jurisdiction:str, upload_id:str
 
             logger.debug(f"Number of pairs: {len(pairs)}")
 
-            logger.debug(f"Initializing featurization")
-            features = featurizer.generate_features(pairs, df)
+            logger.debug(f"Initializing contrasting")
+            features = contraster.generate_contrasts(pairs, df)
             logger.debug(f"Features created")
 
             features.index.rename(['matcher_index_left', 'matcher_index_right'], inplace=True)

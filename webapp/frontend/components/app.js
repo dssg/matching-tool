@@ -11,6 +11,7 @@ const muiTheme = getMuiTheme({
   appBar: {
     height: 48,
   },
+  fontFamily: "Open Sans"
 })
 
 class App extends React.Component {

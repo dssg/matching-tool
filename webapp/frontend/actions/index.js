@@ -11,14 +11,19 @@ import {
   RESET_APP_STATE,
   SET_ERROR_MESSAGE,
   MATCHING_RESULTS,
+  MATCHING_IS_LOADING,
   UPDATE_CONTROLLED_DATE,
+  UPDATE_TABLE_SORT,
   UPDATE_DURATION,
   UPDATE_TABLE_DATA,
+  NEXT_TABLE_PAGE,
+  PREV_TABLE_PAGE,
   UPDATE_SET_STATUS,
   VALIDATED_RESULT,
   FETCHING_RESULT,
   SHOW_JOBS,
-  SHOW_HISTORY
+  SHOW_HISTORY,
+  TOGGLE_BAR_FLAG
 } from '../constants/index'
 import { length, filter } from 'ramda'
 import { validJurisdictions } from '../utils/jurisdictions'
@@ -123,20 +128,61 @@ export function showMatchingResults(data) {
   }
 }
 
-export function getMatchingResults(start, end) {
+
+export function setMatchingLoading(isLoading) {
+  return {
+    type: MATCHING_IS_LOADING,
+    payload: isLoading
+  }
+}
+
+export function getMatchingResults(matchingURLParams) {
   return function(dispatch) {
-    return fetch('api/chart/get_schema?start='+start+'&end='+end, { method: 'GET', dataType: 'json' })
-        .then((resp) => resp.json())
+    dispatch(setMatchingLoading(true))
+    return fetch('api/chart/get_schema?'+matchingURLParams, { method: 'GET', dataType: 'json', credentials: 'include'})
+      .then((resp) => {
+        if(!resp.ok) {
+          dispatch(errorMessage('Error retrieving matched results. Please try again later.'))
+          dispatch(setMatchingLoading(false))
+        }
+        return resp.json()
+      })
         .then((data) => {
           dispatch(showMatchingResults(data))
+          dispatch(setMatchingLoading(false))
         })
   }
 }
 
-export function updateControlledDate(date) {
+export function updateControlledDate(startDate, endDate) {
   return {
     type: UPDATE_CONTROLLED_DATE,
-    payload: date
+    payload: {
+      startDate: startDate,
+      endDate: endDate
+    }
+  }
+}
+
+export function updateTableSort(orderColumn, order) {
+  return {
+    type: UPDATE_TABLE_SORT,
+    payload: {
+      orderColumn: orderColumn,
+      order: order
+    }
+  }
+}
+
+export function nextTablePage() {
+  return {
+    type: NEXT_TABLE_PAGE
+  }
+}
+
+export function prevTablePage() {
+  return {
+    type: PREV_TABLE_PAGE
   }
 }
 
@@ -284,5 +330,11 @@ export function getHistory() {
       .then((data) => {
         dispatch(showHistory(data))
       })
+  }
+}
+
+export function toggleBarFlag() {
+  return {
+    type: TOGGLE_BAR_FLAG,
   }
 }
