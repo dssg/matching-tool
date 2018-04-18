@@ -13,12 +13,21 @@ from matcher.logger import logger
 
 import recordlinkage as rl
 
+def unpack_blocking_rule(df, key, value):
+    if value < 0:
+        return df[key].astype(str).str[value:]
+    elif value > 0:
+        return df[key].astype(str).str[:value]
+    else:
+        raise ValueError('I cannot split a string on this value {value}')
+
+
 def run(df:pd.DataFrame, clustering_params:dict, jurisdiction:str, upload_id:str, blocking_rules:dict) -> pd.DataFrame:
 
     ## We will split-apply-combine
     logger.debug(f'df sent to matcher has the following columns: {df.dtypes}')
     logger.info(f'Blocking by {blocking_rules}')
-    grouped = df.groupby([df[key].astype(str).str[:blocking_rules[key]] for key in blocking_rules.keys()])
+    grouped = df.groupby([unpack_blocking_rule(df, key, value) for key, value in blocking_rules.items()])
     logger.info(f'Applying matcher to {len(grouped)} blocks.')
 
     matches = {}
