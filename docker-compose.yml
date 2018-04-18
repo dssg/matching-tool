@@ -54,6 +54,7 @@ services:
             # Matcher distance calculation configuration
             - KEYS=['first_name', 'middle_name', 'last_name', 'dob', 'ssn', 'dmv_number', 'dmv_state', 'race', 'ethnicity', 'sex']
             - BLOCKING_RULES={'last_name':1, 'dob':3}
+            - CONTRAST_RULES_CONFIG_NAME=contraster_config.yaml
             # Matcher clustering configuration
             - EPS=0.5
             - MIN_SAMPLES=1
@@ -84,6 +85,7 @@ services:
             # Matcher distance calculation configuration
             - KEYS=['first_name', 'middle_name', 'last_name', 'dob', 'ssn', 'dmv_number', 'dmv_state', 'race', 'ethnicity', 'sex']
             - BLOCKING_RULES={'last_name':1, 'dob':3}
+            - CONTRAST_RULES_CONFIG_NAME=contraster_config.yaml
             # Matcher clustering configuration
             - EPS=0.5
             - MIN_SAMPLES=1

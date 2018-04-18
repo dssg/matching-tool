@@ -4,7 +4,7 @@ import pandas as pd
 
 from typing import List
 
-import matcher.featurizer as featurizer
+import matcher.contraster as contraster
 import matcher.rules as rules
 import matcher.cluster as cluster
 import matcher.ioutils as ioutils
@@ -34,8 +34,8 @@ def run(df:pd.DataFrame, clustering_params:dict, jurisdiction:str, upload_id:str
 
             logger.debug(f"Number of pairs: {len(pairs)}")
 
-            logger.debug(f"Initializing featurization")
-            features = featurizer.generate_features(pairs, df)
+            logger.debug(f"Initializing contrasting")
+            features = contraster.generate_contrasts(pairs, df)
             logger.debug(f"Features created")
 
             features.index.rename(['matcher_index_left', 'matcher_index_right'], inplace=True)
