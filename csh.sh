@@ -38,11 +38,11 @@ EOF
 }
 
 function start_infrastructure () {
-    docker-compose --project-name ${PROJECT} up -d db webapp matcher_worker  webapp_worker redis
+    docker-compose --project-name ${PROJECT} up -d "${@}"
 }
 
 function stop_infrastructure () {
-	docker-compose  --project-name ${PROJECT} stop
+	docker-compose  --project-name ${PROJECT} stop "${@}"
 }
 
 function build_images () {
@@ -80,15 +80,15 @@ fi
 
 case "$1" in
     start)
-        start_infrastructure
+        start_infrastructure ${@:2}
 		shift
         ;;
     stop)
-        stop_infrastructure
+        stop_infrastructure ${@:2}
 		shift
         ;;
     build)
-        build_images ${2}
+        build_images ${@:2}
 		shift
         ;;
     rebuild)

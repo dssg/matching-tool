@@ -1,0 +1,6 @@
+# Database connection configuration
+POSTGRES_HOST=csh_db
+POSTGRES_PORT=5432
+POSTGRES_DB=csh
+POSTGRES_USER=csh
+POSTGRES_PASSWORD=csh

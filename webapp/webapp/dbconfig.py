@@ -4,11 +4,11 @@ from sqlalchemy.engine.url import URL
 
 if os.environ:
     dbconfig = {
-        'host': os.environ.get('PGHOST'),
-        'username': os.environ.get('PGUSER'),
-        'database': os.environ.get('PGDATABASE'),
-        'password': os.environ.get('PGPASSWORD'),
-        'port': os.environ.get('PGPORT'),
+        'host': os.environ.get('POSTGRES_HOST'),
+        'username': os.environ.get('POSTGRES_USER'),
+        'database': os.environ.get('POSTGRES_DATABASE'),
+        'password': os.environ.get('POSTGRES_PASSWORD'),
+        'port': os.environ.get('POSTGRES_PORT'),
     }
     dburl = URL('postgres', **dbconfig)
 else:
