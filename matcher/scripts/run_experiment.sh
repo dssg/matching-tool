@@ -3,16 +3,10 @@
 set -e -u
 
 # Name of the ec2 machines
-NODE_NAME=csh-${USER}-experiment-
+NODE_NAME=csh-${USER}-
 
 # Number of experiments to run
 NUM_EXPERIMENTS=$(ls ../config/*.env | wc -l)
-
-# We want machines in AWS
-MACHINE_DRIVER=amazonec2
-
-# EC2 instance type
-AWS_INSTANCE_TYPE=m4.large
 
 
 function help_menu () {
@@ -21,7 +15,7 @@ Usage: ${0} {start|stop|build|rebuild|run|logs|status|destroy|all|}
 
 OPTIONS:
    -h|help             Show this message
-   install             Creates the ${NODE_NAME} machines in AWS
+   setup               Creates the ${NODE_NAME} EC2 machines in AWS and configures them
    run		       Runs the experiment
    stop		       Stops the ${NODE_NAME} machines in AWS
    start	       Starts the ${NODE_NAME} machines in AWS 
@@ -29,58 +23,81 @@ OPTIONS:
 EOF
 }
 
-function setup_machines() {
-    counter=1
-    for experiment in ../config/*.env
-    # for counter in $(seq 1 2)
-    do
-	 echo "Creating machine ${NODE_NAME}${counter} for experiment ${experiment##*/}"
-	 docker-machine create --driver ${MACHINE_DRIVER} --amazonec2-instance-type ${AWS_INSTANCE_TYPE} ${NODE_NAME}${counter}
-	 docker-machine ssh ${NODE_NAME}${counter} sudo usermod -aG docker ubuntu
-	 docker-machine scp install.sh ${NODE_NAME}${counter}:/home/ubuntu/install.sh
-	 docker-machine scp run.sh ${NODE_NAME}${counter}:/home/ubuntu/run.sh 
-	 docker-machine ssh ${NODE_NAME}${counter} chmod +x /home/ubuntu/install.sh
-	 docker-machine ssh ${NODE_NAME}${counter} chmod +x /home/ubuntu/run.sh
-	 docker-machine ssh ${NODE_NAME}${counter} /home/ubuntu/install.sh
-	 echo "Copying the parameteres of the experiment"
-	 docker-machine scp ${experiment} ${NODE_NAME}${counter}:/home/ubuntu/csh/matcher.env
-	 docker-machine scp ../../.env ${NODE_NAME}${counter}:/home/ubuntu/csh/.env
-	 let counter++
-    done
+function setup_machine() {
+    counter=$1
 
+    # Name of the ec2 machines
+    NODE_NAME=csh-${USER}-
+    
+    # We want machines in AWS
+    MACHINE_DRIVER=amazonec2
+
+    # EC2 instance type
+    AWS_INSTANCE_TYPE=t2.micro
+
+    echo "Creating machine ${NODE_NAME}${counter} using ${AWS_INSTANCE_TYPE}"
+    docker-machine create --driver ${MACHINE_DRIVER} --amazonec2-instance-type ${AWS_INSTANCE_TYPE} ${NODE_NAME}${counter}
+    docker-machine ssh ${NODE_NAME}${counter} sudo usermod -aG docker ubuntu
+    docker-machine scp install.sh ${NODE_NAME}${counter}:/home/ubuntu/install.sh
+    docker-machine scp run.sh ${NODE_NAME}${counter}:/home/ubuntu/run.sh 
+    docker-machine ssh ${NODE_NAME}${counter} chmod +x /home/ubuntu/install.sh
+    docker-machine ssh ${NODE_NAME}${counter} chmod +x /home/ubuntu/run.sh
+    docker-machine ssh ${NODE_NAME}${counter} /home/ubuntu/install.sh
+    echo "Copying the parameteres of the experiment"
+    docker-machine scp ${experiment} ${NODE_NAME}${counter}:/home/ubuntu/csh/matcher.env
+    docker-machine scp ../../.env ${NODE_NAME}${counter}:/home/ubuntu/csh/.env
+}
+
+
+export -f setup_machine
+
+function setup_machines() {
+    for N in $(seq 1 $NUM_EXPERIMENTS)
+    do
+	sem --bg -j $NUM_CORES setup_machine $N
+    done
 }
 
 function run_experiment() {
-    for N in $(seq 1 $NUM_EXPERIMENTS)		      
+    IP=$1
+    JURISDICTION=$2
+    EVENT_TYPE=$3
+    UPLOAD_ID=$4
+
+    echo http ${IP}/match/${JURISDICTION}/${EVENT_TYPE} uploadId==${UPLOAD_ID}
+}
+
+export -f run_experiment
+
+function run_experiments() {
+    IPS=$(docker-machine ls | sed '1d' | awk '{print $5}' | awk -F/ '{print $3}' | awk -F: '{print $1}')
+    
+    for ip in $IPS
     do
-	echo running in $N
-        echo copying run.sh
-        docker-machine scp run.sh ${NODE_NAME}${N}:/home/ubuntu/run.sh
-	echo changing permissions on run.sh
-        docker-machine ssh ${NODE_NAME}${N} chmod +x /home/ubuntu/run.sh	
-	echo running run .sh
-        docker-machine ssh ${NODE_NAME}${N} sudo -H /home/ubuntu/run.sh "${@}${N}"
+	sem --bg -j $NUM_CORES run_experiment $ip "${@}"
     done
 }
+
+
 
 function start_machines() {
     for N in $(seq 1 $NUM_EXPERIMENTS)
     do
-	docker-machine start ${NODE_NAME}${N}
+	sem --bg -j $NUM_CORES docker-machine start ${NODE_NAME}${N}
     done
 }
 
 function stop_machines() {
     for N in $(seq 1 $NUM_EXPERIMENTS)
     do
-	docker-machine stop ${NODE_NAME}${N}
+	sem --bg -j $NUM_CORES docker-machine stop ${NODE_NAME}${N}
     done
 }
 
 function destroy_machines() {
     for N in $(seq 1 $NUM_EXPERIMENTS)
     do
-	docker-machine rm -y ${NODE_NAME}${N}
+	sem --bg -j $NUM_CORES docker-machine rm -y ${NODE_NAME}${N}
     done
 }
 
@@ -92,12 +109,12 @@ if [[ $# -eq 0 ]] ; then
 fi
 
 case "$1" in
-    install)
+    setup)
 	setup_machines
 	shift
 	;;
     run)
-	run_experiment ${@:2}
+	run_experiments ${@:2}
 	shift
 	;;
     stop)
@@ -114,7 +131,7 @@ case "$1" in
 	;;
     -h|help)
         help_menu
-                shift
+        shift
         ;;
    *)
        echo "${1} is not a valid flag, try running: ${0} --help"
@@ -122,5 +139,3 @@ case "$1" in
        ;;
 esac
 shift
-
-    
