@@ -116,6 +116,19 @@ def jurisdiction_roles():
 @login_required
 def get_validated_result(job_key):
     job = Job.fetch(job_key, connection=get_redis_connection())
+    if job.is_failed:
+        return jsonify({
+            'validation': {
+                'status': 'valid',
+                'jobKey': job_key
+            },
+            'upload_result': {
+                'status': 'error',
+                'uploadId': job_key,
+                'message': 'Validation failed with an unexpected error. Most often this is due to memory issues on the machine. You may try splitting the file into smaller pieces and uploading them individually.'
+            }
+        })
+
     if job.is_finished:
         result = job.result
         if 'validation' in result and 'upload_result' in result:
