@@ -24,6 +24,14 @@ services:
             - SECRET_KEY
             - DEBUG
             - SECURITY_PASSWORD_SALT
+            # Mail
+            - MAIL_SERVER
+            - MAIL_PORT
+            - MAIL_USE_SSL
+            - MAIL_USE_TLS
+            - MAIL_USERNAME
+            - MAIL_PASSWORD
+            - MAIL_DEFAULT_SENDER
             # S3 Configuration
             - RAW_UPLOADS_PATH=s3://dsapp-criminal-justice/csh/matcher/{jurisdiction}/{event_type}/uploaded/{date}/{upload_id}
             - MERGED_UPLOADS_PATH=s3://dsapp-criminal-justice/csh/matcher/{jurisdiction}/{event_type}/merged
@@ -114,6 +122,14 @@ services:
             - SECRET_KEY
             - DEBUG
             - SECURITY_PASSWORD_SALT
+            # Mail
+            - MAIL_SERVER
+            - MAIL_PORT
+            - MAIL_USE_SSL
+            - MAIL_USE_TLS
+            - MAIL_USERNAME
+            - MAIL_PASSWORD
+            - MAIL_DEFAULT_SENDER
             # S3 Configuration
             - RAW_UPLOADS_PATH=s3://dsapp-criminal-justice/csh/matcher/{jurisdiction}/{event_type}/uploaded/{date}/{upload_id}
             - MERGED_UPLOADS_PATH=s3://dsapp-criminal-justice/csh/matcher/{jurisdiction}/{event_type}/merged

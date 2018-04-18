@@ -13,3 +13,4 @@ rq
 redis
 flask-script
 colorlog
+flask-mail
