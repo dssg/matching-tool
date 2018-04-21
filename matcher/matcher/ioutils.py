@@ -72,7 +72,7 @@ def load_data_for_matching(jurisdiction:str, upload_id:str) -> tuple:
     logger.debug(f'The loaded dataframe has the following duplicate indices: {df[df.index.duplicated()].index.values}')
 
     # Cache read data
-    write_dataframe_to_s3(df=df, key=f'csh/matcher/{jurisdiction}/match_cache/loaded_data/{upload_id}')
+    write_dataframe_to_s3(df=df.reset_index(), key=f'csh/matcher/{jurisdiction}/match_cache/loaded_data/{upload_id}')
 
     return df, event_types_read
 
@@ -111,7 +111,7 @@ def read_merged_data_from_s3(jurisdiction:str, event_type:str) -> pd.DataFrame:
 
 
 def write_matched_data(matches:pd.DataFrame, jurisdiction:str, upload_id:str, event_types_read:list) -> None:
-    write_dataframe_to_s3(df=matches, key=f'csh/matcher/{jurisdiction}/match_cache/matcher_results/{upload_id}')
+    write_dataframe_to_s3(df=matches.reset_index(), key=f'csh/matcher/{jurisdiction}/match_cache/matcher_results/{upload_id}')
     for event_type in event_types_read:
         logger.info(f'Writing matched data for {jurisdiction} {event_type}')
         write_one_event_type(matches, jurisdiction, event_type, upload_id)
