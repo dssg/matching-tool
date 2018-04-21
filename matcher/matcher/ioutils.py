@@ -84,7 +84,7 @@ def load_one_event_type(jurisdiction:str, event_type:str, upload_id:str) -> pd.D
         df = read_merged_data_from_s3(jurisdiction, event_type)
 
         # Dropping columns that we don't need for matching
-        df = utils.select_columns(df=df, keys=KEYS)
+        df = df[KEYS]
 
         # Keeping track of the event_type
         df['event_type'] = event_type
