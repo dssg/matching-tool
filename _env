@@ -4,3 +4,16 @@ POSTGRES_PORT=5432
 POSTGRES_DB=csh
 POSTGRES_USER=csh
 POSTGRES_PASSWORD=csh
+
+# Flask configuration
+SECRET_KEY=dev
+SECURITY_PASSWORD_SALT=abcdefg
+
+# Mail configuration (optional, only needed for reset password functionality in webapp)
+MAIL_SERVER=""
+MAIL_PORT=625
+MAIL_USE_SSL=True
+MAIL_USE_TLS=False
+MAIL_USERNAME=""
+MAIL_PASSWORD=""
+MAIL_DEFAULT_SENDER=""
