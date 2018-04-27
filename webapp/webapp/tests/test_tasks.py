@@ -1,7 +1,7 @@
 import moto
 import boto
 from webapp.database import Base
-from webapp.tasks import upload_to_s3, copy_raw_table_to_db, upsert_raw_table_to_master
+from webapp.tasks import upload_to_s3, copy_raw_table_to_db, upsert_raw_table_to_master, validate_header
 from webapp.utils import makeNamedTemporaryCSV, s3_upload_path, generate_master_table_name
 from webapp.models import MergeLog
 from unittest.mock import patch
@@ -53,7 +53,7 @@ def test_copy_raw_table_to_db():
             with smart_open(full_s3_path, 'w') as writefile:
                 writer = csv.writer(writefile)
                 for row in [
-                    [u'Internal Person ID', u'Internal Event ID', u'Location ID', 'Full Name', 'Birthdate', 'SSN'],
+                    [u'internal_person_id', u'internal_event_id', u'location_id', 'full_name', 'birthdate', 'ssn'],
                     [u'123456', u'456789', u'A345', 'Jack T. Ripper', '1896-04-10', '345-45-6789'],
                     [u'123457', u'456780', u'A345', 'Jack L. Ripper', '1896-04-10', '345-45-6780'],
                     [u'123457', u'456780', u'A346', 'Jack L. Ripper', '1896-04-10', '345-45-6780'],
@@ -63,6 +63,32 @@ def test_copy_raw_table_to_db():
             event_type = 'test'
             written_raw_table = copy_raw_table_to_db(full_s3_path, event_type, '123-456', engine)
             assert sum(1 for _ in engine.execute('select * from "{}"'.format(written_raw_table))) == 3
+
+class RawTableDuplicateCheck(TestCase):
+    def test_copy_raw_table_to_db_duplicate(self):
+        # we create a file with duplicates
+        # upon copying to raw table, we expect the duplicate error to be tripped
+        # and presented in a user-friendly format
+        with testing.postgresql.Postgresql() as postgresql:
+            engine = create_engine(postgresql.url())
+            with moto.mock_s3_deprecated():
+                s3_conn = boto.connect_s3()
+                s3_conn.create_bucket('test-bucket')
+                full_s3_path = 's3://test-bucket/123-456'
+                with smart_open(full_s3_path, 'w') as writefile:
+                    writer = csv.writer(writefile)
+                    for row in [
+                    [u'internal_person_id', u'internal_event_id', u'location_id', 'full_name', 'birthdate', 'ssn'],
+                        [u'123456', u'456789', u'A345', 'Jack T. Ripper', '1896-04-10', '345-45-6789'],
+                        [u'123457', u'456780', u'A345', 'Jack L. Ripper', '1896-04-10', '345-45-6780'],
+                        [u'123457', u'456780', u'A345', 'Jack L. Ripper', '1896-04-10', '345-45-6780'],
+                        [u'123457', u'456780', u'A346', 'Jack L. Ripper', '1896-04-10', '345-45-6780'],
+                    ]:
+                        writer.writerow(row)
+                jurisdiction = 'test'
+                event_type = 'test'
+                with self.assertRaisesRegexp(ValueError, expected_regex=r'.*line 4.*internal_event_id, location_id.*456780.*A345.*'):
+                    copy_raw_table_to_db(full_s3_path, event_type, '123-456', engine)
 
 
 MASTER_TABLE_SEED_DATA = [
@@ -79,7 +105,7 @@ class TestUpsertRawTableToMaster(TestCase):
         return [
             row
             for row in db_engine.execute(
-                '''select "Internal Event ID", "Location ID", "Full Name" from "{}" order by 1, 2'''.format(master_table_name)
+                '''select "internal_event_id", "location_id", "full_name" from "{}" order by 1, 2'''.format(master_table_name)
             )
         ]
 
@@ -174,7 +200,7 @@ class TestUpsertRawTableToMaster(TestCase):
             ]
             # let's check the timestamps
             timestamp_result = dict((row[0], (row[1], row[2])) for row in db_session.execute('''
-                select "Internal Event ID", "inserted_ts", "updated_ts" from {}
+                select "internal_event_id", "inserted_ts", "updated_ts" from {}
                 '''.format(master_table_name)
             ))
             # created timestamp of an old row that was not updated should be the same as an old row that was updated
@@ -192,3 +218,37 @@ class TestUpsertRawTableToMaster(TestCase):
             assert merge_logs[1].total_unique_rows == 2
             assert merge_logs[0].new_unique_rows == 3
             assert merge_logs[1].new_unique_rows == 1
+
+class ValidateHeaderTest(TestCase):
+    def test_validate_header_fields_missing(self):
+        # the 'test' schema has many required fields which this two-column
+        # CSV does not contain, so it should fail
+        with makeNamedTemporaryCSV([
+            [u'col1', u'col2'],
+            [u'val1_1', u'val1_2'],
+        ]) as filename:
+            with self.assertRaises(ValueError):
+                validate_header('test', filename)
+
+    def test_validate_header_all_required_fields_populated(self):
+        # regardless of the fact that these values shouldn't validate
+        # for the fields, the header is correct and should validate just fine
+        with makeNamedTemporaryCSV([
+            [
+                'internal_person_id',
+                'internal_event_id',
+                'location_id',
+                'ssn',
+                'birthdate',
+                'full_name'
+            ],
+            [
+                'val1_1',
+                'val1_2',
+                'val1_3',
+                'val1_4',
+                'val1_5',
+                'val1_6',
+            ],
+        ]) as filename:
+            validate_header('test', filename)
