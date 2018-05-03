@@ -153,7 +153,22 @@ def get_records_by_time(
     ]
     if not any(alias == order_column for expression, alias in columns):
         raise ValueError('Given order column expression does not match any alias in query. Exiting to avoid SQL injection attacks')
-    base_query = """WITH hmis_summary AS (
+    base_query = """WITH booking_duration_lookup AS (
+        select coalesce(booking_number, internal_event_id) as booking_id,
+            max(case when jail_exit_date is not null
+            then date_part('day', jail_exit_date::timestamp - jail_entry_date::timestamp)::int \
+            else date_part('day', updated_ts::timestamp - jail_entry_date::timestamp)::int
+            end) as length_of_stay
+        FROM (
+            SELECT
+               *
+            FROM {booking_table}
+            WHERE
+                not (jail_entry_date < %(start_date)s AND jail_exit_date < %(start_date)s) and
+                not (jail_entry_date > %(end_date)s AND jail_exit_date > %(end_date)s)
+        ) AS jail
+        group by 1
+    ), hmis_summary AS (
         SELECT
             matched_id,
             string_agg(distinct internal_person_id::text, ',') as hmis_id,
@@ -180,13 +195,8 @@ def get_records_by_time(
         SELECT
             matched_id,
             string_agg(distinct coalesce(internal_person_id, inmate_number)::text, ',') as jail_id,
-            sum(
-                case when jail_exit_date is not null
-                    then date_part('day', jail_exit_date::timestamp - jail_entry_date::timestamp) \
-                    else date_part('day', updated_ts::timestamp - jail_entry_date::timestamp)
-                end
-            )::int as cumu_jail_days,
-            count(*) AS jail_contact,
+            sum(jail.length_of_stay) as cumu_jail_days,
+            count(distinct(coalesce(booking_number, internal_event_id))) AS jail_contact,
             to_char(max(jail_entry_date::timestamp), 'YYYY-MM-DD') as last_jail_contact,
             max(first_name) as first_name,
             max(last_name) as last_name
@@ -194,6 +204,7 @@ def get_records_by_time(
             SELECT
                *
             FROM {booking_table}
+            join booking_duration_lookup bdl on (bdl.booking_id = coalesce(booking_number, internal_event_id))
             WHERE
                 not (jail_entry_date < %(start_date)s AND jail_exit_date < %(start_date)s) and
                 not (jail_entry_date > %(end_date)s AND jail_exit_date > %(end_date)s)
@@ -311,18 +322,22 @@ def get_records_by_time(
 def retrieve_bar_data(matched_hmis_table, matched_bookings_table, start_time, end_time):
     query = """
     SELECT
-    *,
-    DATE_PART('day', {exit}::timestamp - {start}::timestamp) as days
+    {event_id} as event_id,
+    max(matched_id) as matched_id,
+    max(DATE_PART('day', {exit}::timestamp - {start}::timestamp)) as days
     FROM {table_name}
     WHERE
         not ({start} < %(start_time)s AND {exit} < %(start_time)s) and
         not ({start} > %(end_time)s AND {exit} > %(end_time)s)
+    GROUP BY {event_id}
     """
     filtered_hmis = pd.read_sql(
         query.format(
             table_name=matched_hmis_table,
             start="client_location_start_date",
-            exit="client_location_end_date"),
+            exit="client_location_end_date",
+            event_id="internal_event_id",
+        ),
         con=db.engine,
         params={
             "start_time": start_time,
@@ -334,7 +349,9 @@ def retrieve_bar_data(matched_hmis_table, matched_bookings_table, start_time, en
         query.format(
             table_name=matched_bookings_table,
             start="jail_entry_date",
-            exit="jail_exit_date"),
+            exit="jail_exit_date",
+            event_id="coalesce(booking_number, internal_event_id)"
+        ),
         con=db.engine,
         params={
             "start_time": start_time,
