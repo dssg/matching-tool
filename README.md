@@ -44,6 +44,13 @@ Integrating HMIS and criminal-justice data
 		- `jail_booking_charges`
 	- Add your user to that role. Example using the user and role from above: `docker exec -it webapp flask roles add testuser@example.com cook_hmis_service_stays`
 
+## Expunging Data
+
+There is a data expunging script that is provided. It does *not* expunge individual records, but rather all records for a given jurisdiction and event type, both from S3 and the database. It exists as a Flask CLI command in the webapp container. It prompts you for confirmation before doing so.
+
+- Get a docker shell: `docker exec -it webapp /bin/bash`
+- `flask expunge test jail_bookings` (in this example, 'test' is the jurisdiction and 'jail_bookings' is the event type)
+
 
 ## Browser Support
 The web app is tested on the following browsers:
