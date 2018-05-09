@@ -38,14 +38,12 @@ KEYS = ast.literal_eval(os.getenv('KEYS'))
 
 # lookups
 EVENT_TYPES = {
-    'hmis_service_stays': {
-        'start_date_column_name': 'client_location_start_date',
-        'end_date_column_name': 'client_location_end_date'
-    },
-    'jail_bookings': {
-        'start_date_column_name': 'jail_entry_date',
-        'end_date_column_name': 'jail_exit_date'
-    }
+    'hmis_service_stays': ['matched_id', 'client_location_start_date', 'client_location_end_date'],
+    'jail_bookings': ['matched_id', 'jail_entry_date', 'jail_exit_date'],
+    'case_charges': ['matched_id'],
+    'hmis_aliases': ['matched_id'],
+    'jail_booking_aliases': ['matched_id'],
+    'jail_booking_charges': ['matched_id']
 }
 
 
@@ -199,13 +197,12 @@ def insert_data_into_table(key:str, table_name:str, cur) -> None:
 
 
 def create_indexes_on_matched_table(table_name:str, event_type:str, cur) -> None:
-    index_query = f"""
-        CREATE INDEX ON {table_name} ({EVENT_TYPES[event_type]['start_date_column_name']});
-        CREATE INDEX ON {table_name} ({EVENT_TYPES[event_type]['end_date_column_name']});
-        CREATE INDEX ON {table_name} (matched_id);
-    """
-    cur.execute(index_query)
-    logger.info(f'Created start date, end date, and matched_id indexes on {table_name}')
+    for index_column_name in EVENT_TYPES[event_type]:
+        index_query = f"""
+            CREATE INDEX ON {table_name} ({index_column_name});
+        """
+        cur.execute(index_query)
+        logger.debug(f'Created {index_column_name} index on {table_name}')
 
 
 def read_data_from_postgres(table_name:str):
