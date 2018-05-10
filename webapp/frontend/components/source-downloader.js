@@ -14,7 +14,8 @@ function mapStateToProps(state) {
     availableEventTypes: validEventTypes(
       state.app.availableJurisdictionalRoles,
       state.app.selectedJurisdiction
-    )
+    ),
+    selectedJurisdictionSlug: state.app.selectedJurisdiction.slug,
   }
 }
 function mapDispatchToProps(dispatch) {
