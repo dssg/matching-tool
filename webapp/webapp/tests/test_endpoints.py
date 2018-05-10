@@ -9,6 +9,7 @@ from datetime import date
 from smart_open import smart_open
 from webapp.database import db_session
 from webapp.models import Upload, MergeLog
+from io import BytesIO
 import unicodecsv as csv
 import pandas as pd
 
@@ -268,3 +269,24 @@ class MergeBookingsFileTestCase(unittest.TestCase):
 
             # and make sure that the merge log has a record of this
             assert db_session.query(MergeLog).filter(MergeLog.upload_id == '123-456').one
+
+class DownloadSourceTestCase(unittest.TestCase):
+    def test_download_file(self):
+        with rig_all_the_things() as (app, engine):
+            # Create matched jail_bookings
+            table_name = 'jail_bookings'
+            create_and_populate_matched_table(table_name, engine, MATCHED_BOOKING_FILE)
+            # Create matched hmis_service_stays
+            table_name = 'hmis_service_stays'
+            create_and_populate_matched_table(table_name, engine, MATCHED_HMIS_FILE)
+            db_session.commit()
+            response = app.get('/api/chart/download_source?jurisdiction=boone&eventType=jail_bookings')
+            assert response.status_code == 200
+            assert response.headers["Content-Disposition"] == "attachment; filename=jail_bookings.csv"
+            assert response.headers["Content-type"] == "text/csv"
+            data = response.get_data()
+            reader = csv.reader(BytesIO(data), delimiter='|')
+            with open(MATCHED_BOOKING_FILE, 'rb') as source_file:
+                source_reader = csv.reader(source_file)
+                for returned_row, expected_row in zip(reader, source_reader):
+                    assert returned_row == expected_row
