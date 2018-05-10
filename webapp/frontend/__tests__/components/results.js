@@ -107,4 +107,11 @@ describe("Results", () => {
       expect(callback.mock.calls[1]).toEqual(['2015-01-01', '2016-01-01'])
     });
   });
+
+  describe('SourceDownloader', () => {
+    it("displays source downloader", () => {
+      const wrapper = resultsPage()
+      expect(wrapper.find('Connect(SourceDownloader)').length).toBe(1)
+    });
+  });
 });

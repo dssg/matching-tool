@@ -19,6 +19,7 @@ import { getMatchingResults, updateControlledDate, updateTableSort, nextTablePag
 import { Card, CardTitle } from 'material-ui/Card'
 import {GridList, GridTile} from 'material-ui/GridList';
 import html2canvas from 'html2canvas'
+import SourceDownloader from './source-downloader'
 
 const styles = {
   hr: {
@@ -478,20 +479,7 @@ export class Results extends React.Component {
                   both={this.props.bothCount} />
               </Card>
             </div>
-            <div style={styles.datepicker}>
-              <RaisedButton
-                label="Download Source HMIS"
-                labelStyle={{fontSize: '10px',}}
-                secondary={true}
-                disabled={true}
-                style={styles.button} />
-              <RaisedButton
-                label="Download Source Jail"
-                labelStyle={{fontSize: '10px',}}
-                secondary={true}
-                disabled={true}
-                style={styles.button} />
-            </div>
+            <SourceDownloader />
             <div style={styles.datepicker}>
               <RaisedButton
                 label={ this.props.barFlag ? "Download Charts" : "Download List" }
