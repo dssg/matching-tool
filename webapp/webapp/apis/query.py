@@ -448,7 +448,7 @@ def get_metadata(upload_id):
         match_log.id as match_id,
         match_log.match_start_timestamp,
         match_log.match_complete_timestamp,
-        match_log.match_status,
+        match_log.match_status
     FROM upload_log
     LEFT JOIN match_log ON upload_log.id = match_log.upload_id
     WHERE upload_log.id = %(upload_id)s
