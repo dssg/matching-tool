@@ -5,7 +5,6 @@ from datetime import datetime
 from goodtables import check
 
 STANDARD_CHECKS = [
-    'composite-primary-key',
     'partial-dob',
     'type-or-format-error',
     'enumerable-constraint',
@@ -267,58 +266,3 @@ def project_dates(errors, cells, row_number):
                 'row-number': row_number,
                 'column-number': cell['number'],
             })
-
-
-@check('composite-primary-key', type='custom', context='body')
-class DuplicatePrimaryKey(object):
-
-    # Public
-
-    def __init__(self, **options):
-        self.__row_index = {}
-
-    def check_row(self, errors, cells, row_number):
-
-        # Get pointer
-        pk_cells = [cell for cell in cells if cell['field'].descriptor.get('primaryKey')]
-        all_present = any(cell['value'] is not None and cell['value'].strip() for cell in pk_cells)
-        if not all_present:
-            # Add error
-            message = 'Row number {}: One of columns {} is needed for primary key'.format(row_number, pk_cells)
-            errors.append({
-                'code': 'composite-primary-key-constraint',
-                'message': message,
-                'row-number': row_number,
-                'column-number': None,
-            })
-            return
-        try:
-            pointer = hash(json.dumps([cell['value'] for cell in pk_cells]))
-            references = self.__row_index.setdefault(pointer, [])
-        except TypeError:
-            pointer = None
-
-        # Found pointer
-        if pointer:
-
-            # Add error
-            if references:
-                message = "Row number {row_number}: The value {value} in  column {pk_name} has duplicate primary key to row(s) {row_numbers}"
-                message = message.format(
-                    row_number=row_number,
-                    value=','.join([cell['value'] for cell in pk_cells]),
-                    pk_name=','.join([cell['field'].descriptor.get('name') for cell in pk_cells]),
-                    row_numbers=', '.join(map(str, references)))
-                errors.append({
-                    'code': 'composite-primary-key-constraint',
-                    'message': message,
-                    'row-number': row_number,
-                    'column-number': None,
-                })
-
-            # Clear cells
-            if references:
-                del cells[:]
-
-            # Update references
-            references.append(row_number)
