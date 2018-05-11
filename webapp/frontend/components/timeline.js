@@ -2,6 +2,7 @@ import React from 'react'
 import { connect } from 'react-redux'
 import { Timeline, TimelineEvent } from 'react-event-timeline'
 import { getAllJobs, getHistory } from '../actions'
+import { keys } from 'ramda'
 
 const styles = {
   timeline: {
