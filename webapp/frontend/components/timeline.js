@@ -2,7 +2,6 @@ import React from 'react'
 import { connect } from 'react-redux'
 import { Timeline, TimelineEvent } from 'react-event-timeline'
 import { getAllJobs, getHistory } from '../actions'
-import { filter, prop, keys, values } from 'ramda'
 
 const styles = {
   timeline: {
@@ -108,12 +107,12 @@ class ActionTimeLine extends React.Component {
                 iconColor="#6fba1c"
                 key={idx}>
                 <div>
-                  <p><strong>Match Start Time: </strong> {item.created_time}</p>
-                  <p><strong>Current Runtime: </strong> {item.runtime}</p>
-                  <p><strong>Validate Start Time: </strong> {item.meta.validate_start_time}</p>
-                  <p><strong>Validate Complete Time: </strong> {item.meta.validate_complete_time}</p>
-                  <p><strong>Upload Start Time: </strong> {item.meta.upload_start_time}</p>
-                  <p><strong>Upload Complete Time: </strong> {item.meta.upload_complete_time}</p>
+                  <p><strong>Match Start Time: </strong>{item.created_time}</p>
+                  <p><strong>Current Runtime: </strong>{item.runtime}</p>
+                  <p><strong>Validate Start Time: </strong>{item.meta.validate_start_time}</p>
+                  <p><strong>Validate Complete Time: </strong>{item.meta.validate_complete_time}</p>
+                  <p><strong>Upload Start Time: </strong>{item.meta.upload_start_time}</p>
+                  <p><strong>Upload Complete Time: </strong>{item.meta.upload_complete_time}</p>
                   <p><strong>Service Type: </strong>{item.meta.event_type_slug}</p>
                   <p><strong>File Name: </strong>{item.meta.given_filename}</p>
                 </div>
@@ -128,9 +127,10 @@ class ActionTimeLine extends React.Component {
                 iconColor="#FBB117"
                 key={idx}>
                 <div>
-                  <p><strong>Validate Start Time: </strong> {item.meta.validate_start_time}</p>
-                  <p><strong>Validate Complete Time: </strong> {item.meta.validate_complete_time}</p>
-                  <p><strong>Upload Start Time: </strong> {item.meta.upload_start_time}</p>
+                  <p><strong>Queue Created Time: </strong>{item.created_time}</p>
+                  <p><strong>Validate Start Time: </strong>{item.meta.validate_start_time}</p>
+                  <p><strong>Validate Complete Time: </strong>{item.meta.validate_complete_time}</p>
+                  <p><strong>Upload Start Time: </strong>{item.meta.upload_start_time}</p>
                   <p><strong>Upload Complete Time: </strong> {item.meta.upload_complete_time}</p>
                   <p><strong>Service Type: </strong>{item.meta.event_type_slug}</p>
                   <p><strong>File Name: </strong>{item.meta.given_filename}</p>
