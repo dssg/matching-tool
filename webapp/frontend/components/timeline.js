@@ -2,7 +2,7 @@ import React from 'react'
 import { connect } from 'react-redux'
 import { Timeline, TimelineEvent } from 'react-event-timeline'
 import { getAllJobs, getHistory } from '../actions'
-
+import { filter, prop, keys, values } from 'ramda'
 
 const styles = {
   timeline: {
@@ -10,6 +10,21 @@ const styles = {
     width: '400px',
     overflow: 'scroll'
   }
+}
+
+const lookup = {
+  validate_start_time: "Validate Start Time: ",
+  validate_complete_time: "Validate Complete Time: ",
+  validate_status: "Validate Status: ",
+  upload_start_time: "Upload Start Time: ",
+  upload_complete_time: "Upload Complete Time: ",
+  upload_status: "Upload Status: ",
+  match_start_timestamp: "Match Start Time: ",
+  match_complete_timestamp: "Match Complete Time: ",
+  match_status: "Match Status: ",
+  runtime: "Matching Runtime: ",
+  event_type_slug: "Service Type: ",
+  given_filename: "File Name: "
 }
 
 function mapStateToProps(state) {
@@ -31,6 +46,20 @@ function mapDispatchToProps(dispatch) {
   }
 }
 
+function boolean2text(bool) {
+  if (bool) {
+    return (
+      <font color="#43C6DB">Succeeded</font>
+    )
+  }
+  else {
+    return (
+      <font color="#ff7456">Failed</font>
+    )
+  }
+}
+
+
 class ActionTimeLine extends React.Component {
   constructor(props) {
     super(props);
@@ -39,6 +68,31 @@ class ActionTimeLine extends React.Component {
   componentDidMount() {
     this.props.updateAllJobs()
     this.props.updateHistory()
+  }
+
+  createCompletedTask(item, idx) {
+    return (
+      <TimelineEvent
+          title={"Completed Task #" + item.index + " - " + item.validate_start_time}
+          icon={<i className="material-icons md-18">cloud_upload</i>}
+          iconColor={(item['validate_status'] || item['upload_status']) ? "#43C6DB" : "#ff7456" }
+          key={idx}>
+
+        {keys(lookup).map((k) => {
+          if (k in item)  {
+            if (item[k] !== null) {
+              if (k == 'validate_status' || k == 'upload_status' || k == 'match_status') {
+                return <p key={k}><strong>{lookup[k]}{boolean2text(item[k])}</strong></p>
+              }
+              else {
+                return <p key={k}><strong>{lookup[k]}</strong>{item[k]}</p>
+              }
+            }
+          }
+        }
+        )}
+      </TimelineEvent>
+    )
   }
 
   render() {
@@ -54,40 +108,37 @@ class ActionTimeLine extends React.Component {
                 iconColor="#6fba1c"
                 key={idx}>
                 <div>
-                  <p><strong>Upload Time: </strong> {item.created_time}</p>
+                  <p><strong>Match Start Time: </strong> {item.created_time}</p>
                   <p><strong>Current Runtime: </strong> {item.runtime}</p>
-                  <p><strong>Service Type: </strong>{item.event_type}</p>
-                  <p><strong>File Name: </strong>{item.filename}</p>
+                  <p><strong>Validate Start Time: </strong> {item.meta.validate_start_time}</p>
+                  <p><strong>Validate Complete Time: </strong> {item.meta.validate_complete_time}</p>
+                  <p><strong>Upload Start Time: </strong> {item.meta.upload_start_time}</p>
+                  <p><strong>Upload Complete Time: </strong> {item.meta.upload_complete_time}</p>
+                  <p><strong>Service Type: </strong>{item.meta.event_type_slug}</p>
+                  <p><strong>File Name: </strong>{item.meta.given_filename}</p>
                 </div>
               </TimelineEvent>
             ))}
             {this.props.q.map((item, idx) => (
               <TimelineEvent
                 title="Current Tasks Status"
-                subtitle="In queue waiting"
+                subtitle="In queue waiting to match"
                 subtitleStyle={{color: "#FBB117"}}
                 icon={<i className="material-icons md-18">build</i>}
                 iconColor="#FBB117"
                 key={idx}>
                 <div>
-                  <p><strong>Upload Time: </strong> {item.created_time}</p>
-                  <p><strong>Service Type: </strong>{item.event_type}</p>
-                  <p><strong>File Name: </strong>{item.filename}</p>
+                  <p><strong>Validate Start Time: </strong> {item.meta.validate_start_time}</p>
+                  <p><strong>Validate Complete Time: </strong> {item.meta.validate_complete_time}</p>
+                  <p><strong>Upload Start Time: </strong> {item.meta.upload_start_time}</p>
+                  <p><strong>Upload Complete Time: </strong> {item.meta.upload_complete_time}</p>
+                  <p><strong>Service Type: </strong>{item.meta.event_type_slug}</p>
+                  <p><strong>File Name: </strong>{item.meta.given_filename}</p>
                 </div>
               </TimelineEvent>
             ))}
             {this.props.history.map((item, idx) => (
-              <TimelineEvent
-                title={"Completed Task #" + item.index}
-                icon={<i className="material-icons md-18">cloud_upload</i>}
-                iconColor="#43C6DB"
-                key={idx}>
-              <p><strong>Upload Time: </strong> {item.upload_timestamp}</p>
-              <p><strong>Matched Time: </strong> {item.match_complete_timestamp}</p>
-              <p><strong>Matching Runtime: </strong> {item.runtime}</p>
-              <p><strong>Service Type: </strong>{item.event_type_slug}</p>
-              <p><strong>File Name: </strong>{item.given_filename}</p>
-            </TimelineEvent>
+              this.createCompletedTask(item, idx)
             ))}
         </Timeline>
       </div>

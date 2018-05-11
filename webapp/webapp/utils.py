@@ -114,15 +114,13 @@ def master_table_column_list(goodtables_schema):
 def generate_matched_table_name(jurisdiction, event_type):
     return 'matched.{jurisdiction}_{event_type}'.format(**locals())
 
-def notify_matcher(jurisdiction, event_type, upload_id, filename):
+def notify_matcher(jurisdiction, upload_id):
     matcher_response = requests.get(
-        'http://{location}:{port}/match/{jurisdiction}/{event_type}/{filename}?uploadId={upload_id}'.format(
+        'http://{location}:{port}/match/{jurisdiction}?uploadId={upload_id}'.format(
             location=app_config['matcher_location'],
             port=app_config['matcher_port'],
             jurisdiction=jurisdiction,
-            event_type=event_type,
             upload_id=upload_id,
-            filename=filename,
         )
     )
     if matcher_response.status_code != 200:

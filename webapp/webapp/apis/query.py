@@ -377,7 +377,7 @@ def get_task_uplaod_id(n):
     query = """
     SELECT *
     FROM (
-        SELECT row_number() over (ORDER By upload_timestamp DESC) as rownumber, *
+        SELECT row_number() over (ORDER By upload_complete_time DESC) as rownumber, *
         FROM upload_log
     ) as foo
     where rownumber = %(n)s
@@ -398,7 +398,12 @@ def get_history():
         upload_log.event_type_slug,
         upload_log.user_id,
         upload_log.given_filename,
-        upload_log.upload_timestamp,
+        upload_log.upload_start_time,
+        upload_log.upload_complete_time,
+        upload_log.upload_status,
+        upload_log.validate_start_time,
+        upload_log.validate_complete_time,
+        upload_log.validate_status,
         upload_log.num_rows,
         upload_log.file_size,
         upload_log.file_hash,
@@ -406,13 +411,50 @@ def get_history():
         match_log.id as match_id,
         match_log.match_start_timestamp,
         match_log.match_complete_timestamp,
+        match_log.match_status,
         to_char(match_log.runtime, 'HH24:MI:SS') as runtime
-    FROM match_log
-    LEFT JOIN upload_log ON upload_log.id = match_log.upload_id
-    ORDER BY match_complete_timestamp ASC
+    FROM upload_log
+    LEFT JOIN match_log ON upload_log.id = match_log.upload_id
+    WHERE upload_log.upload_status IS NOT TRUE OR upload_log.validate_status IS NOT TRUE OR match_log.id IS NOT NULL
+    ORDER BY validate_start_time ASC
     """
     df = pd.read_sql(
         query,
         con=db.engine
     )
+    for k in ['upload_start_time', 'upload_complete_time', 'validate_start_time', 'validate_complete_time', 'match_start_timestamp', 'match_complete_timestamp']:
+        df[k] = pd.to_datetime(df[k], errors='coerce').dt.strftime('%Y-%m-%d %I:%M:%S %p').apply(lambda x: x if x != 'NaT' else None)
+    return df
+
+
+def get_current(upload_id):
+    query = """
+    SELECT
+        upload_log.id as upload_id,
+        upload_log.jurisdiction_slug,
+        upload_log.event_type_slug,
+        upload_log.user_id,
+        upload_log.given_filename,
+        upload_log.upload_start_time,
+        upload_log.upload_complete_time,
+        upload_log.upload_status,
+        upload_log.validate_start_time,
+        upload_log.validate_complete_time,
+        upload_log.validate_status,
+        upload_log.num_rows,
+        upload_log.file_size,
+        upload_log.file_hash,
+        upload_log.s3_upload_path
+    FROM upload_log
+    LEFT JOIN match_log ON upload_log.id = match_log.upload_id
+    WHERE upload_log.id = %(upload_id)s
+    ORDER BY validate_start_time ASC
+    """
+    df = pd.read_sql(
+        query,
+        con=db.engine,
+        params={"upload_id": upload_id}
+    )
+    for k in ['upload_start_time', 'upload_complete_time', 'validate_start_time', 'validate_complete_time']:
+        df[k] = pd.to_datetime(df[k], errors='coerce').dt.strftime('%Y-%m-%d %I:%M:%S %p').apply(lambda x: x if x != 'NaT' else None)
     return df

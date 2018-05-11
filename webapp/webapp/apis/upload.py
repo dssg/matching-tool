@@ -29,7 +29,7 @@ from collections import defaultdict
 import re
 import unicodecsv as csv
 import os
-
+from datetime import datetime
 
 upload_api = Blueprint('upload_api', __name__, url_prefix='/api/upload')
 
@@ -191,16 +191,29 @@ def format_error_report(exception_message):
 
 
 def validate_async(uploaded_file_name, jurisdiction, full_filename, event_type, flask_user_id, upload_id, row_limit):
+    validate_start_time = datetime.today()
     try:
         # 1. validate header
         validate_header(event_type, full_filename)
-
         # 2. preprocess file
         filename_with_all_fields = add_missing_fields(event_type, full_filename)
 
         # 3. validate body
         body_validation_report = validate_file(event_type, filename_with_all_fields, row_limit)
+        validate_complete_time = datetime.today()
         if not body_validation_report['valid']:
+            sync_upload_metadata(
+                upload_id=upload_id,
+                event_type=event_type,
+                jurisdiction=jurisdiction,
+                flask_user_id=flask_user_id,
+                given_filename=uploaded_file_name,
+                local_filename=full_filename,
+                db_session=db_session,
+                validate_start_time=validate_start_time,
+                validate_complete_time=validate_complete_time,
+                validate_status=False,
+            )
             return {
                 'validation_report': body_validation_report,
                 'event_type': event_type,
@@ -210,29 +223,54 @@ def validate_async(uploaded_file_name, jurisdiction, full_filename, event_type, 
                 'full_filename': full_filename
             }
 
-        # 4. upload to s3
-        upload_path = s3_upload_path(jurisdiction, event_type, upload_id)
-        upload_to_s3(upload_path, filename_with_all_fields)
+        try:
+            # 4. upload to s3
+            upload_start_time = datetime.today()
+            upload_path = s3_upload_path(jurisdiction, event_type, upload_id)
+            upload_to_s3(upload_path, filename_with_all_fields)
 
-        # 5. load into raw table
-        copy_raw_table_to_db(
-            upload_path,
-            event_type,
-            upload_id,
-            db_session.get_bind()
-        )
+            # 5. load into raw table
+            copy_raw_table_to_db(
+                upload_path,
+                event_type,
+                upload_id,
+                db_session.get_bind()
+            )
 
-        # 6. sync upload metadata to db
-        sync_upload_metadata(
-            upload_id=upload_id,
-            event_type=event_type,
-            jurisdiction=jurisdiction,
-            flask_user_id=flask_user_id,
-            given_filename=uploaded_file_name,
-            local_filename=full_filename,
-            db_session=db_session,
-            s3_upload_path=upload_path,
-        )
+            upload_complete_time = datetime.today()
+            # 6. sync upload metadata to db
+            sync_upload_metadata(
+                upload_id=upload_id,
+                event_type=event_type,
+                jurisdiction=jurisdiction,
+                flask_user_id=flask_user_id,
+                given_filename=uploaded_file_name,
+                local_filename=full_filename,
+                db_session=db_session,
+                s3_upload_path=upload_path,
+                validate_start_time=validate_start_time,
+                validate_complete_time=validate_complete_time,
+                validate_status=True,
+                upload_start_time=upload_start_time,
+                upload_complete_time=upload_complete_time,
+                upload_status=True
+            )
+        except:
+            sync_upload_metadata(
+                upload_id=upload_id,
+                event_type=event_type,
+                jurisdiction=jurisdiction,
+                flask_user_id=flask_user_id,
+                given_filename=uploaded_file_name,
+                local_filename=full_filename,
+                db_session=db_session,
+                validate_start_time=validate_start_time,
+                validate_complete_time=validate_complete_time,
+                validate_status=True,
+                upload_start_time=upload_start_time,
+                upload_status=False,
+            )
+
         db_session.commit()
 
         return {
@@ -245,6 +283,18 @@ def validate_async(uploaded_file_name, jurisdiction, full_filename, event_type, 
         }
 
     except ValueError as e:
+        sync_upload_metadata(
+                upload_id=upload_id,
+                event_type=event_type,
+                jurisdiction=jurisdiction,
+                flask_user_id=flask_user_id,
+                given_filename=uploaded_file_name,
+                local_filename=full_filename,
+                db_session=db_session,
+                validate_start_time=validate_start_time,
+                validate_status=False
+            )
+        db_session.commit()
         return format_error_report(str(e))
 
 
@@ -322,9 +372,7 @@ def merge_file():
                 logger.info('Merge succeeded. Now querying matcher')
                 notify_matcher(
                     upload_log.jurisdiction_slug,
-                    upload_log.event_type_slug,
                     upload_id,
-                    upload_log.given_filename
                 )
             except Exception as e:
                 logger.error('Error matching: ', e)
