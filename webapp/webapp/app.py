@@ -27,3 +27,7 @@ def home(path):
 @app.route('/health-check')
 def health_check():
     return 'OK!'
+
+@app.teardown_appcontext
+def shutdown_session(exception=None):
+    db_session.remove()
