@@ -69,7 +69,10 @@ export class SourceDownloader extends React.Component {
           {this.renderEventTypes()}
         </SelectField>
         <RaisedButton
-          label="Download Source"
+          label="Download Source Events"
+          labelStyle={{fontSize: '10px',}}
+          secondary={true}
+          disabled={this.state.value === null}
           onClick={this.handleDownload}
         />
       </div>

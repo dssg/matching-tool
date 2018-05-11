@@ -479,14 +479,16 @@ export class Results extends React.Component {
                   both={this.props.bothCount} />
               </Card>
             </div>
-            <SourceDownloader />
             <div style={styles.datepicker}>
               <RaisedButton
-                label={ this.props.barFlag ? "Download Charts" : "Download List" }
+                label={ this.props.barFlag ? "Download Duration Charts" : "Download List of Results" }
                 labelStyle={{fontSize: '10px',}}
                 secondary={true}
                 onClick={ this.props.barFlag? this.handleDownloadChart : this.handleDownloadList}
                 style={styles.button} />
+            </div>
+            <div style={styles.datepicker}>
+              <SourceDownloader />
             </div>
           </Drawer>
         </div>
