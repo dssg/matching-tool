@@ -23,10 +23,6 @@ describe("SourceDownloader", () => {
   beforeEach(() => {
     props = {
       availableEventTypes: [],
-      filters: {
-        startDate: '',
-        endDate: '',
-      },
     };
     mountedSourceDownloader = undefined;
   });
@@ -36,8 +32,6 @@ describe("SourceDownloader", () => {
         {name: 'Jail Bookings', slug: 'jail_bookings'},
         {name: 'Booking Charges', slug: 'jail_booking_charges'}
       ]
-      props.filters.startDate = '2015-01-01'
-      props.filters.endDate = '2016-01-01'
       const wrapper = sourceDownloader()
       const callback = jest.fn()
       wrapper.instance().downloadSource = callback

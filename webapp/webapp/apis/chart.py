@@ -1,16 +1,9 @@
-from flask import render_template, request, jsonify, Blueprint, url_for, send_file, make_response, Response
+from flask import abort, request, jsonify, Blueprint, make_response, Response
 from flask_security import login_required
 from webapp.logger import logger
 import pandas as pd
-import datetime
-import json
-import copy
-from collections import OrderedDict
-import webapp.apis.query
 from webapp.apis import query
 from webapp.users import can_upload_file
-from io import BytesIO
-import unicodecsv as csv
 
 chart_api = Blueprint('chart_api', __name__, url_prefix='/api/chart')
 
@@ -39,6 +32,7 @@ def get_records_by_time():
     )
     return jsonify(results=records)
 
+
 @chart_api.route('/download_list', methods=['GET'])
 @login_required
 def download_list():
@@ -66,14 +60,6 @@ def download_list():
     output.headers["Content-type"] = "text/csv"
     return output
 
-def iter_csv(data):
-    line = BytesIO()
-    writer = csv.writer(line)
-    for csv_line in data:
-        writer.writerow(csv_line)
-        line.seek(0)
-        yield line.read()
-        line.truncate(0)
 
 @chart_api.route('/download_source', methods=['GET'])
 @login_required
@@ -81,7 +67,7 @@ def download_source():
     jurisdiction = request.args.get('jurisdiction')
     event_type = request.args.get('eventType')
     if not can_upload_file(jurisdiction, event_type):
-        return flask.abort(403)
+        return abort(403)
     source_data_filehandle = query.source_data_to_filehandle(jurisdiction, event_type)
     output = Response(source_data_filehandle, mimetype='text/csv')
     output.headers["Content-Disposition"] = "attachment; filename={}.csv".format(event_type)

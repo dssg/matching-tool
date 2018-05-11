@@ -31,8 +31,6 @@ export class SourceDownloader extends React.Component {
 
   assembleURLParams = (eventType) => {
     const params = {
-      startDate: this.props.filters.startDate,
-      endDate: this.props.filters.endDate,
       jurisdiction: this.props.selectedJurisdictionSlug,
       eventType: eventType
     }
