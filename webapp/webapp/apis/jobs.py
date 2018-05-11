@@ -38,7 +38,7 @@ def get_current_jobs():
                 'job_id': job_id,
                 'created_time': time.strftime('%Y-%m-%d %I:%M:%S %p'),
                 'runtime': str(datetime.now() - time).split('.', 2)[0],
-                'meta': query.get_current(upload_id).to_dict('records')[0]
+                'meta': query.get_metadata(upload_id).to_dict('records')[0]
             } for (job_id, time, upload_id) in zip(current_job_id, current_job_created_at, current_job_upload_id)]
     except:
         current_job = []
@@ -47,7 +47,7 @@ def get_current_jobs():
         {
             'job_id': job_id,
             'created_time': time.strftime('%Y-%m-%d %I:%M:%S %p'),
-            'meta': query.get_current(q_upload_id).to_dict('records')[0]
+            'meta': query.get_metadata(q_upload_id).to_dict('records')[0]
         } for (job_id, time, q_upload_id) in zip(q.job_ids, q_time, q_ids)]
     return jsonify(current=current_job, q=jobs_in_q)
 

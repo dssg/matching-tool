@@ -427,7 +427,7 @@ def get_history():
     return df
 
 
-def get_current(upload_id):
+def get_metadata(upload_id):
     query = """
     SELECT
         upload_log.id as upload_id,
@@ -444,7 +444,11 @@ def get_current(upload_id):
         upload_log.num_rows,
         upload_log.file_size,
         upload_log.file_hash,
-        upload_log.s3_upload_path
+        upload_log.s3_upload_path,
+        match_log.id as match_id,
+        match_log.match_start_timestamp,
+        match_log.match_complete_timestamp,
+        match_log.match_status,
     FROM upload_log
     LEFT JOIN match_log ON upload_log.id = match_log.upload_id
     WHERE upload_log.id = %(upload_id)s
@@ -455,6 +459,6 @@ def get_current(upload_id):
         con=db.engine,
         params={"upload_id": upload_id}
     )
-    for k in ['upload_start_time', 'upload_complete_time', 'validate_start_time', 'validate_complete_time']:
+    for k in ['upload_start_time', 'upload_complete_time', 'validate_start_time', 'validate_complete_time', 'match_start_timestamp', 'match_complete_timestamp']:
         df[k] = pd.to_datetime(df[k], errors='coerce').dt.strftime('%Y-%m-%d %I:%M:%S %p').apply(lambda x: x if x != 'NaT' else None)
     return df
