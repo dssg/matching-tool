@@ -1,7 +1,7 @@
 from webapp.database import Base
 from flask_security import UserMixin, RoleMixin
 from sqlalchemy.orm import relationship, backref
-from sqlalchemy import BigInteger, Boolean, DateTime, Column, Integer, \
+from sqlalchemy import BigInteger, Boolean, DateTime, Column, Interval, Integer, \
                        String, ForeignKey
 
 
@@ -63,3 +63,12 @@ class MergeLog(Base):
     total_unique_rows = Column(Integer)
     merge_start_timestamp = Column(DateTime())
     merge_complete_timestamp = Column(DateTime())
+
+class MatchLog(Base):
+    __tablename__ = 'match_log'
+    id = Column(Integer, primary_key=True)
+    upload_id = Column(String(255), ForeignKey('upload_log.id'))
+    match_start_timestamp = Column(DateTime())
+    match_complete_timestamp = Column(DateTime())
+    match_status = Column(Boolean())
+    runtime = Column(Interval())

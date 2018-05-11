@@ -22,7 +22,6 @@ def upgrade():
     sa.Column('upload_id', sa.String(length=255), nullable=True),
     sa.Column('match_start_timestamp', sa.DateTime(), nullable=True),
     sa.Column('match_complete_timestamp', sa.DateTime(), nullable=True),
-    sa.Column('match_status', sa.Boolean(), nullable=True),
     sa.Column('runtime', sa.Interval(), nullable=True),
     sa.ForeignKeyConstraint(['upload_id'], ['upload_log.id'], ),
     sa.PrimaryKeyConstraint('id')
