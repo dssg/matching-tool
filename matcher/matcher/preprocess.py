@@ -6,7 +6,7 @@ import matcher.ioutils as ioutils
 
 from matcher.logger import logger
 
-def preprocess(df:pd.DataFrame, upload_id:str, jurisdiction:str) -> pd.DataFrame:
+def preprocess(df:pd.DataFrame, match_job_id:str, jurisdiction:str) -> pd.DataFrame:
     # full_name
     # full name is only given if name parts are not. maybe we should do some preprocessing on full names to create
     # name parts and use only the name parts, especially since it is possible for the jail and HMIS systems to
@@ -80,6 +80,6 @@ def preprocess(df:pd.DataFrame, upload_id:str, jurisdiction:str) -> pd.DataFrame
     logger.info('Preprocessing done!')
     logger.debug(f"The preprocessed dataframe has the following columns: {df.columns}")
     logger.debug(f"The preprocessed dimensions of the dataframe is: {df.shape}")
-    ioutils.write_dataframe_to_s3(df.reset_index(), key=f'csh/matcher/{jurisdiction}/match_cache/preprocessed_data/{upload_id}')
+    ioutils.write_dataframe_to_s3(df.reset_index(), key=f'csh/matcher/{jurisdiction}/match_cache/preprocessed_data/{match_job_id}')
     return df
 
