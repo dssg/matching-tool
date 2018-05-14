@@ -248,8 +248,8 @@ export class Results extends React.Component {
   }
 
   intersectionPercentage = () => {
-    var h = Math.floor((this.props.bothCount / this.props.homelessCount)*100)
-    var j = Math.floor((this.props.bothCount / this.props.jailCount)*100)
+    var h = (this.props.bothCount / this.props.homelessCount).toFixed(3)*100
+    var j = (this.props.bothCount / this.props.jailCount).toFixed(3)*100
     return (
       <span>
         <strong>{h}%</strong> of HMIS, <strong>{j}%</strong> of Jail
