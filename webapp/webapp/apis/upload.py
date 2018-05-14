@@ -29,6 +29,7 @@ from collections import defaultdict
 import re
 import unicodecsv as csv
 import os
+from functools import partial
 from datetime import datetime
 
 upload_api = Blueprint('upload_api', __name__, url_prefix='/api/upload')
@@ -200,20 +201,36 @@ def validate_async(uploaded_file_name, jurisdiction, full_filename, event_type, 
 
         # 3. validate body
         body_validation_report = validate_file(event_type, filename_with_all_fields, row_limit)
+        sync_upload_metadata_partial = partial(
+            sync_upload_metadata,
+            upload_id=upload_id,
+            event_type=event_type,
+            jurisdiction=jurisdiction,
+            flask_user_id=flask_user_id,
+            given_filename=uploaded_file_name,
+            local_filename=full_filename,
+            db_session=db_session
+        )
+
         validate_complete_time = datetime.today()
         if not body_validation_report['valid']:
-            sync_upload_metadata(
-                upload_id=upload_id,
-                event_type=event_type,
-                jurisdiction=jurisdiction,
-                flask_user_id=flask_user_id,
-                given_filename=uploaded_file_name,
-                local_filename=full_filename,
-                db_session=db_session,
+            sync_upload_metadata_partial(
                 validate_start_time=validate_start_time,
                 validate_complete_time=validate_complete_time,
                 validate_status=False,
             )
+            # sync_upload_metadata(
+            #     upload_id=upload_id,
+            #     event_type=event_type,
+            #     jurisdiction=jurisdiction,
+            #     flask_user_id=flask_user_id,
+            #     given_filename=uploaded_file_name,
+            #     local_filename=full_filename,
+            #     db_session=db_session,
+            #     validate_start_time=validate_start_time,
+            #     validate_complete_time=validate_complete_time,
+            #     validate_status=False,
+            # )
             return {
                 'validation_report': body_validation_report,
                 'event_type': event_type,
@@ -239,14 +256,7 @@ def validate_async(uploaded_file_name, jurisdiction, full_filename, event_type, 
 
             upload_complete_time = datetime.today()
             # 6. sync upload metadata to db
-            sync_upload_metadata(
-                upload_id=upload_id,
-                event_type=event_type,
-                jurisdiction=jurisdiction,
-                flask_user_id=flask_user_id,
-                given_filename=uploaded_file_name,
-                local_filename=full_filename,
-                db_session=db_session,
+            sync_upload_metadata_partial(
                 s3_upload_path=upload_path,
                 validate_start_time=validate_start_time,
                 validate_complete_time=validate_complete_time,
@@ -255,21 +265,44 @@ def validate_async(uploaded_file_name, jurisdiction, full_filename, event_type, 
                 upload_complete_time=upload_complete_time,
                 upload_status=True
             )
+            # sync_upload_metadata(
+            #     upload_id=upload_id,
+            #     event_type=event_type,
+            #     jurisdiction=jurisdiction,
+            #     flask_user_id=flask_user_id,
+            #     given_filename=uploaded_file_name,
+            #     local_filename=full_filename,
+            #     db_session=db_session,
+            #     s3_upload_path=upload_path,
+            #     validate_start_time=validate_start_time,
+            #     validate_complete_time=validate_complete_time,
+            #     validate_status=True,
+            #     upload_start_time=upload_start_time,
+            #     upload_complete_time=upload_complete_time,
+            #     upload_status=True
+            # )
         except:
-            sync_upload_metadata(
-                upload_id=upload_id,
-                event_type=event_type,
-                jurisdiction=jurisdiction,
-                flask_user_id=flask_user_id,
-                given_filename=uploaded_file_name,
-                local_filename=full_filename,
-                db_session=db_session,
+            sync_upload_metadata_partial(
                 validate_start_time=validate_start_time,
                 validate_complete_time=validate_complete_time,
                 validate_status=True,
                 upload_start_time=upload_start_time,
                 upload_status=False,
             )
+            # sync_upload_metadata(
+            #     upload_id=upload_id,
+            #     event_type=event_type,
+            #     jurisdiction=jurisdiction,
+            #     flask_user_id=flask_user_id,
+            #     given_filename=uploaded_file_name,
+            #     local_filename=full_filename,
+            #     db_session=db_session,
+            #     validate_start_time=validate_start_time,
+            #     validate_complete_time=validate_complete_time,
+            #     validate_status=True,
+            #     upload_start_time=upload_start_time,
+            #     upload_status=False,
+            # )
 
         db_session.commit()
 
@@ -283,17 +316,21 @@ def validate_async(uploaded_file_name, jurisdiction, full_filename, event_type, 
         }
 
     except ValueError as e:
-        sync_upload_metadata(
-                upload_id=upload_id,
-                event_type=event_type,
-                jurisdiction=jurisdiction,
-                flask_user_id=flask_user_id,
-                given_filename=uploaded_file_name,
-                local_filename=full_filename,
-                db_session=db_session,
-                validate_start_time=validate_start_time,
-                validate_status=False
-            )
+        sync_upload_metadata_partial(
+            validate_start_time=validate_start_time,
+            validate_status=False
+        )
+        # sync_upload_metadata(
+        #         upload_id=upload_id,
+        #         event_type=event_type,
+        #         jurisdiction=jurisdiction,
+        #         flask_user_id=flask_user_id,
+        #         given_filename=uploaded_file_name,
+        #         local_filename=full_filename,
+        #         db_session=db_session,
+        #         validate_start_time=validate_start_time,
+        #         validate_status=False
+        #     )
         db_session.commit()
         return format_error_report(str(e))
 
