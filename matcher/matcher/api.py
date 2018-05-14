@@ -126,23 +126,24 @@ def get_match_finished(job_key):
 
 def do_match(jurisdiction, event_type, upload_id):
 
+    match_job_id = utils.unique_match_job_id()
     start_time = datetime.datetime.now()
     logger.info("Matching process started!")
 
     # Loading: collect matching data (keys) for all available event types & record which event types were found
     logger.info('Loading data for matching.')
-    df, event_types_read = ioutils.load_data_for_matching(jurisdiction, upload_id)
+    df, event_types_read = ioutils.load_data_for_matching(jurisdiction, match_job_id)
 
     data_loaded_time = datetime.datetime.now()
 
     # Preprocessing: enforce data types and split/combine columns for feartures
     logger.info('Doing some preprocessing on the columns')
-    df = preprocess.preprocess(df, upload_id, jurisdiction)
+    df = preprocess.preprocess(df, match_job_id, jurisdiction)
     data_preprocessed_time = datetime.datetime.now()
 
     # Matching: block the data, generate pairs and features, and cluster entities
     logger.info(f"Running matcher")
-    matches = matcher.run(df=df, clustering_params=CLUSTERING_PARAMS, jurisdiction=jurisdiction, upload_id=upload_id, blocking_rules=BLOCKING_RULES)
+    matches = matcher.run(df=df, clustering_params=CLUSTERING_PARAMS, jurisdiction=jurisdiction, match_job_id=match_job_id, blocking_rules=BLOCKING_RULES)
     data_matched_time = datetime.datetime.now()
     logger.debug('Matching done!')
 
@@ -163,13 +164,12 @@ def do_match(jurisdiction, event_type, upload_id):
 
     # Writing: Join the matched ids to the source data for each event & write to S3 and postgres
     logger.info('Writing matched results!')
-    ioutils.write_matched_data(all_matches, jurisdiction, upload_id, event_types_read)
+    ioutils.write_matched_data(all_matches, jurisdiction, match_job_id, event_types_read)
     data_written_time = datetime.datetime.now()
 
     total_match_time = data_written_time - start_time
-    match_id = utils.unique_match_id()
 
-    ioutils.insert_info_to_match_log(match_id, upload_id, start_time, data_written_time, total_match_time)
+    ioutils.insert_info_to_match_log(match_job_id, upload_id, start_time, data_written_time, total_match_time)
     logger.info('Finished')
 
     return {

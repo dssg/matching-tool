@@ -47,13 +47,20 @@ EVENT_TYPES = {
 }
 
 
-
-def load_data_for_matching(jurisdiction:str, upload_id:str) -> tuple:
+def load_data_for_matching(jurisdiction:str, match_job_id:str) -> tuple:
     # We will frame the record linkage problem as a deduplication problem
-    df = pd.concat([load_one_event_type(jurisdiction, event_type, upload_id) for event_type in EVENT_TYPES.keys()])
-
-    ## and the upload_id
-    df['upload_id'] = upload_id
+    logger.debug(f'Event types: {EVENT_TYPES.keys()}')
+    try:
+        df = pd.concat([load_one_event_type(jurisdiction, event_type, match_job_id) for event_type in EVENT_TYPES.keys()])
+    except ValueError as e:
+        if str(e) != "All objects passed were None":
+            raise
+        else:
+            logger.debug('Found no events data.')
+            raise ValueError(f'No merged data files found for {juridistion} for any event type ({list(EVENT_TYPE.keys())}.')
+    logger.debug(f'Number of events: {len(df)}')
+    ## and the match_job_id
+    df['match_job_id'] = match_job_id
 
     # Which event types did we read successfully?
     event_types_read = df.event_type.drop_duplicates().values
@@ -70,12 +77,12 @@ def load_data_for_matching(jurisdiction:str, upload_id:str) -> tuple:
     logger.debug(f'The loaded dataframe has the following duplicate indices: {df[df.index.duplicated()].index.values}')
 
     # Cache read data
-    write_dataframe_to_s3(df=df.reset_index(), key=f'csh/matcher/{jurisdiction}/match_cache/loaded_data/{upload_id}')
+    write_dataframe_to_s3(df=df.reset_index(), key=f'csh/matcher/{jurisdiction}/match_cache/loaded_data/{match_job_id}')
 
     return df, event_types_read
 
 
-def load_one_event_type(jurisdiction:str, event_type:str, upload_id:str) -> pd.DataFrame:
+def load_one_event_type(jurisdiction:str, event_type:str, match_job_id:str) -> pd.DataFrame:
     logger.info(f'Loading {jurisdiction} {event_type} data for matching.')
 
     try:
@@ -108,21 +115,21 @@ def read_merged_data_from_s3(jurisdiction:str, event_type:str) -> pd.DataFrame:
     return df
 
 
-def write_matched_data(matches:pd.DataFrame, jurisdiction:str, upload_id:str, event_types_read:list) -> None:
-    write_dataframe_to_s3(df=matches.reset_index(), key=f'csh/matcher/{jurisdiction}/match_cache/matcher_results/{upload_id}')
+def write_matched_data(matches:pd.DataFrame, jurisdiction:str, match_job_id:str, event_types_read:list) -> None:
+    write_dataframe_to_s3(df=matches.reset_index(), key=f'csh/matcher/{jurisdiction}/match_cache/matcher_results/{match_job_id}')
     for event_type in event_types_read:
         logger.info(f'Writing matched data for {jurisdiction} {event_type}')
-        write_one_event_type(matches, jurisdiction, event_type, upload_id)
+        write_one_event_type(matches, jurisdiction, event_type, match_job_id)
 
 
-def write_one_event_type(df:pd.DataFrame, jurisdiction:str, event_type:str, upload_id:str) -> None:
+def write_one_event_type(df:pd.DataFrame, jurisdiction:str, event_type:str, match_job_id:str) -> None:
     # Join the matched ids to the source data
     logger.info(f'Joining matches to merged data for {event_type}')
     df = utils.join_matched_and_merged_data(df, jurisdiction, event_type)
 
     # Cache the current match to S3
     logger.info(f'Writing data for {jurisdiction} {event_type} to S3.')
-    write_dataframe_to_s3(df=df, key=f'csh/matcher/{jurisdiction}/{event_type}/matches/{upload_id}')
+    write_dataframe_to_s3(df=df, key=f'csh/matcher/{jurisdiction}/{event_type}/matches/{match_job_id}')
     write_dataframe_to_s3(df=df, key=f'csh/matcher/{jurisdiction}/{event_type}/matched')
 
     # Write the current match to postgres for use by the webapp

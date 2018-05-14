@@ -22,7 +22,7 @@ def unpack_blocking_rule(df, column_name, position):
         raise ValueError('I cannot split a string at this position: {position}')
 
 
-def run(df:pd.DataFrame, clustering_params:dict, jurisdiction:str, upload_id:str, blocking_rules:dict) -> pd.DataFrame:
+def run(df:pd.DataFrame, clustering_params:dict, jurisdiction:str, match_job_id:str, blocking_rules:dict) -> pd.DataFrame:
 
     ## We will split-apply-combine
     logger.debug(f'df sent to matcher has the following columns: {df.dtypes}')
@@ -49,7 +49,7 @@ def run(df:pd.DataFrame, clustering_params:dict, jurisdiction:str, upload_id:str
 
             features.index.rename(['matcher_index_left', 'matcher_index_right'], inplace=True)
             features = rules.compactify(features, operation='mean')
-            ioutils.write_dataframe_to_s3(features.reset_index(), key=f'csh/matcher/{jurisdiction}/match_cache/features/{upload_id}/{key}')
+            ioutils.write_dataframe_to_s3(features.reset_index(), key=f'csh/matcher/{jurisdiction}/match_cache/features/{match_job_id}/{key}')
 
             logger.debug(f"Features dataframe size: {features.shape}")
             logger.debug(f"Features data without duplicated indexes: {features[~features.index.duplicated(keep='first')].shape}")
@@ -61,7 +61,7 @@ def run(df:pd.DataFrame, clustering_params:dict, jurisdiction:str, upload_id:str
                 DF=group,
                 clustering_params=clustering_params,
                 jurisdiction=jurisdiction, # at some point, we may want to consider making the matcher into a class
-                upload_id=upload_id,       # rather than passing around keys, upload_ids, jurisdictions, etc.
+                match_job_id=match_job_id,       # rather than passing around keys, match_job_ids, jurisdictions, etc.
                 block_name=str(key)
             )
 
