@@ -47,11 +47,18 @@ EVENT_TYPES = {
 }
 
 
-
 def load_data_for_matching(jurisdiction:str, match_job_id:str) -> tuple:
     # We will frame the record linkage problem as a deduplication problem
-    df = pd.concat([load_one_event_type(jurisdiction, event_type, match_job_id) for event_type in EVENT_TYPES.keys()])
-
+    logger.debug(f'Event types: {EVENT_TYPES.keys()}')
+    try:
+        df = pd.concat([load_one_event_type(jurisdiction, event_type, match_job_id) for event_type in EVENT_TYPES.keys()])
+    except ValueError as e:
+        if str(e) != "All objects passed were None":
+            raise
+        else:
+            logger.debug('Found no events data.')
+            raise ValueError(f'No merged data files found for {juridistion} for any event type ({list(EVENT_TYPE.keys())}.')
+    logger.debug(f'Number of events: {len(df)}')
     ## and the match_job_id
     df['match_job_id'] = match_job_id
 
