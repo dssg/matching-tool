@@ -154,7 +154,7 @@ class UploadFileTestCase(unittest.TestCase):
             response_data = json.loads(response.get_data().decode('utf-8'))
             assert 'validation' in response_data
             assert response_data['validation']['status'] == 'invalid'
-            assert 'duplicate primary key' in response_data['upload_result']['errorReport'][0]['message']
+            assert 'Duplicate key' in response_data['upload_result']['errorReport'][0]['message']
 
 
 class MergeFileTestCase(unittest.TestCase):

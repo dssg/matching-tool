@@ -50,19 +50,6 @@ def join_matched_and_merged_data(right_df:pd.DataFrame, jurisdiction:str, event_
     return df
 
 
-def select_columns(df:pd.DataFrame, keys:list) -> pd.DataFrame:
-    """
-    Reduces the dataframe to the columns selected for matching.
-
-    We always expect at least two columns: source and source_id
-    """
-    logger.info(f'Selecting columns for matching.')
-    columns_to_select = ['source', 'source_id', 'internal_person_id', 'source_index']
-    if keys:
-        columns_to_select = columns_to_select + keys
-
-    return df.reindex(keys, axis="columns")
-
-
 def unique_match_id():
     return str(uuid4())
+

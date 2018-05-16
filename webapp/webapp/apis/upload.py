@@ -14,29 +14,25 @@ from webapp.tasks import \
     sync_merged_file_to_s3,\
     add_missing_fields,\
     validate_file,\
+    validate_header,\
     bootstrap_matched_tables
 from webapp.users import can_upload_file, get_jurisdiction_roles
-from webapp.utils import unique_upload_id, s3_upload_path, notify_matcher, infer_delimiter
-
-from webapp.apis import query
+from webapp.utils import s3_upload_path, notify_matcher, infer_delimiter, unique_upload_id
 
 from werkzeug.utils import secure_filename
 
 from redis import Redis
 from rq import Queue
 from rq.job import Job
-from rq.registry import StartedJobRegistry
 
 from collections import defaultdict
 import re
-import requests
-import yaml
 import unicodecsv as csv
-import boto
 import os
 
 
 upload_api = Blueprint('upload_api', __name__, url_prefix='/api/upload')
+
 
 def get_q(redis_connection):
     return Queue('webapp', connection=redis_connection)
@@ -75,7 +71,7 @@ def can_access_file(upload_id):
     return can_upload_file(upload.jurisdiction_slug, upload.event_type_slug)
 
 
-def format_error_report(report, event_type_slug):
+def format_validation_report(report, event_type_slug):
     error_summary = defaultdict(dict)
     headers = report['tables'][0]['headers']
     for error in report['tables'][0]['errors']:
@@ -116,88 +112,10 @@ def jurisdiction_roles():
 @login_required
 def get_validated_result(job_key):
     job = Job.fetch(job_key, connection=get_redis_connection())
-    if job.is_finished:
-        result = job.result
-        if 'validation' in result and 'upload_result' in result:
-            return jsonify(result)
-        validation_report = result['validation_report']
-        jurisdiction = result['jurisdiction']
-        event_type = result['event_type']
-        filename_with_all_fields = result['filename_with_all_fields']
-        uploaded_file_name = result['uploaded_file_name']
-        full_filename = result['full_filename']
-        if validation_report['valid']:
-            upload_id = job_key
-            row_count = validation_report['tables'][0]['row-count'] - 1
-            upload_path = s3_upload_path(jurisdiction, event_type, upload_id)
-            logger.info("Validation done!")
-            try:
-                logger.info('Uploading upload_id: %s to s3', upload_id)
-                upload_to_s3(upload_path, filename_with_all_fields)
-            except boto.exception.S3ResponseError as e:
-                logger.error(
-                    'Upload id %s failed to upload to s3: %s/%s/%s. Exception: %s',
-                    upload_id,
-                    event_type,
-                    jurisdiction,
-                    uploaded_file_name,
-                    e.message
-                )
-                db_session.commit()
-                return jsonify({
-                    'validation': {
-                        'status': 'valid',
-                        'jobKey': job_key
-                    },
-                    'upload_result': {
-                        'status': 'error',
-                        'uploadId': upload_id,
-                        'message': 'Upload error!'
-                    }
-                })
-
-            sync_upload_metadata(
-                upload_id=upload_id,
-                event_type=event_type,
-                jurisdiction=jurisdiction,
-                user=current_user,
-                given_filename=uploaded_file_name,
-                local_filename=full_filename,
-                db_session=db_session,
-                s3_upload_path=upload_path,
-            )
-            sample_rows, field_names = get_sample(filename_with_all_fields)
-            db_session.commit()
-            return jsonify({
-                'validation': {
-                    'status': 'valid',
-                    'jobKey': job_key,
-                },
-                'upload_result': {
-                    'status': 'done',
-                    'rowCount': row_count,
-                    'exampleRows': sample_rows,
-                    'fieldOrder': field_names,
-                    'uploadId': upload_id
-                }
-            })
-        else:
-            db_session.commit()
-            return jsonify({
-                'validation': {
-                    'jobKey': job_key,
-                    'status': 'invalid'
-                },
-                'upload_result': {
-                    'status': 'done',
-                    'rowCount': '',
-                    'fieldOrder': [],
-                    'errorReport': format_error_report(validation_report, event_type),
-                    'upload_id': ''
-                }
-            })
-    else:
-        db_session.commit()
+    if job.is_failed:
+        logger.error(job.exc_info)
+        return jsonify(format_error_report('System error. The error has been logged, please try again later'))
+    if not job.is_finished:
         return jsonify({
             'validation': {
                 'jobKey': job_key,
@@ -209,12 +127,50 @@ def get_validated_result(job_key):
             }
         })
 
+    result = job.result
+    if 'validation' in result and 'upload_result' in result:
+        return jsonify(result)
+    validation_report = result['validation_report']
+    event_type = result['event_type']
+    filename_with_all_fields = result['filename_with_all_fields']
+    if validation_report['valid']:
+        upload_id = job.meta['upload_id']
+        row_count = validation_report['tables'][0]['row-count'] - 1
 
-def validate_async(uploaded_file_name, jurisdiction, full_filename, event_type, row_limit):
-    try:
-        filename_with_all_fields = add_missing_fields(event_type, full_filename)
-    except ValueError as e:
-        return {
+        sample_rows, field_names = get_sample(filename_with_all_fields)
+        db_session.commit()
+        return jsonify({
+            'validation': {
+                'status': 'valid',
+                'jobKey': job_key,
+            },
+            'upload_result': {
+                'status': 'done',
+                'rowCount': row_count,
+                'exampleRows': sample_rows,
+                'fieldOrder': field_names,
+                'uploadId': upload_id
+            }
+        })
+    else:
+        db_session.commit()
+        return jsonify({
+            'validation': {
+                'jobKey': job_key,
+                'status': 'invalid'
+            },
+            'upload_result': {
+                'status': 'done',
+                'rowCount': '',
+                'fieldOrder': [],
+                'errorReport': format_validation_report(validation_report, event_type),
+                'upload_id': ''
+            }
+        })
+
+
+def format_error_report(exception_message):
+    return {
         'validation': {
             'status': 'invalid',
         },
@@ -224,23 +180,72 @@ def validate_async(uploaded_file_name, jurisdiction, full_filename, event_type, 
             'fieldOrder': [],
             'errorReport': [{
                 'field_name': 'unknown',
-                'message': str(e),
+                'message': exception_message,
                 'num_rows': 1,
-                'values':'',
+                'values': '',
                 'row_numbers': ''
             }],
             'upload_id': ''
         }
     }
-    validation_report = validate_file(event_type, filename_with_all_fields, row_limit)
-    return {
-        'validation_report': validation_report,
-        'event_type': event_type,
-        'jurisdiction': jurisdiction,
-        'filename_with_all_fields': filename_with_all_fields,
-        'uploaded_file_name': uploaded_file_name,
-        'full_filename': full_filename
-    }
+
+
+def validate_async(uploaded_file_name, jurisdiction, full_filename, event_type, flask_user_id, upload_id, row_limit):
+    try:
+        # 1. validate header
+        validate_header(event_type, full_filename)
+
+        # 2. preprocess file
+        filename_with_all_fields = add_missing_fields(event_type, full_filename)
+
+        # 3. validate body
+        body_validation_report = validate_file(event_type, filename_with_all_fields, row_limit)
+        if not body_validation_report['valid']:
+            return {
+                'validation_report': body_validation_report,
+                'event_type': event_type,
+                'jurisdiction': jurisdiction,
+                'filename_with_all_fields': filename_with_all_fields,
+                'uploaded_file_name': uploaded_file_name,
+                'full_filename': full_filename
+            }
+
+        # 4. upload to s3
+        upload_path = s3_upload_path(jurisdiction, event_type, upload_id)
+        upload_to_s3(upload_path, filename_with_all_fields)
+
+        # 5. load into raw table
+        copy_raw_table_to_db(
+            upload_path,
+            event_type,
+            upload_id,
+            db_session.get_bind()
+        )
+
+        # 6. sync upload metadata to db
+        sync_upload_metadata(
+            upload_id=upload_id,
+            event_type=event_type,
+            jurisdiction=jurisdiction,
+            flask_user_id=flask_user_id,
+            given_filename=uploaded_file_name,
+            local_filename=full_filename,
+            db_session=db_session,
+            s3_upload_path=upload_path,
+        )
+        db_session.commit()
+
+        return {
+            'validation_report': body_validation_report,
+            'event_type': event_type,
+            'jurisdiction': jurisdiction,
+            'filename_with_all_fields': filename_with_all_fields,
+            'uploaded_file_name': uploaded_file_name,
+            'full_filename': full_filename
+        }
+
+    except ValueError as e:
+        return format_error_report(str(e))
 
 
 @upload_api.route('/upload_file', methods=['POST'])
@@ -257,13 +262,14 @@ def upload_file():
         cwd = os.getcwd()
         full_filename = os.path.join(cwd + '/tmp', filename)
         uploaded_file.save(full_filename)
+        upload_id = unique_upload_id()
         q = get_q(get_redis_connection())
         job = q.enqueue_call(
             func=validate_async,
-            args=(uploaded_file.filename, jurisdiction, full_filename, event_type, 10000000),
+            args=(uploaded_file.filename, jurisdiction, full_filename, event_type, current_user.id, upload_id, 10000000),
             result_ttl=5000,
             timeout=3600,
-            meta={'event_type': event_type, 'filename': filename}
+            meta={'event_type': event_type, 'filename': filename, 'upload_id': upload_id}
         )
         logger.info(f"Job id {job.get_id()}")
         return jsonify(
@@ -289,14 +295,8 @@ def merge_file():
         has_access = can_access_file(upload_id)
         if has_access:
             upload_log = db_session.query(Upload).get(upload_id)
-            logger.info('Retrieved upload log, now copying raw table')
-            raw_table_name = copy_raw_table_to_db(
-                upload_log.s3_upload_path,
-                upload_log.event_type_slug,
-                upload_id,
-                db_session.get_bind()
-            )
-            db_session.commit()
+            logger.info('Retrieved upload log, merging raw table to master')
+            raw_table_name = 'raw_{}'.format(upload_id)
             logger.info('Merging raw table to master')
             merge_id = upsert_raw_table_to_master(
                 raw_table_name,
@@ -320,7 +320,12 @@ def merge_file():
             merge_log = db_session.query(MergeLog).get(merge_id)
             try:
                 logger.info('Merge succeeded. Now querying matcher')
-                notify_matcher(upload_log.jurisdiction_slug, upload_log.event_type_slug, upload_id, upload_log.given_filename)
+                notify_matcher(
+                    upload_log.jurisdiction_slug,
+                    upload_log.event_type_slug,
+                    upload_id,
+                    upload_log.given_filename
+                )
             except Exception as e:
                 logger.error('Error matching: ', e)
                 db_session.rollback()
@@ -337,4 +342,3 @@ def merge_file():
         logger.error('Error merging: ', e)
         db_session.rollback()
         return make_response(jsonify(status='error'), 500)
-

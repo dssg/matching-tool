@@ -38,14 +38,12 @@ KEYS = ast.literal_eval(os.getenv('KEYS'))
 
 # lookups
 EVENT_TYPES = {
-    'hmis_service_stays': {
-        'start_date_column_name': 'client_location_start_date',
-        'end_date_column_name': 'client_location_end_date'
-    },
-    'jail_bookings': {
-        'start_date_column_name': 'jail_entry_date',
-        'end_date_column_name': 'jail_exit_date'
-    }
+    'hmis_service_stays': ['matched_id', 'client_location_start_date', 'client_location_end_date'],
+    'jail_bookings': ['matched_id', 'jail_entry_date', 'jail_exit_date'],
+    'case_charges': ['matched_id'],
+    'hmis_aliases': ['matched_id'],
+    'jail_booking_aliases': ['matched_id'],
+    'jail_booking_charges': ['matched_id']
 }
 
 
@@ -72,7 +70,7 @@ def load_data_for_matching(jurisdiction:str, upload_id:str) -> tuple:
     logger.debug(f'The loaded dataframe has the following duplicate indices: {df[df.index.duplicated()].index.values}')
 
     # Cache read data
-    write_dataframe_to_s3(df=df, key=f'csh/matcher/{jurisdiction}/match_cache/loaded_data/{upload_id}')
+    write_dataframe_to_s3(df=df.reset_index(), key=f'csh/matcher/{jurisdiction}/match_cache/loaded_data/{upload_id}')
 
     return df, event_types_read
 
@@ -84,7 +82,7 @@ def load_one_event_type(jurisdiction:str, event_type:str, upload_id:str) -> pd.D
         df = read_merged_data_from_s3(jurisdiction, event_type)
 
         # Dropping columns that we don't need for matching
-        df = utils.select_columns(df=df, keys=KEYS)
+        df = df[KEYS]
 
         # Keeping track of the event_type
         df['event_type'] = event_type
@@ -111,7 +109,7 @@ def read_merged_data_from_s3(jurisdiction:str, event_type:str) -> pd.DataFrame:
 
 
 def write_matched_data(matches:pd.DataFrame, jurisdiction:str, upload_id:str, event_types_read:list) -> None:
-    write_dataframe_to_s3(df=matches, key=f'csh/matcher/{jurisdiction}/match_cache/matcher_results/{upload_id}')
+    write_dataframe_to_s3(df=matches.reset_index(), key=f'csh/matcher/{jurisdiction}/match_cache/matcher_results/{upload_id}')
     for event_type in event_types_read:
         logger.info(f'Writing matched data for {jurisdiction} {event_type}')
         write_one_event_type(matches, jurisdiction, event_type, upload_id)
@@ -199,13 +197,12 @@ def insert_data_into_table(key:str, table_name:str, cur) -> None:
 
 
 def create_indexes_on_matched_table(table_name:str, event_type:str, cur) -> None:
-    index_query = f"""
-        CREATE INDEX ON {table_name} ({EVENT_TYPES[event_type]['start_date_column_name']});
-        CREATE INDEX ON {table_name} ({EVENT_TYPES[event_type]['end_date_column_name']});
-        CREATE INDEX ON {table_name} (matched_id);
-    """
-    cur.execute(index_query)
-    logger.info(f'Created start date, end date, and matched_id indexes on {table_name}')
+    for index_column_name in EVENT_TYPES[event_type]:
+        index_query = f"""
+            CREATE INDEX ON {table_name} ({index_column_name});
+        """
+        cur.execute(index_query)
+        logger.debug(f'Created {index_column_name} index on {table_name}')
 
 
 def read_data_from_postgres(table_name:str):

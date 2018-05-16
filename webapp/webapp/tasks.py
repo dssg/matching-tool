@@ -21,7 +21,9 @@ from webapp.validations import CHECKS_BY_SCHEMA
 from hashlib import md5
 import logging
 import os
+import re
 import unicodecsv as csv
+import psycopg2
 
 
 def upload_to_s3(full_s3_path, local_filename):
@@ -34,7 +36,7 @@ def sync_upload_metadata(
     upload_id,
     event_type,
     jurisdiction,
-    user,
+    flask_user_id,
     given_filename,
     local_filename,
     s3_upload_path,
@@ -50,7 +52,7 @@ def sync_upload_metadata(
             id=upload_id,
             jurisdiction_slug=jurisdiction,
             event_type_slug=event_type,
-            user_id=user.id,
+            user_id=flask_user_id,
             given_filename=given_filename,
             upload_timestamp=datetime.today(),
             num_rows=num_rows,
@@ -80,9 +82,27 @@ def copy_raw_table_to_db(
     logging.info('Successfully created table')
     primary_key = primary_key_statement(goodtables_schema['primaryKey'])
     with smart_open(full_s3_path, 'rb') as infile:
-        cursor = db_engine.raw_connection().cursor()
+        conn = db_engine.raw_connection()
+        cursor = conn.cursor()
         copy_stmt = 'copy "{}" from stdin with csv force not null {}  header delimiter as \',\' '.format(table_name, primary_key)
-        cursor.copy_expert(copy_stmt, infile)
+        try:
+            cursor.copy_expert(copy_stmt, infile)
+            conn.commit()
+        except psycopg2.IntegrityError as e:
+            error_message = str(e)
+            conn.rollback()
+            if 'duplicate key value violates unique constraint' not in error_message:
+                raise
+            error_message_lines = error_message.split('\n')
+            if len(error_message_lines) < 3:
+                raise
+            line_no_match = re.match(r'^.*(line \d+)', error_message.split('\n')[2])
+            if not line_no_match:
+                raise
+            line_no = line_no_match.group(1)
+            raise ValueError(f"Duplicate key value found on {line_no}. {error_message_lines[1]}")
+        finally:
+            conn.close()
     logging.info('Successfully loaded file')
     return table_name
 
@@ -243,3 +263,20 @@ def validate_file(event_type, filename_with_all_fields, row_limit=1000):
     )
 
     return report
+
+
+def validate_header(event_type, filename_without_all_fields):
+    goodtables_schema = load_schema_file(event_type)
+    schema_fields = goodtables_schema['fields']
+    delimiter = infer_delimiter(filename_without_all_fields)
+    required_field_names = set(
+        field['name']
+        for field in schema_fields
+        if field.get('constraints', {}).get('required', False)
+    )
+    with open(filename_without_all_fields, 'rb' ) as infileobj:
+        reader = csv.DictReader(lower_first(infileobj), delimiter=delimiter)
+        first_line = next(reader)
+        for required_field_name in required_field_names:
+            if required_field_name not in first_line:
+                raise ValueError(f"Field name {required_field_name} is required for {event_type} schema but is not present")
