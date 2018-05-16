@@ -50,6 +50,7 @@ const styles = {
   },
   datepicker: {
     marginLeft: 15,
+    marginBottom: 10
   },
   panel: {
     width: '105%',
@@ -72,7 +73,7 @@ const styles = {
     marginLeft: 60,
   },
   button: {
-    margin: 5,
+    marginTop: 5,
   },
   floatingActionButtonAdd: {
     position: 'absolute',
