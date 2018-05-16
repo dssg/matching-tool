@@ -22,11 +22,19 @@ load_dotenv(dotenv_path)
 # load environment variables
 KEYS = ast.literal_eval(os.getenv('KEYS'))
 
-
 def concatenate_person_index(df:pd.DataFrame) -> pd.Series:
     person_column_names = KEYS
     person_df = df[person_column_names]
     return person_df.apply(lambda x: ''.join(x.map(str)), axis=1)
+
+
+def unpack_blocking_rule(df:pd.DataFrame, column_name:str, position:int) -> pd.Series:
+    if position < 0:
+        return df[column_name].astype(str).str[position:]
+    elif position > 0:
+        return df[column_name].astype(str).str[:position]
+    else:
+        raise ValueError('I cannot split a string at this position: {position}')
 
 
 def get_matched_table_name(jurisdiction:str, event_type:str) -> str:

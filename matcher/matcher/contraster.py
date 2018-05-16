@@ -41,6 +41,15 @@ def lists_share_all_values(l1:pd.Series, l2:pd.Series) -> pd.Series:
     l2_all = df.apply(lambda row: all(i in row.l1 for i in row.l2), axis=1)
     return (l1_all & l2_all).astype(float)
 
+def args_to_str(args:dict):
+    s = str(args)
+    s = s.replace("{", "")
+    s = s.replace("}", "")
+    s = s.replace(" ", "")
+    s = s.replace(":", "")
+    s = s.replace("'", "")
+    return s
+
 
 class Contraster:
     def __init__(self):
@@ -57,7 +66,7 @@ class Contraster:
     
     def compare_string_distance(self, col_name:str, args):
         logger.debug(f'Doing a comparison of {col_name} using {args}')
-        self.contraster.string(col_name, col_name, label=f'{col_name}_{args}_distance', **args)
+        self.contraster.string(col_name, col_name, label=f'{col_name}_{args_to_str(args)}_distance', **args)
 
     def compare_swap_month_days(self, col_name:str, args):
         logger.debug(f'Checking if the month and day are swapped in {col_name}')
@@ -65,7 +74,7 @@ class Contraster:
 
     def compare_numeric_distance(self, col_name:str, args):
         logger.debug(f'Doing a numeric distance calculation on {col_name}')
-        self.contraster.date(col_name, col_name, label=f'{col_name}_numeric_{args}_distance', **args)
+        self.contraster.date(col_name, col_name, label=f'{col_name}_numeric_{args_to_str(args)}_distance', **args)
 
     def compare_list(self, col_name:str, args):
         if args['method'] == 'any':
