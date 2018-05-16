@@ -68,8 +68,8 @@ def list_jobs():
 	'enqueue_at': [job.enqueued_at for job in queued_jobs]
     })
 
-@app.route('/match/<jurisdiction>/<event_type>/<filename>', methods=['GET'])
-def match(jurisdiction, event_type, filename):
+@app.route('/match/<jurisdiction>', methods=['GET'])
+def match(jurisdiction):
     upload_id = request.args.get('uploadId', None)   ## QUESTION: Why is this a request arg and is not in the route? Also, Why in CamelCase?
     if not upload_id:
         return jsonify(status='invalid', reason='uploadId not present')
@@ -78,10 +78,10 @@ def match(jurisdiction, event_type, filename):
 
     job = q.enqueue_call(
         func=do_match,
-        args=(jurisdiction, event_type, upload_id),
+        args=(jurisdiction, upload_id),
         result_ttl=5000,
         timeout=100000,
-        meta={'event_type': event_type, 'filename': filename}
+        meta={'upload_id': upload_id}
     )
 
     logger.info(f"Job id {job.get_id()}")
@@ -89,94 +89,69 @@ def match(jurisdiction, event_type, filename):
     return jsonify({"job": job.get_id()})
 
 
-@app.route('/match/results/<job_key>', methods=["GET"])
-def get_match_results(job_key):
-    job = Job.fetch(job_key, connection=redis_connection)
-    logger.info(job.result)
-    if job.is_finished:
-        df = ioutils.read__data_from_postgres(
-            utils.get_matched_table_name(
-            event_type=job.result['event_type'],
-            jurisdiction=job.result['jurisdiction']
-    ))
-
-        response = make_response(jsonify(df.to_json(orient='records')))
-        response.headers["Content-Type"] = "text/json"
-
-        return response
-
-    else:
-        return jsonify({
-            'status': 'not yet',
-            'message': 'nice try, but we are still working on it'
-        })
-
-
-@app.route('/match/job_finished/<job_key>', methods=["GET"])
-def get_match_finished(job_key):
-    job = Job.fetch(job_key, connection=redis_connection)
-    if job.is_finished:
-        return jsonify(job.result)
-    else:
-        return jsonify({
-            'status': 'not yet',
-            'message': 'nice try, but we are still working on it'
-        })
-
-
-def do_match(jurisdiction, event_type, upload_id):
+def do_match(jurisdiction, upload_id):
 
     match_job_id = utils.unique_match_job_id()
-    start_time = datetime.datetime.now()
+    match_start_time = datetime.datetime.now()
     logger.info("Matching process started!")
 
-    # Loading: collect matching data (keys) for all available event types & record which event types were found
-    logger.info('Loading data for matching.')
-    df, event_types_read = ioutils.load_data_for_matching(jurisdiction, match_job_id)
+    try:
+        # Loading: collect matching data (keys) for all available event types & record which event types were found
+        logger.info('Loading data for matching.')
+        df, event_types_read = ioutils.load_data_for_matching(jurisdiction, match_job_id)
 
-    data_loaded_time = datetime.datetime.now()
+        data_loaded_time = datetime.datetime.now()
 
-    # Preprocessing: enforce data types and split/combine columns for feartures
-    logger.info('Doing some preprocessing on the columns')
-    df = preprocess.preprocess(df, match_job_id, jurisdiction)
-    data_preprocessed_time = datetime.datetime.now()
+        # Preprocessing: enforce data types and split/combine columns for feartures
+        logger.info('Doing some preprocessing on the columns')
+        df = preprocess.preprocess(df, match_job_id, jurisdiction)
+        data_preprocessed_time = datetime.datetime.now()
 
-    # Matching: block the data, generate pairs and features, and cluster entities
-    logger.info(f"Running matcher")
-    matches = matcher.run(df=df, clustering_params=CLUSTERING_PARAMS, jurisdiction=jurisdiction, match_job_id=match_job_id, blocking_rules=BLOCKING_RULES)
-    data_matched_time = datetime.datetime.now()
-    logger.debug('Matching done!')
+        # Matching: block the data, generate pairs and features, and cluster entities
+        logger.info(f"Running matcher")
+        matches = matcher.run(df=df, clustering_params=CLUSTERING_PARAMS, jurisdiction=jurisdiction, match_job_id=match_job_id, blocking_rules=BLOCKING_RULES)
+        data_matched_time = datetime.datetime.now()
+        logger.debug('Matching done!')
 
-    for key, matched in matches.items():
-        logger.debug(f'Index of matches for {key}: {matched.index.values})')
-        logger.debug(f'Columns of matches for {key}: {matched.columns.values}')
+        for key, matched in matches.items():
+            logger.debug(f'Index of matches for {key}: {matched.index.values})')
+            logger.debug(f'Columns of matches for {key}: {matched.columns.values}')
 
-    logger.debug(f"Total matching time: {data_matched_time - start_time}")
+        logger.debug(f"Total matching time: {data_matched_time - match_start_time}")
 
+        # Merging: Join the matched blocks into a single dataframe
+        logger.info('Concatenating matched results!')
+        all_matches = pd.concat(matches.values())
+        matches_concatenated_time = datetime.datetime.now()
 
-    # Merging: Join the matched blocks into a single dataframe
-    logger.info('Concatenating matched results!')
-    all_matches = pd.concat(matches.values())
-    matches_concatenated_time = datetime.datetime.now()
+        logger.debug(f"Number of matched pairs: {len(all_matches)}")
+        logger.debug(f"Total concatenating time: {matches_concatenated_time - data_matched_time}")
 
-    logger.debug(f"Number of matched pairs: {len(all_matches)}")
-    logger.debug(f"Total concatenating time: {matches_concatenated_time - data_matched_time}")
+        # Writing: Join the matched ids to the source data for each event & write to S3 and postgres
+        logger.info('Writing matched results!')
+        ioutils.write_matched_data(all_matches, jurisdiction, match_job_id, event_types_read)
+        data_written_time = datetime.datetime.now()
 
-    # Writing: Join the matched ids to the source data for each event & write to S3 and postgres
-    logger.info('Writing matched results!')
-    ioutils.write_matched_data(all_matches, jurisdiction, match_job_id, event_types_read)
-    data_written_time = datetime.datetime.now()
+        total_match_time = data_written_time - match_start_time
 
-    total_match_time = data_written_time - start_time
+        ioutils.insert_info_to_match_log(match_job_id, upload_id, match_start_time, data_written_time, True, total_match_time)
+        logger.info('Finished')
 
-    ioutils.insert_info_to_match_log(match_job_id, upload_id, start_time, data_written_time, total_match_time)
-    logger.info('Finished')
+        return {
+            'status': 'done',
+            'number_of_matches_found': len(matches),
+            'jurisdiction': jurisdiction,
+            'upload_id': upload_id,
+            'message': 'matching proccess is done! check out the result!'
+        }
+    except:
+        match_fail_time = datetime.datetime.now()
+        total_match_time = match_fail_time - match_start_time
+        ioutils.insert_info_to_match_log(match_job_id, upload_id, match_start_time, match_fail_time, False, total_match_time)
 
-    return {
-        'status': 'done',
-        'number_of_matches_found': len(matches),
-        'event_type': event_type,
-        'jurisdiction': jurisdiction,
-        'upload_id': upload_id,
-        'message': 'matching proccess is done! check out the result!'
-    }
+        return {
+            'status': 'failed',
+            'number_of_matches_found': None,
+            'upload_id': upload_id,
+            'message': 'matching proccess failed...'
+        }

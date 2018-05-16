@@ -1,7 +1,7 @@
 from webapp.database import Base
 from flask_security import UserMixin, RoleMixin
 from sqlalchemy.orm import relationship, backref
-from sqlalchemy import BigInteger, Boolean, DateTime, Column, Integer, \
+from sqlalchemy import BigInteger, Boolean, DateTime, Column, Interval, Integer, \
                        String, ForeignKey
 
 
@@ -43,7 +43,12 @@ class Upload(Base):
     event_type_slug = Column(String(255))
     user_id = Column(Integer, ForeignKey('user.id'))
     given_filename = Column(String(255))
-    upload_timestamp = Column(DateTime())
+    upload_start_time = Column(DateTime())
+    upload_complete_time = Column(DateTime())
+    upload_status = Column(Boolean())
+    validate_start_time = Column(DateTime())
+    validate_complete_time = Column(DateTime())
+    validate_status = Column(Boolean())
     num_rows = Column(Integer)
     file_size = Column(BigInteger)
     file_hash = Column(String(255))
@@ -58,3 +63,12 @@ class MergeLog(Base):
     total_unique_rows = Column(Integer)
     merge_start_timestamp = Column(DateTime())
     merge_complete_timestamp = Column(DateTime())
+
+class MatchLog(Base):
+    __tablename__ = 'match_log'
+    id = Column(Integer, primary_key=True)
+    upload_id = Column(String(255), ForeignKey('upload_log.id'))
+    match_start_timestamp = Column(DateTime())
+    match_complete_timestamp = Column(DateTime())
+    match_status = Column(Boolean())
+    runtime = Column(Interval())

@@ -304,7 +304,7 @@ function showAllJobs(result) {
 
 export function getAllJobs() {
   return function(dispatch) {
-    return fetch('api/jobs/get_jobs', { method: 'GET', dataType: 'json', credentials: 'include'})
+    return fetch('api/jobs/get_current_jobs', { method: 'GET', dataType: 'json', credentials: 'include'})
       .then((resp) => {
         return resp.json()
       })

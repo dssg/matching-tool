@@ -39,8 +39,14 @@ def sync_upload_metadata(
     flask_user_id,
     given_filename,
     local_filename,
-    s3_upload_path,
-    db_session
+    db_session,
+    s3_upload_path=None,
+    validate_start_time=None,
+    validate_complete_time=None,
+    validate_status=None,
+    upload_start_time=None,
+    upload_complete_time=None,
+    upload_status=None,
 ):
     with smart_open(local_filename, 'rb') as infile:
         num_rows = sum(1 for _ in infile)
@@ -54,7 +60,12 @@ def sync_upload_metadata(
             event_type_slug=event_type,
             user_id=flask_user_id,
             given_filename=given_filename,
-            upload_timestamp=datetime.today(),
+            upload_start_time=upload_start_time,
+            upload_complete_time=upload_complete_time,
+            upload_status=upload_status,
+            validate_start_time=validate_start_time,
+            validate_complete_time=validate_complete_time,
+            validate_status=validate_status,
             num_rows=num_rows,
             file_size=file_size,
             file_hash=file_hash,
