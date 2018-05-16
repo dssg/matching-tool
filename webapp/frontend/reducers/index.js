@@ -72,7 +72,6 @@ const initialState = {
     },
     availableJurisdictionalRoles: [],
     matchingFilters: {
-      controlledDate: '',
       startDate: '',
       endDate: '',
       limit: 11,
@@ -155,7 +154,6 @@ const app = createReducer(initialState, {
   [UPDATE_CONTROLLED_DATE]: (state, payload) => {
     const newState = update(state, {
       matchingFilters: {
-        controlledDate: {$set: payload.endDate},
         startDate: {$set: payload.startDate},
         endDate: {$set: payload.endDate}
       }

@@ -166,7 +166,8 @@ export class Results extends React.Component {
     this.state = {
       open: true,
       flagJailBar: true,
-      duration: [1, "year", 4]
+      startdate: null,
+      enddate: null,
     }
   }
 
@@ -182,10 +183,16 @@ export class Results extends React.Component {
     })
   }
 
-  handleControlledDate = (event, date) => {
+  handleStartDate = (event, date) => {
+    const startDate = moment(date).format('YYYY-MM-DD')
+    this.setState({startdate: startDate})
+    this.props.updateDates(startDate, this.state.enddate)
+  }
+
+  handleEndDate = (event, date) => {
     const endDate = moment(date).format('YYYY-MM-DD')
-    const startDate = moment(date).subtract(this.state.duration[0], this.state.duration[1]).format('YYYY-MM-DD')
-    this.props.updateDates(startDate, endDate)
+    this.setState({enddate: endDate})
+    this.props.updateDates(this.state.startdate, endDate)
   }
 
   handleClickToggleChartAndList = () => {
@@ -193,28 +200,6 @@ export class Results extends React.Component {
       this.props.handleUpdateSetStatus(["Jail"])
     }
     this.props.toggleBarFlag()
-  }
-
-  handleDurationChange = (event, index, value) => {
-    if (value == 1) {
-      var d = [1, "month", value]
-    }
-    else if (value == 2) {
-      var d = [3, "months", value]
-    }
-    else if (value == 3) {
-      var d = [6, "months", value]
-    }
-    else if (value == 4) {
-      var d = [1, "year", value]
-    }
-    else if (value == 5) {
-      var d = [2, "years", value]
-    }
-    this.setState({duration: d})
-    const endDate = this.props.filters.endDate
-    const startDate = moment(endDate).subtract(d[0], d[1]).format('YYYY-MM-DD')
-    this.props.updateDates(startDate, endDate)
   }
 
   handleDownloadChart = () => {
@@ -258,7 +243,9 @@ export class Results extends React.Component {
   }
 
   componentDidMount() {
-    this.handleControlledDate('blah', new moment())
+    this.handleEndDate('blah', new moment())
+    this.handleStartDate('blah', new moment().subtract(1, 'year'))
+
   }
 
   componentDidUpdate(prevProps) {
@@ -438,26 +425,19 @@ export class Results extends React.Component {
                   <NavigationClose />
                 </FloatingActionButton>
                 <div style={styles.datepicker}>
+                  <h5 style={styles.h5}>Start Date:
+                    <DatePicker
+                      defaultDate={new moment().subtract(1, 'year').toDate()}
+                      maxDate={new moment().toDate()}
+                      hintText="Pick the Start Date"
+                      onChange={this.handleStartDate} />
+                  </h5>
                   <h5 style={styles.h5}>End Date:
                     <DatePicker
                       defaultDate={new moment().toDate()}
                       maxDate={new moment().toDate()}
-                      hintText="Pick a Date to go back"
-                      autoOk={true}
-                      onChange={this.handleControlledDate} />
-                  </h5>
-                  <h5 style={styles.h5}>Duration:</h5>
-                  <h5 style={styles.h5}>
-                    <SelectField
-                      value={this.state.duration[2]}
-                      onChange={this.handleDurationChange}
-                      maxHeight={200} >
-                      <MenuItem value={1} key={1} primaryText={`1 Month`} />
-                      <MenuItem value={2} key={2} primaryText={`3 Months`} />
-                      <MenuItem value={3} key={3} primaryText={`6 Months`} />
-                      <MenuItem value={4} key={4} primaryText={`1 Year`} />
-                      <MenuItem value={5} key={5} primaryText={`2 Years`} />
-                    </SelectField>
+                      hintText="Pick the End Date"
+                      onChange={this.handleEndDate} />
                   </h5>
                   <RaisedButton
                     label={ this.props.barFlag ? "Show List of Results" : "Show Duration Chart"}
