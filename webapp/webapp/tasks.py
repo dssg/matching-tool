@@ -1,7 +1,7 @@
 from smart_open import smart_open
 from datetime import datetime
 from goodtables import validate
-from webapp.models import Upload, MergeLog
+from webapp.models import Upload, MergeLog, MatchLog
 from webapp.utils import load_schema_file,\
     create_statement_from_goodtables_schema,\
     column_list_from_goodtables_schema,\
@@ -291,3 +291,15 @@ def validate_header(event_type, filename_without_all_fields):
         for required_field_name in required_field_names:
             if required_field_name not in first_line:
                 raise ValueError(f"Field name {required_field_name} is required for {event_type} schema but is not present")
+
+def write_match_log(db_session, match_job_id, upload_id, match_start_at, match_complete_at, match_status, match_runtime):
+    db_object = MatchLog(
+        id=match_job_id,
+        upload_id=upload_id,
+        match_start_timestamp=match_start_at,
+        match_complete_timestamp=match_complete_at,
+        match_status=match_status,
+        match_runtime=match_runtime
+    )
+    db_session.add(db_object)
+    db_session.commit()
