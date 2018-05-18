@@ -31,7 +31,7 @@ class Clusterizer():
         )
 
 
-    def run(distances:pd.DataFrame) -> pd.DataFrame:
+    def run(self, distances:pd.DataFrame) -> pd.DataFrame:
         """ Cluster the scored entities into individuals. Return the cluster ids
         indexed with the source row_id.
         """
@@ -66,7 +66,7 @@ class Clusterizer():
         
         return ids
 
-    def _square_distance_matrix(df:pd.DataFrame) -> pd.DataFrame:
+    def _square_distance_matrix(self, df:pd.DataFrame) -> pd.DataFrame:
         # create a copy, swap the indicies
         tmp_df = df.copy()
         tmp_df.reset_index(inplace=True)
