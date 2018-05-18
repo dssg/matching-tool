@@ -9,7 +9,7 @@ class Blocker():
     def __init__(self, blocking_rules:dict):
         self.blocking_rules = blocking_rules
 
-    def run(preprocessed_df:pd.DataFrame):
+    def run(self, preprocessed_df:pd.DataFrame):
         logger.info(f"Blocking by {self.blocking_rules}")
         grouped_df = df.groupby([
             self._unpack_blocking_rule(preprocessed_df, column_name, position)
@@ -22,7 +22,7 @@ class Blocker():
         return grouped_df
 
 
-    def _unpack_blocking_rule(df, column_name, position):
+    def _unpack_blocking_rule(self, df, column_name, position):
         if position < 0:
             return df[column_name].astype(str).str[position:]
         elif position > 0:
