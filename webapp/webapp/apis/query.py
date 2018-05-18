@@ -140,7 +140,7 @@ def get_records_by_time(
     if not bookings_exists:
         raise ValueError('Bookings matched table {} does not exist. Please try again later.'.format(matched_bookings_table))
     columns = [
-        ("regexp_replace(matched_id, '[^\w]', '', 'g')", 'matched_id'),
+        ("regexp_replace(matched_id::text, '[^\w]', '', 'g')", 'matched_id'),
         ("coalesce(hmis_summary.first_name, jail_summary.first_name)", 'first_name'),
         ("coalesce(hmis_summary.last_name, jail_summary.last_name)", 'last_name'),
         ("hmis_summary.hmis_id", 'hmis_id'),
@@ -172,7 +172,7 @@ def get_records_by_time(
         group by 1
     ), hmis_summary AS (
         SELECT
-            matched_id,
+            matched_id::text,
             string_agg(distinct internal_person_id::text, ',') as hmis_id,
             sum(
                 case when client_location_end_date is not null
@@ -195,7 +195,7 @@ def get_records_by_time(
         GROUP BY matched_id
     ), jail_summary AS (
         SELECT
-            matched_id,
+            matched_id::text,
             string_agg(distinct coalesce(internal_person_id, inmate_number)::text, ',') as jail_id,
             sum(jail.length_of_stay) as cumu_jail_days,
             count(distinct(coalesce(booking_number, internal_event_id))) AS jail_contact,
