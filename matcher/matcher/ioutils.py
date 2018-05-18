@@ -10,6 +10,8 @@ import boto3
 import psycopg2
 import smart_open
 import botocore
+import datetime
+import yaml
 
 
 from matcher.logger import logger
@@ -35,7 +37,6 @@ PG_CONNECTION = {
 }
 KEYS = ast.literal_eval(os.getenv('KEYS'))
 
-
 # lookups
 EVENT_TYPES = {
     'hmis_service_stays': ['matched_id', 'client_location_start_date', 'client_location_end_date'],
@@ -47,7 +48,7 @@ EVENT_TYPES = {
 }
 
 
-def load_data_for_matching(jurisdiction:str, match_job_id:str) -> tuple:
+def load_data_for_matching(jurisdiction:str, match_job_id:str):
     # We will frame the record linkage problem as a deduplication problem
     logger.debug(f'Event types: {EVENT_TYPES.keys()}')
     try:
@@ -238,3 +239,11 @@ def insert_info_to_match_log(id:str, upload_id:str, match_start_timestamp, match
     conn.commit()
     cur.close()
     conn.close()
+
+def write_dict_to_yaml(dict_to_write:dict, key:str):
+    logger.debug(f'Writing some dictionary data to {key}! Oooooo!')
+    yaml_string = yaml.dump(dict_to_write)
+    s3_resource = boto3.resource('s3')
+    s3_resource.Object(S3_BUCKET, key).put(Body=yaml_string.encode())
+    logger.info(f'Wrote data to s3://{S3_BUCKET}/{key}')
+
