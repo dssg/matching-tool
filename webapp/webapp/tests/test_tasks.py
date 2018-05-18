@@ -1,15 +1,16 @@
 import moto
 import boto
 from webapp.database import Base
-from webapp.tasks import upload_to_s3, copy_raw_table_to_db, upsert_raw_table_to_master, validate_header
+from webapp.tasks import upload_to_s3, copy_raw_table_to_db, upsert_raw_table_to_master, validate_header, write_match_log, write_upload_log
 from webapp.utils import makeNamedTemporaryCSV, s3_upload_path, generate_master_table_name
-from webapp.models import MergeLog
+from webapp.models import MergeLog, MatchLog
+import time
 from unittest.mock import patch
 from unittest import TestCase
 import testing.postgresql
-from webapp.tests.utils import create_and_populate_raw_table
+from webapp.tests.utils import create_and_populate_raw_table, rig_test_client
 from smart_open import smart_open
-from datetime import date
+from datetime import date, datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 import csv
@@ -252,3 +253,48 @@ class ValidateHeaderTest(TestCase):
             ],
         ]) as filename:
             validate_header('test', filename)
+
+def test_write_match_log():
+    with rig_test_client() as (app, engine):
+        # engine = create_engine(postgresql.url())
+        Base.metadata.create_all(engine)
+        db_session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
+
+        write_upload_log(
+            db_session=db_session,
+            upload_id="234",
+            jurisdiction_slug="test",
+            event_type_slug="hmis_service_stays",
+            user_id=1,
+            given_filename="hmis_test.csv",
+            upload_start_time=datetime.now(),
+            upload_complete_time=datetime.now(),
+            upload_status=True,
+            validate_start_time=datetime.now(),
+            validate_complete_time=datetime.now(),
+            validate_status=True,
+            num_rows=1,
+            file_size=1,
+            file_hash="abcd",
+            s3_upload_path="s3://somewhere"
+        )
+        match_start_timestamp = datetime.now()
+        time.sleep(1)
+        match_complete_timestamp = datetime.now()
+        write_match_log(
+            db_session=db_session,
+            match_job_id="123",
+            upload_id="234",
+            match_start_at=match_start_timestamp,
+            match_complete_at=match_complete_timestamp,
+            match_status=True,
+            match_runtime=match_complete_timestamp - match_start_timestamp
+            )
+
+        log = db_session.query(MatchLog).all()
+        assert log[0].id == "123"
+        assert log[0].upload_id == "234"
+        assert log[0].match_start_timestamp == match_start_timestamp
+        assert log[0].match_status == True
+        assert log[0].runtime == match_complete_timestamp - match_start_timestamp
+

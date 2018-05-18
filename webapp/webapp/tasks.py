@@ -54,7 +54,8 @@ def sync_upload_metadata(
         file_size = os.fstat(infile.fileno()).st_size
         file_hash = md5(infile.read()).hexdigest()
 
-        db_object = Upload(
+        write_upload_log(
+            db_session=db_session,
             id=upload_id,
             jurisdiction_slug=jurisdiction,
             event_type_slug=event_type,
@@ -71,8 +72,6 @@ def sync_upload_metadata(
             file_hash=file_hash,
             s3_upload_path=s3_upload_path
         )
-        db_session.add(db_object)
-        db_session.commit()
 
 
 def copy_raw_table_to_db(
@@ -292,6 +291,46 @@ def validate_header(event_type, filename_without_all_fields):
             if required_field_name not in first_line:
                 raise ValueError(f"Field name {required_field_name} is required for {event_type} schema but is not present")
 
+
+def write_upload_log(
+    db_session,
+    upload_id,
+    jurisdiction_slug,
+    event_type_slug,
+    user_id,
+    given_filename,
+    upload_start_time,
+    upload_complete_time,
+    upload_status,
+    validate_start_time,
+    validate_complete_time,
+    validate_status,
+    num_rows,
+    file_size,
+    file_hash,
+    s3_upload_path
+):
+    db_object = Upload(
+            id=upload_id,
+            jurisdiction_slug=jurisdiction_slug,
+            event_type_slug=event_type_slug,
+            user_id=user_id,
+            given_filename=given_filename,
+            upload_start_time=upload_start_time,
+            upload_complete_time=upload_complete_time,
+            upload_status=upload_status,
+            validate_start_time=validate_start_time,
+            validate_complete_time=validate_complete_time,
+            validate_status=validate_status,
+            num_rows=num_rows,
+            file_size=file_size,
+            file_hash=file_hash,
+            s3_upload_path=s3_upload_path
+    )
+    db_session.add(db_object)
+    db_session.commit()
+
+
 def write_match_log(db_session, match_job_id, upload_id, match_start_at, match_complete_at, match_status, match_runtime):
     db_object = MatchLog(
         id=match_job_id,
@@ -299,7 +338,7 @@ def write_match_log(db_session, match_job_id, upload_id, match_start_at, match_c
         match_start_timestamp=match_start_at,
         match_complete_timestamp=match_complete_at,
         match_status=match_status,
-        match_runtime=match_runtime
+        runtime=match_runtime
     )
     db_session.add(db_object)
     db_session.commit()
