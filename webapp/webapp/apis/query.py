@@ -1,10 +1,12 @@
 import logging
 import pandas as pd
 from webapp import db, app
+from webapp.database import db_session
 from webapp.utils import generate_matched_table_name, table_exists
 from collections import OrderedDict
 from webapp.logger import logger
 import numpy as np
+import io
 
 
 def get_histogram_bar_chart_data(data, distribution_function, shared_ids, data_name):
@@ -462,3 +464,12 @@ def get_metadata(upload_id):
     for k in ['upload_start_time', 'upload_complete_time', 'validate_start_time', 'validate_complete_time', 'match_start_timestamp', 'match_complete_timestamp']:
         df[k] = pd.to_datetime(df[k], errors='coerce').dt.strftime('%Y-%m-%d %I:%M:%S %p').apply(lambda x: x if x != 'NaT' else None)
     return df
+
+def source_data_to_filehandle(jurisdiction, event_type):
+    matched_table = generate_matched_table_name(jurisdiction, event_type)
+    out_filehandle = io.BytesIO()
+    cursor = db.engine.raw_connection().cursor()
+    copy_stmt = 'copy {} to stdout with csv header delimiter as \'|\''.format(matched_table)
+    cursor.copy_expert(copy_stmt, out_filehandle)
+    out_filehandle.seek(0)
+    return out_filehandle

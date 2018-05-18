@@ -264,7 +264,7 @@ def create_and_populate_matched_table(table_name, db_engine, file_path=None):
         elif table_name == "hmis_service_stays":
             df['client_location_start_date'] = pd.to_datetime(df['client_location_start_date'])
             df['client_location_end_date'] = pd.to_datetime(df['client_location_end_date'])
-        df.to_sql('boone_' + table_name, db_engine, schema='matched', if_exists='replace')
+        df.to_sql('boone_' + table_name, db_engine, schema='matched', if_exists='replace', index=False)
 
 def create_and_populate_raw_table(raw_table, data, db_engine):
     schema = load_schema_file('test')
