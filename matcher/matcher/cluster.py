@@ -11,24 +11,11 @@ from matcher.logger import logger
 
 class Clusterizer():
 
-    def __init__(self, eps:float=0.5, min_samples:int=1, algorithm:str='auto', leaf_size:int=30, n_jobs:int=1):
+    def __init__(self, algorithm=sklearn.cluster.DBSCAN, **params):
 
-        self.eps = eps
-        self.min_sample = min_samples
-        self.algorithm = algorithm
-        self.leaf_size = leaf_size
-        self.n_jobs = n_jobs
+        self.params = params
 
-        self.clusterer = DBSCAN(
-             eps=eps,
-             min_samples=min_samples,
-             metric='precomputed',
-             metric_params=None,
-             algorithm=algorithm,
-             leaf_size=leaf_size,
-             p=None,
-             n_jobs=n_jobs
-        )
+        self.clusterer = algorithm(**params)
 
 
     def run(self, distances:pd.DataFrame) -> pd.DataFrame:
@@ -44,27 +31,20 @@ class Clusterizer():
 
         logger.info('Clustering done! Assigning matched ids.')
         
-        #ioutils.write_dataframe_to_s3(distances.reset_index(), key=f'csh/matcher/{jurisdiction}/match_cache/square_distances/{match_job_id}/{block_name}')
-
         ids = pd.Series(
             index=distances.index,
             data=clusterer.labels_
         )
         
-        #ioutils.write_dataframe_to_s3(ids.reset_index(), key=f'csh/matcher/{jurisdiction}/match_cache/raw_cluster_ids/{match_job_id}/{block_name}')
         max_cluster_id = ids.max()
         replacement_ids = pd.Series(range(max_cluster_id + 1, max_cluster_id + len(ids[ids == -1]) + 1), index=ids[ids==-1].index)
         ids[ids == -1] = replacement_ids
         logger.debug(f'IDs: {ids}')
         logger.debug(f'Replaced noisy singleton ids with \n{replacement_ids}')
         
-        logger.debug(f'Adding the block name ({block_name}) to the matched_ids.')
-        ids = block_name + ids.astype(str)
-        logger.debug(f'New IDs: \n{ids}')
-            
         logger.info('Matched ids generated')
         
-        return ids
+        return ids.astype(str)
 
     def _square_distance_matrix(self, df:pd.DataFrame) -> pd.DataFrame:
         # create a copy, swap the indicies
