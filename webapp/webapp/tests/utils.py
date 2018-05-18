@@ -163,7 +163,6 @@ def rig_test_client():
             yield app.test_client(), engine
 
 
-
 @contextlib.contextmanager
 def rig_all_the_things():
     fake_redis_connection = FakeStrictRedis()
@@ -178,16 +177,6 @@ def rig_all_the_things():
                         s3_conn.create_bucket('test-bucket')
                         yield app, engine
 
-
-@contextlib.contextmanager
-def rig_test_client_with_engine():
-    with testing.postgresql.Postgresql() as postgresql:
-        dburl = postgresql.url()
-        engine = create_engine(dburl)
-        app.config['SQLALCHEMY_DATABASE_URI'] = dburl
-        client = app.test_client()
-        authenticate(client)
-        yield client, engine.connect()
 
 def authenticate(
         client,
