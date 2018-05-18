@@ -6,7 +6,7 @@ import pandas as pd
 
 class Blocker():
 
-    def __init__(blocking_rules:dict):
+    def __init__(self, blocking_rules:dict):
         self.blocking_rules = blocking_rules
 
     def run(preprocessed_df:pd.DataFrame):
