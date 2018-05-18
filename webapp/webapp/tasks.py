@@ -56,7 +56,7 @@ def sync_upload_metadata(
 
         write_upload_log(
             db_session=db_session,
-            id=upload_id,
+            upload_id=upload_id,
             jurisdiction_slug=jurisdiction,
             event_type_slug=event_type,
             user_id=flask_user_id,
