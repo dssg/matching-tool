@@ -440,5 +440,5 @@
     ],
     "trueValues": [ "true", "Y" ],
     "falseValues": [ "false", "N" ],
-	"primaryKey": ["internal_event_id"]
+	"primaryKey": ["internal_event_id", "client_location_start_date"]
 }

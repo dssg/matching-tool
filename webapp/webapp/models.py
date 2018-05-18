@@ -66,7 +66,7 @@ class MergeLog(Base):
 
 class MatchLog(Base):
     __tablename__ = 'match_log'
-    id = Column(Integer, primary_key=True)
+    id = Column(String(255), primary_key=True)
     upload_id = Column(String(255), ForeignKey('upload_log.id'))
     match_start_timestamp = Column(DateTime())
     match_complete_timestamp = Column(DateTime())
