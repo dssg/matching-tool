@@ -13,7 +13,7 @@ with open(os.path.join(here, 'requirements.txt'), encoding='utf-8') as f:
 
 setup(
     name='matcher',
-    version='0.0.1',
+    version='0.2',
     description='CSH matcher',
     url='https://github.com/dssg/csh',
     packages=find_packages(),
