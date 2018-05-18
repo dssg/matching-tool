@@ -31,28 +31,27 @@ class Clusterizer():
         )
 
 
-    def run(distances:pd.DataFrame, block_name='') -> pd.DataFrame:
+    def run(distances:pd.DataFrame) -> pd.DataFrame:
         """ Cluster the scored entities into individuals. Return the cluster ids
         indexed with the source row_id.
         """
-
         logger.info('Beginning clustering & id generation.')        
-        squared_df = self._square_distance_matrix(distances)
+        squared_distances = self._square_distance_matrix(distances)
         
         logger.info('Beginning clustering.')
-
-        self.clusterer.fit(X=squared_df)
+        
+        self.clusterer.fit(X=squared_distances)
 
         logger.info('Clustering done! Assigning matched ids.')
-
-        ioutils.write_dataframe_to_s3(distances.reset_index(), key=f'csh/matcher/{jurisdiction}/match_cache/square_distances/{match_job_id}/{block_name}')
+        
+        #ioutils.write_dataframe_to_s3(distances.reset_index(), key=f'csh/matcher/{jurisdiction}/match_cache/square_distances/{match_job_id}/{block_name}')
 
         ids = pd.Series(
             index=distances.index,
             data=clusterer.labels_
         )
         
-        ioutils.write_dataframe_to_s3(ids.reset_index(), key=f'csh/matcher/{jurisdiction}/match_cache/raw_cluster_ids/{match_job_id}/{block_name}')
+        #ioutils.write_dataframe_to_s3(ids.reset_index(), key=f'csh/matcher/{jurisdiction}/match_cache/raw_cluster_ids/{match_job_id}/{block_name}')
         max_cluster_id = ids.max()
         replacement_ids = pd.Series(range(max_cluster_id + 1, max_cluster_id + len(ids[ids == -1]) + 1), index=ids[ids==-1].index)
         ids[ids == -1] = replacement_ids
@@ -62,13 +61,10 @@ class Clusterizer():
         logger.debug(f'Adding the block name ({block_name}) to the matched_ids.')
         ids = block_name + ids.astype(str)
         logger.debug(f'New IDs: \n{ids}')
-        
-        df = DF.copy()
-        
-        df['matched_id'] = ids
+            
         logger.info('Matched ids generated')
         
-        return (df)
+        return ids
 
     def _square_distance_matrix(df:pd.DataFrame) -> pd.DataFrame:
         # create a copy, swap the indicies
@@ -84,8 +80,3 @@ class Clusterizer():
         # concat original & df with swapped indices; square the matrix, filling in 0 distance for self-pairs
         return pd.concat([df, tmp_df]).matches.unstack(level=-1, fill_value=0)
 
-    def _generate_singleton_id(df:pd.DataFrame, block_name:str) -> pd.DataFrame:
-        df['matched_id'] = block_name + '0'
-        logger.info(f'Singleton has id {df.matched_id.values[0]}')
-        return df
-    
