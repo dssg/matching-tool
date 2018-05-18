@@ -1,6 +1,8 @@
 from uuid import uuid4
 
 import unicodecsv as csv
+import glob
+import os
 import itertools
 import json
 import tempfile
@@ -126,7 +128,6 @@ def notify_matcher(jurisdiction, upload_id):
     if matcher_response.status_code != 200:
         raise RuntimeError(matcher_response.text)
 
-
 def lower_first(iterator):
     return itertools.chain([next(iterator).lower()], iterator)
 
@@ -173,3 +174,12 @@ def table_has_column(table_name, db_engine, column):
 
 def table_exists(table_name, db_engine):
     return table_object(table_name, db_engine, reflect=False).exists()
+
+
+def list_all_schemas_primary_keys(path=SCHEMA_DIRECTORY):
+    result = {}
+    all_event_types = [os.path.basename(x).split('.')[0] for x in glob.glob(os.path.join(path, '*.json'))]
+    for event_type in all_event_types:
+        schema = load_schema_file(event_type)
+        result[event_type] = schema['primaryKey']
+    return result
