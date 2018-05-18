@@ -219,18 +219,7 @@ def validate_async(uploaded_file_name, jurisdiction, full_filename, event_type, 
                 validate_complete_time=validate_complete_time,
                 validate_status=False,
             )
-            # sync_upload_metadata(
-            #     upload_id=upload_id,
-            #     event_type=event_type,
-            #     jurisdiction=jurisdiction,
-            #     flask_user_id=flask_user_id,
-            #     given_filename=uploaded_file_name,
-            #     local_filename=full_filename,
-            #     db_session=db_session,
-            #     validate_start_time=validate_start_time,
-            #     validate_complete_time=validate_complete_time,
-            #     validate_status=False,
-            # )
+
             return {
                 'validation_report': body_validation_report,
                 'event_type': event_type,
