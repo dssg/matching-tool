@@ -73,10 +73,10 @@ DATA_FIELDS = {
         updated_date                timestamp,
         inserted_ts                 timestamp,
         updated_ts                  timestamp,
-        source_id                   text,
-        matched_id                  int
+        matched_id                  text
     """,
     'jail_bookings': """
+        matched_id              text,
         internal_person_id      text,
         internal_event_id       text,
         inmate_number           text,
@@ -133,9 +133,7 @@ DATA_FIELDS = {
         created_date            timestamp,
         updated_date            timestamp,
         inserted_ts             timestamp,
-        updated_ts              timestamp,
-        source_id               text,
-        matched_id              int
+        updated_ts              timestamp
     """
 }
 SAMPLE_CONFIG = {
@@ -152,20 +150,17 @@ def load_json_example(route):
 @contextlib.contextmanager
 def rig_test_client():
     with testing.postgresql.Postgresql() as postgresql:
-        dburl = postgresql.url()
-        engine = create_engine(dburl)
-        Base.metadata.create_all(engine)
-        db_session.bind = engine
-        user_datastore = SQLAlchemySessionUserDatastore(db_session,
-                                                        User, Role)
-        app.config['SQLALCHEMY_DATABASE_URI'] = dburl
-        app.config['WTF_CSRF_ENABLED'] = False
-        init_app_with_options(app, user_datastore)
-        try:
+        with app.app_context():
+            dburl = postgresql.url()
+            engine = create_engine(dburl)
+            Base.metadata.create_all(engine)
+            db_session.bind = engine
+            user_datastore = SQLAlchemySessionUserDatastore(db_session,
+                                                            User, Role)
+            app.config['SQLALCHEMY_DATABASE_URI'] = dburl
+            app.config['WTF_CSRF_ENABLED'] = False
+            init_app_with_options(user_datastore)
             yield app.test_client(), engine
-        finally:
-            db_session.remove()
-            engine.dispose()
 
 
 
@@ -240,14 +235,13 @@ def create_users(ds):
         ds.commit()
 
 
-def populate_data(app, user_datastore):
-    with app.app_context():
-        create_roles(user_datastore)
-        create_users(user_datastore)
+def populate_data(user_datastore):
+    create_roles(user_datastore)
+    create_users(user_datastore)
 
-def init_app_with_options(app, datastore, **options):
+def init_app_with_options(datastore, **options):
     security.datastore = datastore
-    populate_data(app, datastore)
+    populate_data(datastore)
 
 def create_and_populate_matched_table(table_name, db_engine, file_path=None):
     create_table_query = f"""
@@ -264,7 +258,7 @@ def create_and_populate_matched_table(table_name, db_engine, file_path=None):
         elif table_name == "hmis_service_stays":
             df['client_location_start_date'] = pd.to_datetime(df['client_location_start_date'])
             df['client_location_end_date'] = pd.to_datetime(df['client_location_end_date'])
-        df.to_sql('boone_' + table_name, db_engine, schema='matched', if_exists='replace', index=False)
+        df.to_sql('boone_' + table_name, db_engine, schema='matched', if_exists='append', index=False)
 
 def create_and_populate_raw_table(raw_table, data, db_engine):
     schema = load_schema_file('test')

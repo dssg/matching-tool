@@ -18,6 +18,7 @@ from rq.registry import StartedJobRegistry
 from dotenv import load_dotenv
 
 import pandas as pd
+import yaml
 
 import matcher.matcher as matcher
 import matcher.preprocess as preprocess
@@ -32,7 +33,7 @@ dotenv_path = os.path.join(APP_ROOT, '.env')
 load_dotenv(dotenv_path)
 
 # load environment variables
-CLUSTERING_PARAMS = {
+CLUSTERING_RULES = {
     'eps': float(os.getenv('EPS')),
     'min_samples': int(os.getenv('MIN_SAMPLES')),
     'algorithm': os.getenv('ALGORITHM'),
@@ -40,7 +41,7 @@ CLUSTERING_PARAMS = {
     'n_jobs': int(os.getenv('N_JOBS')),
 }
 BLOCKING_RULES = ast.literal_eval(os.getenv('BLOCKING_RULES'))
-
+CONTRAST_RULES = yaml.load(os.getenv('CONTRAST_RULES_CONFIG_NAME'))
 
 # Initialize the app
 app = Flask(__name__)
@@ -90,61 +91,88 @@ def match(jurisdiction):
 
 
 def do_match(jurisdiction, upload_id):
-
-    match_job_id = utils.unique_match_job_id()
-    match_start_time = datetime.datetime.now()
+    # Initializing: let's get started by collecting some job metadata
+    metadata = {
+        'match_job_start_time': datetime.datetime.now(),
+        'match_job_id': utils.unique_match_job_id(),
+        'jurisdiction': jurisdiction,
+        'clustering_params': CLUSTERING_PARAMS,
+        'blocking_rules': BLOCKING_RULES
+    }
     logger.info("Matching process started!")
 
     try:
         # Loading: collect matching data (keys) for all available event types & record which event types were found
         logger.info('Loading data for matching.')
-        df, event_types_read = ioutils.load_data_for_matching(jurisdiction, match_job_id)
-
-        data_loaded_time = datetime.datetime.now()
+        df, event_types_read = ioutils.load_data_for_matching(jurisdiction, metadata['match_job_id'])
+        metadata['event_types_read'] = list(event_types_read)
+        metadata['loaded_data_columns'] = list(df.columns.values)
+        metadata['loaded_data_shape'] = list(df.shape)
+        metadata['data_loaded_time'] = datetime.datetime.now()
 
         # Preprocessing: enforce data types and split/combine columns for feartures
         logger.info('Doing some preprocessing on the columns')
-        df = preprocess.preprocess(df, match_job_id, jurisdiction)
-        data_preprocessed_time = datetime.datetime.now()
+        df = preprocess.preprocess(df, metadata['match_job_id'], jurisdiction)
+        metadata['preprocessed_data_columns'] = list(df.columns.values)
+        metadata['preprocessed_data_shape'] = list(df.shape)
+        metadata['data_preprocessed_time'] = datetime.datetime.now()
 
         # Matching: block the data, generate pairs and features, and cluster entities
         logger.info(f"Running matcher")
-        matches = matcher.run(df=df, clustering_params=CLUSTERING_PARAMS, jurisdiction=jurisdiction, match_job_id=match_job_id, blocking_rules=BLOCKING_RULES)
-        data_matched_time = datetime.datetime.now()
+        match_object = matcher.Matcher(
+            jurisdiction=jurisdiction,
+            match_job_id=metadata['match_job_id']
+            clustering_rules=CLUSTERING_RULES,
+            contrast_rules=CONTRAST_RULES,
+            blocking_rules=BLOCKING_RULES,
+        )
+        logger.debug('Initialized matcher object')
+        matches = match_object.block_and_match(df=df)
+        metadata['data_matched_time'] = datetime.datetime.now()
+        metadata.update(match_object.metadata)
         logger.debug('Matching done!')
 
         for key, matched in matches.items():
             logger.debug(f'Index of matches for {key}: {matched.index.values})')
             logger.debug(f'Columns of matches for {key}: {matched.columns.values}')
 
-        logger.debug(f"Total matching time: {data_matched_time - match_start_time}")
+        logger.debug(f"Time from initializing to matches: {metadata['data_matched_time'] - metadata['match_job_start_time']}")
 
         # Merging: Join the matched blocks into a single dataframe
         logger.info('Concatenating matched results!')
         all_matches = pd.concat(matches.values())
-        matches_concatenated_time = datetime.datetime.now()
+        metadata['num_matched_pairs'] = len(all_matches)
+        metadata['matches_concatenated_time'] = datetime.datetime.now()
 
-        logger.debug(f"Number of matched pairs: {len(all_matches)}")
-        logger.debug(f"Total concatenating time: {matches_concatenated_time - data_matched_time}")
+        logger.debug(f"Number of matched pairs: {metadata['num_matched_pairs']}")
+        logger.debug(f"Total concatenating time: {metadata['matches_concatenated_time'] - metadata['data_matched_time']}")
 
         # Writing: Join the matched ids to the source data for each event & write to S3 and postgres
         logger.info('Writing matched results!')
-        ioutils.write_matched_data(all_matches, jurisdiction, match_job_id, event_types_read)
-        data_written_time = datetime.datetime.now()
+        ioutils.write_matched_data(all_matches, jurisdiction, metadata['match_job_id'], metadata['event_types_read'])
+        metadata['data_written_time'] = datetime.datetime.now()
 
-        total_match_time = data_written_time - match_start_time
+        total_match_time = metadata['data_written_time'] - metadata['match_job_start_time']
+        logger.info(f'Total time for pipeline: {total_match_time}')
+        ioutils.write_dict_to_yaml(metadata, f"csh/matcher/{jurisdiction}/match_cache/metadata/{metadata['match_job_id']}")
 
-        ioutils.insert_info_to_match_log(match_job_id, upload_id, match_start_time, data_written_time, True, total_match_time)
+        ioutils.insert_info_to_match_log(
+            id=metadata['match_job_id'],
+            upload_id=upload_id,
+            match_start_timestamp=metadata['match_job_start_time'],
+            match_complete_timestamp=metadata['data_written_time'],
+            runtime=total_match_time
+        )
         logger.info('Finished')
 
         return {
             'status': 'done',
-            'number_of_matches_found': len(matches),
+            'number_of_matches_found': len(all_matches),
             'jurisdiction': jurisdiction,
             'upload_id': upload_id,
             'message': 'matching proccess is done! check out the result!'
         }
-    except:
+    except: # should we try to catch the error and add it to the message?
         match_fail_time = datetime.datetime.now()
         total_match_time = match_fail_time - match_start_time
         ioutils.insert_info_to_match_log(match_job_id, upload_id, match_start_time, match_fail_time, False, total_match_time)
@@ -155,3 +183,4 @@ def do_match(jurisdiction, upload_id):
             'upload_id': upload_id,
             'message': 'matching proccess failed...'
         }
+

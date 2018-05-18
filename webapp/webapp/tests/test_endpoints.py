@@ -24,6 +24,8 @@ BOOTSTRAPPED_BOOKING_FILE = 'sample_data/matched/bootstrapped_bookings_data_2018
 
 
 class GetMatchedResultsCase(unittest.TestCase):
+    maxDiff = None
+
     def both_schema_test(self, booking_file, hmis_file, url, expected_data):
         with rig_all_the_things() as (app, engine):
             # Create matched jail_bookings
@@ -37,6 +39,7 @@ class GetMatchedResultsCase(unittest.TestCase):
 
             response_data = json.loads(response.get_data().decode('utf-8'))
             set_of_venn_size = lambda venn: set(map(lambda x: x['size'], venn))
+
             self.assertEqual(set_of_venn_size(response_data['results']['vennDiagramData']), set_of_venn_size(expected_data['results']['vennDiagramData']))
 
             for expected_row, response_row in zip(
@@ -163,7 +166,7 @@ class MergeFileTestCase(unittest.TestCase):
         # present in s3 and metadata in the database
         # use the upload file endpoint as a shortcut for setting
         # this environment up quickly, though this is not ideal
-        request_mock.get(re.compile('/match/boone/hmis_service_stays'), text='stuff')
+        request_mock.get(re.compile('/match/boone'), text='stuff')
         response = app.post(
             '/api/upload/upload_file?jurisdiction=boone&eventType=hmis_service_stays',
             content_type='multipart/form-data',
@@ -231,7 +234,7 @@ class MergeBookingsFileTestCase(unittest.TestCase):
         # present in s3 and metadata in the database
         # use the upload file endpoint as a shortcut for setting
         # this environment up quickly, though this is not ideal
-        request_mock.get(re.compile('/match/boone/jail_bookings'), text='stuff')
+        request_mock.get(re.compile('/match/boone'), text='stuff')
         response = app.post(
             '/api/upload/upload_file?jurisdiction=boone&eventType=jail_bookings',
             content_type='multipart/form-data',
@@ -248,7 +251,7 @@ class MergeBookingsFileTestCase(unittest.TestCase):
         response_data = json.loads(response.get_data().decode('utf-8'))
         assert response_data['validation']['status'] == 'valid', response_data['upload_result']['errorReport']
         upload_id = response_data['upload_result']['uploadId']
-        compiled_regex = re.compile('/match/boone/jail_bookings\?uploadId={upload_id}'.format(upload_id=upload_id))
+        compiled_regex = re.compile('/match/boone\?uploadId={upload_id}'.format(upload_id=upload_id))
         request_mock.get(compiled_regex, text='stuff')
         return upload_id
 

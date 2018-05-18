@@ -254,14 +254,25 @@ def validate_async(uploaded_file_name, jurisdiction, full_filename, event_type, 
                 upload_complete_time=upload_complete_time,
                 upload_status=True
             )
-        except:
+        except ValueError as e:
             sync_upload_metadata_partial(
                 validate_start_time=validate_start_time,
                 validate_complete_time=validate_complete_time,
-                validate_status=True,
+                validate_status=False,
                 upload_start_time=upload_start_time,
                 upload_status=False,
             )
+            body_validation_report = {
+                'valid': False,
+                'tables': [{
+                    'headers': [] ,
+                    'errors': [{
+                        'column-number': None,
+                        'row-number': None,
+                        'message': str(e)   
+                    }]
+                }]
+            }
 
         db_session.commit()
 
