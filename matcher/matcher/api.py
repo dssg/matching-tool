@@ -18,6 +18,7 @@ from rq.registry import StartedJobRegistry
 from dotenv import load_dotenv
 
 import pandas as pd
+import yaml
 
 import matcher.matcher as matcher
 import matcher.preprocess as preprocess
@@ -32,7 +33,7 @@ dotenv_path = os.path.join(APP_ROOT, '.env')
 load_dotenv(dotenv_path)
 
 # load environment variables
-CLUSTERING_PARAMS = {
+CLUSTERING_RULES = {
     'eps': float(os.getenv('EPS')),
     'min_samples': int(os.getenv('MIN_SAMPLES')),
     'algorithm': os.getenv('ALGORITHM'),
@@ -40,7 +41,7 @@ CLUSTERING_PARAMS = {
     'n_jobs': int(os.getenv('N_JOBS')),
 }
 BLOCKING_RULES = ast.literal_eval(os.getenv('BLOCKING_RULES'))
-
+CONTRAST_RULES = yaml.load(os.getenv('CONTRAST_RULES_CONFIG_NAME'))
 
 # Initialize the app
 app = Flask(__name__)
@@ -119,10 +120,11 @@ def do_match(jurisdiction, upload_id):
         # Matching: block the data, generate pairs and features, and cluster entities
         logger.info(f"Running matcher")
         match_object = matcher.Matcher(
-            clustering_params=CLUSTERING_PARAMS,
             jurisdiction=jurisdiction,
-            blocking_rules=BLOCKING_RULES,
             match_job_id=metadata['match_job_id']
+            clustering_rules=CLUSTERING_RULES,
+            contrast_rules=CONTRAST_RULES,
+            blocking_rules=BLOCKING_RULES,
         )
         logger.debug('Initialized matcher object')
         matches = match_object.block_and_match(df=df)

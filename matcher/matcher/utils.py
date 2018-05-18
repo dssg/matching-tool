@@ -3,7 +3,7 @@
 import ast
 import os
 
-
+import numpy as np
 import pandas as pd
 
 from matcher import ioutils
@@ -21,6 +21,31 @@ load_dotenv(dotenv_path)
 
 # load environment variables
 KEYS = ast.literal_eval(os.getenv('KEYS'))
+
+
+def summarize_column(column:pd.Series):
+    if np.isnan(column.std()):
+        std = None
+    else:
+        std = float(column.std())
+     return {
+        'mean': float(column.mean()),
+        'median': float(column.median()),
+        'min': float(column.min()),
+        'max': float(column.max()),
+        'std': std
+    }
+
+
+def convert_dict_to_str(d:dict):
+    s = str(d)
+    s = s.replace("{", "")
+    s = s.replace("}", "")
+    s = s.replace(" ", "")
+    s = s.replace(":", "")
+    s = s.replace("'", "")
+    return s
+
 
 def concatenate_person_index(df:pd.DataFrame) -> pd.Series:
     person_column_names = KEYS

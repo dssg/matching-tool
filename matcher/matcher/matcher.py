@@ -18,10 +18,11 @@ import recordlinkage as rl
 
 
 class Matcher:
-    def __init__(self, clustering_params:dict, jurisdiction:str, match_job_id:str, blocking_rules:dict=None):
-        self.clustering_params = clustering_params
+    def __init__(self, jurisdiction:str, match_job_id:str, clustering_rules:dict, contrast_rules, blocking_rules:dict=None):
+        self.clustering_rules = clustering_rules
         self.jurisdiction = jurisdiction
         self.match_job_id = match_job_id
+        self.contrast_rules = contrast_rules
         self.blocking_rules = blocking_rules
         self.metadata = {'matcher_initialization_time': datetime.datetime.now()}
 
@@ -69,38 +70,15 @@ class Matcher:
         logger.debug(f"Number of pairs: {metadata['n_pairs']}")
 
         logger.debug(f"Initializing contrasting")
-        features = contraster.generate_contrasts(pairs, df)
-        feature_metadata = {}
-        for column in features.columns:
-            logger.debug(f'Making you some stats about {column}')
-            if np.isnan(features[column].std()):
-                feature_std = None
-            else:
-                feature_std = features[column].std()
-            feature_metadata[column] = {
-                'mean': features[column].mean(),
-                'median': features[column].median(),
-                'min': features[column].min(),
-                'max': features[column].max(),
-                'std': feature_std
-            }
-        metadata.update(feature_metadata)
-        logger.debug(f"Features created")
+        contraster_obj = contraster.Contraster(self.contrast_rules)
+        contrasts = contraster_obj.run(pairs, df)
+        metadata['contraster_metadata'] = contrast_object.metadata
+        logger.debug(f"Contrasts created")
 
-        features.index.rename(['matcher_index_left', 'matcher_index_right'], inplace=True)
-        features = rules.compactify(features, operation='mean')
+        contrasts.index.rename(['matcher_index_left', 'matcher_index_right'], inplace=True)
+        contrasts = rules.compactify(features, operation='mean')
         logger.debug('Summary distances generated. Making you some stats about them.')
-        if np.isnan(features.matches.std()):
-            score_std = None
-        else:
-            score_std = features.matches.std()
-        metadata['scores'] = {
-            'mean': features.matches.mean(),
-            'median': features.matches.median(),
-            'min': features.matches.min(),
-            'max': features.matches.max(),
-            'std': score_std
-        }
+        metadata['scores'] = utils.summarize_column(contrasts.matches)
         logger.debug('Caching those features and distances for you.')
         ioutils.write_dataframe_to_s3(features.reset_index(), key=f'csh/matcher/{self.jurisdiction}/match_cache/features/{self.match_job_id}/{key}')
 
