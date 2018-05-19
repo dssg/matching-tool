@@ -4,10 +4,10 @@ __version__='0.0.1'
 
 
 import os
-import ast
 
 import datetime
 import pandas as pd
+import yaml
 
 import matcher.matcher as matcher
 import matcher.preprocess as preprocess
@@ -17,15 +17,8 @@ import matcher.ioutils as ioutils
 from matcher.logger import logger
 
 
-# load environment variables
-CLUSTERING_PARAMS = {
-    'eps': float(os.getenv('EPS')),
-    'min_samples': int(os.getenv('MIN_SAMPLES')),
-    'algorithm': os.getenv('ALGORITHM'),
-    'leaf_size': int(os.getenv('LEAF_SIZE')),
-    'n_jobs': int(os.getenv('N_JOBS')),
-}
-BLOCKING_RULES = ast.literal_eval(os.getenv('BLOCKING_RULES'))
+with open('config.yaml') as f:
+    CONFIG = yaml.load(f)
 
 
 def do_match(base_data_directory:str, schema_pk_lookup:dict, upload_id=None):
@@ -34,15 +27,19 @@ def do_match(base_data_directory:str, schema_pk_lookup:dict, upload_id=None):
         'match_job_start_time': datetime.datetime.now(),
         'match_job_id': utils.unique_match_job_id(),
         'base_data_directory': base_data_directory,
-        'clustering_params': CLUSTERING_PARAMS,
-        'blocking_rules': BLOCKING_RULES
+        'config': CONFIG
     }
     logger.info("Matching process started!")
 
     try:
         # Loading: collect matching data (keys) for all available event types & record which event types were found
         logger.info('Loading data for matching.')
-        df, event_types_read = ioutils.load_data_for_matching(base_data_directory, list(schema_pk_lookup.keys()), metadata['match_job_id'])
+        df, event_types_read = ioutils.load_data_for_matching(
+            base_data_directory,
+            list(schema_pk_lookup.keys()),
+            CONFIG['keys'],
+            metadata['match_job_id']
+        )
         metadata['event_types_read'] = list(event_types_read)
         metadata['loaded_data_columns'] = list(df.columns.values)
         metadata['loaded_data_shape'] = list(df.shape)
@@ -60,9 +57,9 @@ def do_match(base_data_directory:str, schema_pk_lookup:dict, upload_id=None):
         match_object = matcher.Matcher(
             jurisdiction=jurisdiction,
             match_job_id=metadata['match_job_id'],
-            clustering_rules=CLUSTERING_RULES,
-            contrast_rules=CONTRAST_RULES,
-            blocking_rules=BLOCKING_RULES,
+            clustering_rules=CONFIG['clusterer']['args'],
+            contrast_rules=CONFIG['contrasts'],
+            blocking_rules=CONFIG['blocking_rules']
         )
         matches = match_object.block_and_match(df=df)
         metadata['data_matched_time'] = datetime.datetime.now()
@@ -77,6 +74,7 @@ def do_match(base_data_directory:str, schema_pk_lookup:dict, upload_id=None):
         matched_results_paths = ioutils.write_matched_data(
             matches=matches,
             base_data_directory=base_data_directory,
+            person_keys=CONFIG['keys'],
             schema_pk_lookup={schema_pk_lookup[event_type] for event_type in event_types_read},
             match_job_id=match_job_id
         )

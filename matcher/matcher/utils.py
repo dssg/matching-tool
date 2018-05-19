@@ -1,6 +1,5 @@
 # coding: utf-8
 
-import ast
 import os
 
 import numpy as np
@@ -18,9 +17,6 @@ from dotenv import load_dotenv
 APP_ROOT = os.path.join(os.path.dirname(__file__), '..')
 dotenv_path = os.path.join(APP_ROOT, '.env')
 load_dotenv(dotenv_path)
-
-# load environment variables
-KEYS = ast.literal_eval(os.getenv('KEYS'))
 
 
 def summarize_column(column:pd.Series):
@@ -47,8 +43,7 @@ def convert_dict_to_str(d:dict):
     return s
 
 
-def concatenate_person_index(df:pd.DataFrame) -> pd.Series:
-    person_column_names = KEYS
+def concatenate_person_index(df:pd.DataFrame, person_column_names) -> pd.Series:
     person_df = df[person_column_names]
     return person_df.apply(lambda x: ''.join(x.map(str)), axis=1)
 
