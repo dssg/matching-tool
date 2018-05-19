@@ -37,29 +37,20 @@ PG_CONNECTION = {
 }
 KEYS = ast.literal_eval(os.getenv('KEYS'))
 
-# lookups
-EVENT_TYPES = {
-    'hmis_service_stays': ['matched_id', 'client_location_start_date', 'client_location_end_date'],
-    'jail_bookings': ['matched_id', 'jail_entry_date', 'jail_exit_date'],
-    'case_charges': ['matched_id'],
-    'hmis_aliases': ['matched_id'],
-    'jail_booking_aliases': ['matched_id'],
-    'jail_booking_charges': ['matched_id']
-}
 
-
-def load_data_for_matching(jurisdiction:str, match_job_id:str):
+def load_data_for_matching(base_input_directory:str, event_types, match_job_id:str):
     # We will frame the record linkage problem as a deduplication problem
-    logger.debug(f'Event types: {EVENT_TYPES.keys()}')
+    logger.debug(f'Loading data for event types: {event_types}')
     try:
-        df = pd.concat([load_one_event_type(jurisdiction, event_type, match_job_id) for event_type in EVENT_TYPES.keys()])
+        df = pd.concat([load_one_event_type(base_data_directory, event_type, match_job_id) for event_type in event_types()])
     except ValueError as e:
         if str(e) != "All objects passed were None":
             raise
         else:
             logger.debug('Found no events data.')
-            raise ValueError(f'No merged data files found for {juridistion} for any event type ({list(EVENT_TYPE.keys())}.')
-    logger.debug(f'Number of events: {len(df)}')
+            raise ValueError(f'No merged data files found for any event type ({list(EVENT_TYPE.keys()) in {base_data_directory}}.')
+    logger.debug(f'Number of deduped events: {len(df)}')
+    
     ## and the match_job_id
     df['match_job_id'] = match_job_id
 
@@ -83,11 +74,11 @@ def load_data_for_matching(jurisdiction:str, match_job_id:str):
     return df, event_types_read
 
 
-def load_one_event_type(jurisdiction:str, event_type:str, match_job_id:str) -> pd.DataFrame:
-    logger.info(f'Loading {jurisdiction} {event_type} data for matching.')
+def load_one_event_type(base_data_directory:str, event_type:str, match_job_id:str) -> pd.DataFrame:
+    logger.info(f'Loading {event_type} data for matching from {data_directory}.')
 
     try:
-        df = read_merged_data_from_s3(jurisdiction, event_type)
+        df = read_merged_data(base_directory, event_type)
 
         # Dropping columns that we don't need for matching
         df = df[KEYS]
@@ -100,15 +91,15 @@ def load_one_event_type(jurisdiction:str, event_type:str, match_job_id:str) -> p
         return df
 
     except FileNotFoundError as e:
-        logger.info(f'No merged file found for {jurisdiction} {event_type}. Skipping.')
+        logger.info(f'No merged file found for {event_type} in {data_directory}. Skipping.')
         pass
 
 
-def read_merged_data_from_s3(jurisdiction:str, event_type:str) -> pd.DataFrame:
+def read_merged_data(base_data_directory:str, event_type:str) -> pd.DataFrame:
     # Read the data in and select the necessary columns
-    merged_key = f'csh/matcher/{jurisdiction}/{event_type}/merged'
-    logger.info(f"Reading data from s3://{S3_BUCKET}/{merged_key}")
-    df = pd.read_csv(f's3://{S3_BUCKET}/{merged_key}', sep='|')
+    merged_filepath = f'{base_data_directory}/{event_type}/merged'
+    logger.info(f"Reading data from {merged_filepath}")
+    df = pd.read_csv(merged_filepath, sep='|')
 
     df['person_index'] = utils.concatenate_person_index(df)
     df.set_index('person_index', drop=True, inplace=True)
@@ -116,129 +107,50 @@ def read_merged_data_from_s3(jurisdiction:str, event_type:str) -> pd.DataFrame:
     return df
 
 
-def write_matched_data(matches:pd.DataFrame, jurisdiction:str, match_job_id:str, event_types_read:list) -> None:
+def write_matched_data(matches:pd.DataFrame, base_data_directory:str, schema_pk_lookup:dict, match_job_id:str) -> list:
     write_dataframe_to_s3(df=matches.reset_index(), key=f'csh/matcher/{jurisdiction}/match_cache/matcher_results/{match_job_id}')
-    for event_type in event_types_read:
+    matched_results_paths = []
+    for event_type, primary_keys in schema_pk_lookup:
         logger.info(f'Writing matched data for {jurisdiction} {event_type}')
-        write_one_event_type(matches, jurisdiction, event_type, match_job_id)
+        matched_ruluts_paths.append(write_one_event_type(matches, base_data_directory, event_type, primary_keys, match_job_id))
+
+    return matched_results_paths
 
 
-def write_one_event_type(df:pd.DataFrame, jurisdiction:str, event_type:str, match_job_id:str) -> None:
+def write_one_event_type(df:pd.DataFrame, jurisdiction:str, event_type:str, primary_keys:list, match_job_id:str) -> str:
     # Join the matched ids to the source data
     logger.info(f'Joining matches to merged data for {event_type}')
-    df = utils.join_matched_and_merged_data(df, jurisdiction, event_type)
+    df = join_matched_and_merged_data(df, base_data_directory, event_type, primary_keys)
 
     # Cache the current match to S3
     logger.info(f'Writing data for {jurisdiction} {event_type} to S3.')
-    write_dataframe_to_s3(df=df, key=f'csh/matcher/{jurisdiction}/{event_type}/matches/{match_job_id}')
-    write_dataframe_to_s3(df=df, key=f'csh/matcher/{jurisdiction}/{event_type}/matched')
+    write_dataframe(df=df, filepath=f'{base_data_directory}/{event_type}/matches/{match_job_id}')
+    write_dataframe(df=df, filepath=f'{base_data_directory}/{event_type}/matched')
 
-    # Write the current match to postgres for use by the webapp
-    logger.info(f'Writing data for {jurisdiction} {event_type} to postgres.')
-    write_matched_data_to_postgres(
-        key=f'csh/matcher/{jurisdiction}/{event_type}/matched',
-        table_name=utils.get_matched_table_name(jurisdiction, event_type),
-        column_names=df.columns.values,
-        event_type=event_type
+    return f'{base_data_directory}/{event_type}/matched'
+
+
+def join_matched_and_merged_data(right_df:pd.DataFrame, base_data_directory:str, event_type:str, primary_keys:list) -> pd.DataFrame:
+    left_df=ioutils.read_merged_data(base_data_directory, event_type)[primary_keys]
+
+    df = left_df.merge(
+        right=right_df['matched_id'],
+        left_index=True,
+        right_index=True,
+        copy=False,
+        validate='many_to_one'
     )
-    logger.info(f'Finished writing {jurisdiction} {event_type} to posgres.')
-
-
-def write_dataframe_to_s3(df:pd.DataFrame, key:str) -> None:
-    csv_buffer = StringIO()
-    df.to_csv(csv_buffer, sep='|', index=False)
-    s3_resource = boto3.resource('s3')
-    s3_resource.Object(S3_BUCKET, key).put(Body=csv_buffer.getvalue())
-    logger.info(f'Wrote data to s3://{S3_BUCKET}/{key}')
-
-
-def write_matched_data_to_postgres(key:str, table_name:str, column_names:list, event_type:str) -> None:
-    conn = psycopg2.connect(**PG_CONNECTION)
-    cur = conn.cursor()
-
-    logger.info(f'Creating table {table_name}')
-    create_schema_if_not_exists('matched', cur)
-    create_matched_table(table_name, column_names, cur)
-
-    logger.info(f'Inserting data into {table_name}')
-    insert_data_into_table(key, table_name, cur)
-
-    logger.info(f'Adding indexes to {table_name}')
-    create_indexes_on_matched_table(table_name, event_type, cur)
-
-    conn.commit()
-    cur.close()
-    conn.close()
-
-
-def create_schema_if_not_exists(schema_name:str, cur) -> None:
-    create_schema_query = f'CREATE SCHEMA IF NOT EXISTS {schema_name};'
-    logger.debug(f'Create schema query: \n{create_schema_query}')
-    cur.execute(create_schema_query)
-    logger.info(f'Created schema (if not already present) {schema_name}')
-
-
-def create_matched_table(table_name:str, column_names:list, cur) -> None:
-    col_list = [f'{col} varchar' for col in column_names]
-    col_type_list = ', '.join(col_list)
-    create_table_query = f"""
-        DROP TABLE IF EXISTS {table_name};
-        CREATE TABLE {table_name} (
-            {col_type_list}
-        );
-    """
-    logger.debug(f'Create table query: \n{create_table_query}')
-    cur.execute(create_table_query)
-    logger.info(f'Created table {table_name}')
-
-
-def insert_data_into_table(key:str, table_name:str, cur) -> None:
-    with smart_open.smart_open(f's3://{S3_BUCKET}/{key}') as f:
-        copy_query = f"""
-            COPY {table_name} FROM STDIN WITH CSV HEADER DELIMITER AS '|'
-        """
-        cur.copy_expert(
-            sql=copy_query,
-            file=f
-        )
-    logger.info(f'Wrote data to {table_name}')
-
-
-def create_indexes_on_matched_table(table_name:str, event_type:str, cur) -> None:
-    for index_column_name in EVENT_TYPES[event_type]:
-        index_query = f"""
-            CREATE INDEX ON {table_name} ({index_column_name});
-        """
-        cur.execute(index_query)
-        logger.debug(f'Created {index_column_name} index on {table_name}')
-
-
-def read_data_from_postgres(table_name:str):
-    conn = psycopg2.connect(**PG_CONNECTION)
-    cur = conn.cursor()
-
-    sql = f"SELECT * FROM {table_name};"
-    df = pd.io.sql.read_sql_query(sql, conn)
-    logger.info(f'Read data from {table_name}')
-
-    conn.close()
+    logger.info(f'Joined match ids to merged data for {event_type}')
 
     return df
 
 
-def insert_info_to_match_log(id:str, upload_id:str, match_start_timestamp, match_complete_timestamp, match_status, runtime) -> None:
-    conn = psycopg2.connect(**PG_CONNECTION)
-    cur = conn.cursor()
-    logger.info('Writing to match_log')
-    query = f"""
-    INSERT INTO public.match_log (id, upload_id, match_start_timestamp, match_complete_timestamp, match_status, runtime)
-        VALUES ('{id}', '{upload_id}', '{match_start_timestamp}', '{match_complete_timestamp}', '{match_status}', '{runtime}');
-    """
-    cur.execute(query)
-    logger.info('Wrote to match_log')
-    conn.commit()
-    cur.close()
-    conn.close()
+def write_dataframe(df:pd.DataFrame, filepath:str) -> None:
+    with smart_open.smart_open(filepath, 'wb') as fout:
+        fout.write( df.to_csv(sep='|', index=False))
+
+    logger.info(f'Wrote data to {filepath}')
+
 
 def write_dict_to_yaml(dict_to_write:dict, key:str):
     logger.debug(f'Writing some dictionary data to {key}! Oooooo!')

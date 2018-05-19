@@ -66,23 +66,6 @@ def get_matched_table_name(jurisdiction:str, event_type:str) -> str:
     return f'matched.{jurisdiction}_{event_type}'
 
 
-def join_matched_and_merged_data(right_df:pd.DataFrame, jurisdiction:str, event_type:str) -> pd.DataFrame:
-    left_df=ioutils.read_merged_data_from_s3(jurisdiction, event_type)
-
-    cols_to_use = right_df.columns.difference(left_df.columns).values
-
-    df = left_df.merge(
-        right=right_df[cols_to_use],
-        left_index=True,
-        right_index=True,
-        copy=False,
-        validate='many_to_one'
-    )
-    logger.info(f'Joined match ids to merged data for {jurisdiction}')
-
-    return df
-
-
 def unique_match_job_id():
     return str(uuid4())
 
