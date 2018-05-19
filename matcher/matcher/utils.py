@@ -57,10 +57,6 @@ def unpack_blocking_rule(df:pd.DataFrame, column_name:str, position:int) -> pd.S
         raise ValueError('I cannot split a string at this position: {position}')
 
 
-def get_matched_table_name(jurisdiction:str, event_type:str) -> str:
-    return f'matched.{jurisdiction}_{event_type}'
-
-
 def unique_match_job_id():
     return str(uuid4())
 

@@ -52,7 +52,7 @@ def load_data_for_matching(base_data_directory:str, event_types:list, keys:list,
     logger.debug(f'The loaded dataframe has the following duplicate indices: {df[df.index.duplicated()].index.values}')
 
     # Cache read data
-    write_dataframe(df=df.reset_index(), key=f'csh/matcher/{jurisdiction}/match_cache/loaded_data/{match_job_id}')
+    write_dataframe(df=df.reset_index(), key=f'{base_data_directory}/match_cache/loaded_data/{match_job_id}')
 
     return df, event_types_read
 
@@ -101,7 +101,7 @@ def write_matched_data(
     matched_results_paths = []
     
     for event_type, primary_keys in schema_pk_lookup:
-        logger.info(f'Writing matched data for {jurisdiction} {event_type}')
+        logger.info(f'Writing matched data for {base_data_directory} {event_type}')
         matched_results_paths.append(write_one_event_type(
             df=matches,
             base_data_directory=base_data_directory,
@@ -127,7 +127,7 @@ def write_one_event_type(
     df = join_matched_and_merged_data(df, base_data_directory, event_type, person_keys, primary_keys)
 
     # Cache the current match to S3
-    logger.info(f'Writing data for {jurisdiction} {event_type} to S3.')
+    logger.info(f'Writing data for {base_data_directory} {event_type} to S3.')
     write_dataframe(df=df, filepath=f'{base_data_directory}/{event_type}/matches/{match_job_id}')
     write_dataframe(df=df, filepath=f'{base_data_directory}/{event_type}/matched')
 

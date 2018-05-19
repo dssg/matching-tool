@@ -63,19 +63,19 @@ def generate_matched_ids(
     distances:pd.DataFrame,
     DF:pd.DataFrame,
     clustering_params:dict,
-    jurisdiction:str,
+    base_data_directory:str,
     match_job_id=str,
     block_name='',
 ) -> pd.DataFrame:
     
     logger.info('Beginning clustering & id generation.')
     distances = square_distance_matrix(distances)
-    ioutils.write_dataframe_to_s3(distances.reset_index(), key=f'csh/matcher/{jurisdiction}/match_cache/square_distances/{match_job_id}/{block_name}')
+    ioutils.write_dataframe_to_s3(distances.reset_index(), filepath=f'{base_data_directory}/match_cache/square_distances/{match_job_id}/{block_name}')
 
     ids = cluster(
         distances, **clustering_params
     )
-    ioutils.write_dataframe_to_s3(ids.reset_index(), key=f'csh/matcher/{jurisdiction}/match_cache/raw_cluster_ids/{match_job_id}/{block_name}')
+    ioutils.write_dataframe_to_s3(ids.reset_index(), filepath=f'{base_data_directory}/match_cache/raw_cluster_ids/{match_job_id}/{block_name}')
     max_cluster_id = ids.max()
     replacement_ids = pd.Series(range(max_cluster_id + 1, max_cluster_id + len(ids[ids == -1]) + 1), index=ids[ids==-1].index)
     ids[ids == -1] = replacement_ids

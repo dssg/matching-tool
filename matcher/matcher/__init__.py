@@ -47,7 +47,7 @@ def do_match(base_data_directory:str, schema_pk_lookup:dict, upload_id=None):
 
         # Preprocessing: enforce data types and split/combine columns for feartures
         logger.info('Doing some preprocessing on the columns')
-        df = preprocess.preprocess(df, metadata['match_job_id'], jurisdiction)
+        df = preprocess.preprocess(df, metadata['match_job_id'])
         metadata['preprocessed_data_columns'] = list(df.columns.values)
         metadata['preprocessed_data_shape'] = list(df.shape)
         metadata['data_preprocessed_time'] = datetime.datetime.now()
@@ -55,7 +55,7 @@ def do_match(base_data_directory:str, schema_pk_lookup:dict, upload_id=None):
         # Matching: block the data, generate pairs and features, and cluster entities
         logger.info(f"Running matcher")
         match_object = matcher.Matcher(
-            jurisdiction=jurisdiction,
+            base_data_directory=base_data_directory,
             match_job_id=metadata['match_job_id'],
             clustering_rules=CONFIG['clusterer']['args'],
             contrast_rules=CONFIG['contrasts'],
@@ -79,7 +79,7 @@ def do_match(base_data_directory:str, schema_pk_lookup:dict, upload_id=None):
             match_job_id=match_job_id
         )
         metadata['data_written_time'] = datetime.datetime.now()
-        ioutils.write_dict_to_yaml(metadata, f"csh/matcher/{jurisdiction}/match_cache/metadata/{metadata['match_job_id']}")
+        ioutils.write_dict_to_yaml(metadata, f"{base_data_directory}/match_cache/metadata/{metadata['match_job_id']}")
 
         logger.info('Finished')
         match_end_time = datetime.datetime.now()
