@@ -80,7 +80,7 @@ class Contraster:
         contrast_metadata = {}
         for column in contrasts.columns:
             logger.debug(f'Making you some stats about {column}')
-            contrast_metadata[column] = utils.summarize_column(column)
+            contrast_metadata[column] = utils.summarize_column(contrasts[column])
         self.metadata['contrasts'] = contrast_metadata
 
     def run(self, pairs:pd.MultiIndex, df:pd.DataFrame) -> pd.DataFrame:
@@ -104,7 +104,7 @@ class Contraster:
                 logger.debug(f"Trying out {contrast_definition['method']} on {col_name}.")
                 contrast_method = getattr(self, contrast_definition['method'])
 
-                if 'args' in contrast.keys():
+                if 'args' in contrast_definition.keys():
                     logger.debug(f"Passing {contrast_definition['args']} to {contrast_definition['method']}")
                     contrast_method(col_name, contrast_definition['args'])
  

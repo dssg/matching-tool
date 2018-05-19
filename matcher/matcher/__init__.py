@@ -66,8 +66,7 @@ def do_match(base_data_directory:str, schema_pk_lookup:dict, upload_id=None):
         metadata.update(match_object.metadata)
         logger.debug('Matching done!')
 
-        logger.debug(f"Number of matched pairs: {len(all_matches)}")
-        logger.debug(f"Total concatenating time: {matches_concatenated_time - data_matched_time}")
+        logger.debug(f"Number of matched pairs: {len(matches)}")
 
         # Writing: Join the matched ids to the source data for each event & write to S3 and postgres
         logger.info('Writing matched results!')
@@ -75,8 +74,8 @@ def do_match(base_data_directory:str, schema_pk_lookup:dict, upload_id=None):
             matches=matches,
             base_data_directory=base_data_directory,
             person_keys=CONFIG['keys'],
-            schema_pk_lookup={schema_pk_lookup[event_type] for event_type in event_types_read},
-            match_job_id=match_job_id
+            schema_pk_lookup={event_type:schema_pk_lookup[event_type] for event_type in event_types_read},
+            match_job_id=metadata['match_job_id']
         )
         metadata['data_written_time'] = datetime.datetime.now()
         ioutils.write_dict_to_yaml(metadata, f"{base_data_directory}/match_cache/metadata/{metadata['match_job_id']}")

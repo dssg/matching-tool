@@ -99,8 +99,8 @@ def write_matched_data(
 ) -> list:
     write_dataframe(df=matches.reset_index(), filepath=f'{base_data_directory}/match_cache/matcher_results/{match_job_id}')
     matched_results_paths = []
-    
-    for event_type, primary_keys in schema_pk_lookup:
+    logger.debug(schema_pk_lookup)
+    for event_type, primary_keys in schema_pk_lookup.items():
         logger.info(f'Writing matched data for {base_data_directory} {event_type}')
         matched_results_paths.append(write_one_event_type(
             df=matches,
@@ -141,10 +141,10 @@ def join_matched_and_merged_data(
     person_keys:list,
     primary_keys:list
 ) -> pd.DataFrame:
-    left_df=ioutils.read_merged_data(base_data_directory, event_type, person_keys)[primary_keys]
+    left_df=read_merged_data(base_data_directory, event_type, person_keys)[primary_keys]
 
     df = left_df.merge(
-        right=right_df['matched_id'],
+        right=right_df['matched_id'].to_frame(),
         left_index=True,
         right_index=True,
         copy=False,
@@ -162,10 +162,9 @@ def write_dataframe(df:pd.DataFrame, filepath:str) -> None:
     logger.info(f'Wrote data to {filepath}')
 
 
-def write_dict_to_yaml(dict_to_write:dict, key:str):
-    logger.debug(f'Writing some dictionary data to {key}! Oooooo!')
-    yaml_string = yaml.dump(dict_to_write)
-    s3_resource = boto3.resource('s3')
-    s3_resource.Object(S3_BUCKET, key).put(Body=yaml_string.encode())
-    logger.info(f'Wrote data to s3://{S3_BUCKET}/{key}')
+def write_dict_to_yaml(dict_to_write:dict, filepath:str):
+    logger.debug(f'Writing some dictionary data to {filepath}! Oooooo!')
+    with smart_open.smart_open(filepath, 'wb') as fout:
+        fout.write(yaml.dump(dict_to_write).encode())
+    logger.info(f'Wrote metadata to {filepath}')
 
