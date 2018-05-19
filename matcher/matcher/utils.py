@@ -28,7 +28,7 @@ def summarize_column(column:pd.Series):
         std = None
     else:
         std = float(column.std())
-     return {
+    return {
         'mean': float(column.mean()),
         'median': float(column.median()),
         'min': float(column.min()),

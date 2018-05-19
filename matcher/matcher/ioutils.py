@@ -15,8 +15,7 @@ import yaml
 
 
 from matcher.logger import logger
-
-import matcher.utils as utils
+from matcher import  utils
 
 
 # load dotenv
@@ -42,13 +41,13 @@ def load_data_for_matching(base_input_directory:str, event_types, match_job_id:s
     # We will frame the record linkage problem as a deduplication problem
     logger.debug(f'Loading data for event types: {event_types}')
     try:
-        df = pd.concat([load_one_event_type(base_data_directory, event_type, match_job_id) for event_type in event_types()])
+        df = pd.concat([load_one_event_type(base_data_directory, event_type, match_job_id) for event_type in event_types])
     except ValueError as e:
         if str(e) != "All objects passed were None":
             raise
         else:
             logger.debug('Found no events data.')
-            raise ValueError(f'No merged data files found for any event type ({list(EVENT_TYPE.keys()) in {base_data_directory}}.')
+            raise ValueError(f'No merged data files found for any event type ({event_types}) in {base_data_directory}.')
     logger.debug(f'Number of deduped events: {len(df)}')
     
     ## and the match_job_id

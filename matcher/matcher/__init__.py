@@ -29,20 +29,20 @@ BLOCKING_RULES = ast.literal_eval(os.getenv('BLOCKING_RULES'))
 
 
 def do_match(base_data_directory:str, schema_pk_lookup:dict, upload_id=None):
-     # Initializing: let's get started by collecting some job metadata
-     metadata = {
-         'match_job_start_time': datetime.datetime.now(),
-         'match_job_id': utils.unique_match_job_id(),
-         'jurisdiction': jurisdiction,
-         'clustering_params': CLUSTERING_PARAMS,
-         'blocking_rules': BLOCKING_RULES
-     }
+    # Initializing: let's get started by collecting some job metadata
+    metadata = {
+        'match_job_start_time': datetime.datetime.now(),
+        'match_job_id': utils.unique_match_job_id(),
+        'base_data_directory': base_data_directory,
+        'clustering_params': CLUSTERING_PARAMS,
+        'blocking_rules': BLOCKING_RULES
+    }
     logger.info("Matching process started!")
 
     try:
         # Loading: collect matching data (keys) for all available event types & record which event types were found
         logger.info('Loading data for matching.')
-        df, event_types_read = ioutils.load_data_for_matching(base_data_directory, schema_pk_lookup.keys(), metadata['match_job_id'])
+        df, event_types_read = ioutils.load_data_for_matching(base_data_directory, list(schema_pk_lookup.keys()), metadata['match_job_id'])
         metadata['event_types_read'] = list(event_types_read)
         metadata['loaded_data_columns'] = list(df.columns.values)
         metadata['loaded_data_shape'] = list(df.shape)
@@ -59,7 +59,7 @@ def do_match(base_data_directory:str, schema_pk_lookup:dict, upload_id=None):
         logger.info(f"Running matcher")
         match_object = matcher.Matcher(
             jurisdiction=jurisdiction,
-            match_job_id=metadata['match_job_id']
+            match_job_id=metadata['match_job_id'],
             clustering_rules=CLUSTERING_RULES,
             contrast_rules=CONTRAST_RULES,
             blocking_rules=BLOCKING_RULES,
@@ -87,28 +87,28 @@ def do_match(base_data_directory:str, schema_pk_lookup:dict, upload_id=None):
         match_end_time = datetime.datetime.now()
         match_runtime =  match_end_time - metadata['match_job_start_time']
         
-        webapp.match_finished(
-            matched_results_paths=matched_results_paths,
-            match_job_id=metadata['match_job_id'],
-            match_start_at=metadata['match_job_start_time'],
-            match_complete_at=match_end_time,
-            match_status=True,
-            match_runtime=match_runtime,
-            upload_id=upload_id
-        )
+        # webapp.match_finished(
+        #     matched_results_paths=matched_results_paths,
+        #     match_job_id=metadata['match_job_id'],
+        #     match_start_at=metadata['match_job_start_time'],
+        #     match_complete_at=match_end_time,
+        #     match_status=True,
+        #     match_runtime=match_runtime,
+        #     upload_id=upload_id
+        # )
 
     except Exception as e:
-        logger.error(f'Matcher failed with message "{e.message}"')
+        logger.error(f'Matcher failed with message "{str(e)}"')
         match_fail_time = datetime.datetime.now()
         match_run_time = match_fail_time - metadata['match_job_start_time']
 
-        webapp.match_finished(
-            matched_results_paths={},
-            match_job_id=metadata['match_job_id'],
-            match_start_at=metadata['match_job_start_time'],
-            match_complete_at=match_fail_time,
-            match_status=False,
-            match_runtime=match_runtime,
-            upload_id=upload_id
-        )
+        # webapp.match_finished(
+        #     matched_results_paths={},
+        #     match_job_id=metadata['match_job_id'],
+        #     match_start_at=metadata['match_job_start_time'],
+        #     match_complete_at=match_fail_time,
+        #     match_status=False,
+        #     match_runtime=match_runtime,
+        #     upload_id=upload_id
+        # )
 
