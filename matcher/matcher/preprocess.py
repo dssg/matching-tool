@@ -80,6 +80,6 @@ def preprocess(df:pd.DataFrame, match_job_id:str, base_data_directory:str) -> pd
     logger.info('Preprocessing done!')
     logger.debug(f"The preprocessed dataframe has the following columns: {df.columns}")
     logger.debug(f"The preprocessed dimensions of the dataframe is: {df.shape}")
-    ioutils.write_dataframe_to_s3(df.reset_index(), key=f'{base_data_directory}/match_cache/preprocessed_data/{match_job_id}')
+    ioutils.write_dataframe(df.reset_index(), filepath=f'{base_data_directory}/match_cache/preprocessed_data/{match_job_id}')
     return df
 

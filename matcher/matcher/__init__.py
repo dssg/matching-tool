@@ -47,7 +47,7 @@ def do_match(base_data_directory:str, schema_pk_lookup:dict, upload_id=None):
 
         # Preprocessing: enforce data types and split/combine columns for feartures
         logger.info('Doing some preprocessing on the columns')
-        df = preprocess.preprocess(df, metadata['match_job_id'])
+        df = preprocess.preprocess(df, metadata['match_job_id'], base_data_directory)
         metadata['preprocessed_data_columns'] = list(df.columns.values)
         metadata['preprocessed_data_shape'] = list(df.shape)
         metadata['data_preprocessed_time'] = datetime.datetime.now()

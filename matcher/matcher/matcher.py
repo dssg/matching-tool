@@ -80,7 +80,7 @@ class Matcher:
         logger.debug('Summary distances generated. Making you some stats about them.')
         metadata['scores'] = utils.summarize_column(contrasts.matches)
         logger.debug('Caching those features and distances for you.')
-        ioutils.write_dataframe_to_s3(features.reset_index(), key=f'csh/matcher/{self.base_data_directory}/match_cache/features/{self.match_job_id}/{key}')
+        ioutils.write_dataframe(features.reset_index(), key=f'csh/matcher/{self.base_data_directory}/match_cache/features/{self.match_job_id}/{key}')
 
         logger.debug(f"Features dataframe size: {features.shape}")
         logger.debug(f"Features data without duplicated indexes: {features[~features.index.duplicated(keep='first')].shape}")

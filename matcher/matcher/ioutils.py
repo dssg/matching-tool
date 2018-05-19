@@ -52,7 +52,7 @@ def load_data_for_matching(base_data_directory:str, event_types:list, keys:list,
     logger.debug(f'The loaded dataframe has the following duplicate indices: {df[df.index.duplicated()].index.values}')
 
     # Cache read data
-    write_dataframe(df=df.reset_index(), key=f'{base_data_directory}/match_cache/loaded_data/{match_job_id}')
+    write_dataframe(df=df.reset_index(), filepath=f'{base_data_directory}/match_cache/loaded_data/{match_job_id}')
 
     return df, event_types_read
 
@@ -157,7 +157,7 @@ def join_matched_and_merged_data(
 
 def write_dataframe(df:pd.DataFrame, filepath:str) -> None:
     with smart_open.smart_open(filepath, 'wb') as fout:
-        fout.write( df.to_csv(sep='|', index=False))
+        fout.write(df.to_csv(sep='|', index=False).encode())
 
     logger.info(f'Wrote data to {filepath}')
 
