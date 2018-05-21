@@ -23,7 +23,7 @@ redis_connection = Redis(host='redis', port=6379)
 q = Queue('webapp', connection=redis_connection)
 
 
-with open('config.yaml') as f:
+with open('matcher_config.yaml') as f:
     CONFIG = yaml.load(f)
 
 
