@@ -17,6 +17,12 @@ import matcher.ioutils as ioutils
 from matcher.logger import logger
 
 
+from redis import Redis
+from rq import Queue 
+redis_connection = Redis(host='redis', port=6379)
+q = Queue('webapp', connection=redis_connection)
+
+
 with open('config.yaml') as f:
     CONFIG = yaml.load(f)
 
@@ -83,29 +89,37 @@ def do_match(base_data_directory:str, schema_pk_lookup:dict, upload_id=None):
         logger.info('Finished')
         match_end_time = datetime.datetime.now()
         match_runtime =  match_end_time - metadata['match_job_start_time']
-        
-        # webapp.match_finished(
-        #     matched_results_paths=matched_results_paths,
-        #     match_job_id=metadata['match_job_id'],
-        #     match_start_at=metadata['match_job_start_time'],
-        #     match_complete_at=match_end_time,
-        #     match_status=True,
-        #     match_runtime=match_runtime,
-        #     upload_id=upload_id
-        # )
+
+        job = q.enqueue_call(
+            func='webapp.match_finished',
+            args=(
+                matched_results_paths,
+                metadata['match_job_id'],
+                metadata['match_job_start_time'],
+                match_end_time,
+                True,
+                match_runtime,
+                upload_id
+            ),
+            result_ttl=5000
+        )
 
     except Exception as e:
         logger.error(f'Matcher failed with message "{str(e)}"')
         match_fail_time = datetime.datetime.now()
         match_run_time = match_fail_time - metadata['match_job_start_time']
 
-        # webapp.match_finished(
-        #     matched_results_paths={},
-        #     match_job_id=metadata['match_job_id'],
-        #     match_start_at=metadata['match_job_start_time'],
-        #     match_complete_at=match_fail_time,
-        #     match_status=False,
-        #     match_runtime=match_runtime,
-        #     upload_id=upload_id
-        # )
+        job = q.enqueue_call(
+            func='webapp.match_finished',
+            args=(
+                {},
+                metadata['match_job_id'],
+                metadata['match_job_start_time'],
+                match_fail_time,
+                False,
+                match_runtime,
+                upload_id
+            ),
+            result_ttl=5000
+        )
 
