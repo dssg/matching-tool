@@ -32,3 +32,6 @@ app.config["MAIL_PORT"] = os.environ.get('MAIL_PORT', 465)
 
 db = SQLAlchemy(app)
 mail = Mail(app)
+
+
+from webapp.tasks import match_finished
