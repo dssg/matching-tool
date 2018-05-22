@@ -18,9 +18,9 @@ import recordlinkage as rl
 
 
 class Matcher:
-    def __init__(self, jurisdiction:str, match_job_id:str, clustering_rules:dict, contrast_rules, blocking_rules:dict=None):
+    def __init__(self, base_data_directory:str, match_job_id:str, clustering_rules:dict, contrast_rules, blocking_rules:dict=None):
         self.clustering_rules = clustering_rules
-        self.jurisdiction = jurisdiction
+        self.base_data_directory = base_data_directory
         self.match_job_id = match_job_id
         self.contrast_rules = contrast_rules
         self.blocking_rules = blocking_rules
@@ -45,7 +45,7 @@ class Matcher:
                 block_metadata = {
                     'size': 1,
                     'n_pairs': 0,
-                    'features': None,
+                    'contrasts': None,
                     'scores': None
                 }
                 logger.debug(f"Group {key} only has one record, making a singleton id")
@@ -56,7 +56,7 @@ class Matcher:
 
         logger.debug('All blocks done! Yehaw!')
         self.metadata['blocks'] = all_block_metadata
-        return matches
+        return pd.concat(matches.values())
 
     def match(self, df:pd.DataFrame, key='all') -> pd.DataFrame:
         
@@ -72,27 +72,27 @@ class Matcher:
         logger.debug(f"Initializing contrasting")
         contraster_obj = contraster.Contraster(self.contrast_rules)
         contrasts = contraster_obj.run(pairs, df)
-        metadata['contraster_metadata'] = contrast_object.metadata
+        metadata['contraster_metadata'] = contraster_obj.metadata
         logger.debug(f"Contrasts created")
 
         contrasts.index.rename(['matcher_index_left', 'matcher_index_right'], inplace=True)
-        contrasts = rules.compactify(features, operation='mean')
+        contrasts = rules.compactify(contrasts, operation='mean')
         logger.debug('Summary distances generated. Making you some stats about them.')
         metadata['scores'] = utils.summarize_column(contrasts.matches)
-        logger.debug('Caching those features and distances for you.')
-        ioutils.write_dataframe_to_s3(features.reset_index(), key=f'csh/matcher/{self.jurisdiction}/match_cache/features/{self.match_job_id}/{key}')
+        logger.debug('Caching those contrasts and distances for you.')
+        ioutils.write_dataframe(contrasts.reset_index(), filepath=f'{self.base_data_directory}/match_cache/contrasts/{self.match_job_id}/{key}')
 
-        logger.debug(f"Features dataframe size: {features.shape}")
-        logger.debug(f"Features data without duplicated indexes: {features[~features.index.duplicated(keep='first')].shape}")
+        logger.debug(f"Contrasts dataframe size: {contrasts.shape}")
+        logger.debug(f"Contrasts data without duplicated indexes: {contrasts[~contrasts.index.duplicated(keep='first')].shape}")
         logger.debug("Duplicated keys:")
-        logger.debug(f"{features[features.index.duplicated(keep=False)]}")
+        logger.debug(f"{contrasts[contrasts.index.duplicated(keep=False)]}")
 
         matches = cluster.generate_matched_ids(
-            distances=features,
+            distances=contrasts,
             DF=df,
-            clustering_params=self.clustering_params,
-            jurisdiction=self.jurisdiction, # at some point, we may want to consider making the matcher into a class
-            match_job_id=self.match_job_id,       # rather than passing around keys, match_job_ids, jurisdictions, etc.
+            clustering_params=self.clustering_rules,
+            base_data_directory=self.base_data_directory, # at some point, we may want to consider making the matcher into a class
+            match_job_id=self.match_job_id,       # rather than passing around keys, match_job_ids, base_data_directorys, etc.
             block_name=str(key)
         )
 
