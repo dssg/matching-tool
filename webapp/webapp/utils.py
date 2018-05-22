@@ -14,6 +14,9 @@ from contextlib import contextmanager
 import requests
 from sqlalchemy import MetaData, Table
 
+from redis import Redis
+from rq.job import Job
+
 
 def unique_upload_id():
     return str(uuid4())
@@ -116,17 +119,22 @@ def master_table_column_list(goodtables_schema):
 def generate_matched_table_name(jurisdiction, event_type):
     return 'matched.{jurisdiction}_{event_type}'.format(**locals())
 
-def notify_matcher(jurisdiction, upload_id):
-    matcher_response = requests.get(
-        'http://{location}:{port}/match/{jurisdiction}?uploadId={upload_id}'.format(
-            location=app_config['matcher_location'],
-            port=app_config['matcher_port'],
-            jurisdiction=jurisdiction,
-            upload_id=upload_id,
-        )
+
+def notify_matcher(upload_id=None):
+    schema_pk_lookup = list_all_schemas_primary_keys(SCHEMA_DIRECTORY)
+    base_data_directory = app_config['base_data_path']
+
+    redis_connection = Redis(host='redis', port=6379)
+    q = Queue('matching', connection=redis_connection)
+
+    job = q.enqueue(
+        func="matcher.do_match",
+        args=(base_data_directory, schema_pk_lookup, upload_id),
+        result_ttl=5000,
+        timeout=100000,
+        meta={'upload_id': upload_id}
     )
-    if matcher_response.status_code != 200:
-        raise RuntimeError(matcher_response.text)
+
 
 def lower_first(iterator):
     return itertools.chain([next(iterator).lower()], iterator)
