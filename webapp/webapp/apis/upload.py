@@ -2,7 +2,6 @@ from flask import make_response, request, jsonify, Blueprint
 from flask_security import login_required
 from flask_login import current_user
 
-
 from webapp.logger import logger
 from webapp.database import db_session
 from webapp.models import Upload, MergeLog
@@ -269,7 +268,7 @@ def validate_async(uploaded_file_name, jurisdiction, full_filename, event_type, 
                     'errors': [{
                         'column-number': None,
                         'row-number': None,
-                        'message': str(e)   
+                        'message': str(e)
                     }]
                 }]
             }
@@ -367,10 +366,7 @@ def merge_file():
             merge_log = db_session.query(MergeLog).get(merge_id)
             try:
                 logger.info('Merge succeeded. Now querying matcher')
-                notify_matcher(
-                    upload_log.jurisdiction_slug,
-                    upload_id,
-                )
+                notify_matcher(upload_id)
             except Exception as e:
                 logger.error('Error matching: ', e)
                 db_session.rollback()
