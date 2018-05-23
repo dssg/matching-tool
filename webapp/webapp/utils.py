@@ -8,6 +8,7 @@ import json
 import tempfile
 from datetime import date
 from webapp.config import config as app_config
+from webapp.webapp import logger
 from webapp import SCHEMA_DIRECTORY
 
 from contextlib import contextmanager
@@ -16,6 +17,7 @@ from sqlalchemy import MetaData, Table
 
 from redis import Redis
 from rq.job import Job
+from rq import Queue
 
 
 def unique_upload_id():
@@ -120,20 +122,23 @@ def generate_matched_table_name(jurisdiction, event_type):
     return 'matched.{jurisdiction}_{event_type}'.format(**locals())
 
 
-def notify_matcher(upload_id=None):
+def notify_matcher(jurisdiction, upload_id=None):
     schema_pk_lookup = list_all_schemas_primary_keys(SCHEMA_DIRECTORY)
     base_data_directory = app_config['base_data_path']
+    directory_to_pass = base_data_directory.format(jurisdiction=jurisdiction)
 
     redis_connection = Redis(host='redis', port=6379)
     q = Queue('matching', connection=redis_connection)
+    logger.info('Enqueueing do_match job')
 
     job = q.enqueue(
-        func="matcher.do_match",
-        args=(base_data_directory, schema_pk_lookup, upload_id),
+        f="matcher.do_match",
+        args=(directory_to_pass, schema_pk_lookup, upload_id),
         result_ttl=5000,
         timeout=100000,
         meta={'upload_id': upload_id}
     )
+    logger.info("Enqueued job %s", job)
 
 
 def lower_first(iterator):
@@ -189,5 +194,5 @@ def list_all_schemas_primary_keys(path=SCHEMA_DIRECTORY):
     all_event_types = [os.path.basename(x).split('.')[0] for x in glob.glob(os.path.join(path, '*.json'))]
     for event_type in all_event_types:
         schema = load_schema_file(event_type)
-        result[event_type] = schema['primaryKey']
+        result[event_type.replace('-', '_')] = schema['primaryKey']
     return result
