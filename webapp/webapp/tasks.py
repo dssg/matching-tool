@@ -2,6 +2,7 @@ from smart_open import smart_open
 from datetime import datetime
 from goodtables import validate
 from webapp.database import db_session, engine
+from webapp.logger import logger
 from webapp.models import Upload, MergeLog, MatchLog
 from webapp.utils import load_schema_file,\
     create_statement_from_goodtables_schema,\
@@ -396,21 +397,26 @@ def match_finished(
     match_runtime,
     upload_id=None
 ):
-    write_match_log(
-        db_session=db_session,
-        match_job_id=match_job_id,
-        match_start_at=match_start_at,
-        match_complete_at=match_complete_at,
-        match_status=match_status,
-        match_runtime=match_runtime,
-        upload_id=upload_id
-    )
-
-    for event_type, filename in matched_results_paths.items():
-        with smart_open(filename, 'rb') as matches_filehandle:
-            write_matches_to_db(
-                db_engine=engine,
-                event_type=event_type,
-                jurisdiction=filename.split('/')[-2],
-                matches_filehandle=matches_filehandle
-            )
+    try:
+        logger.info('Writing to match log')
+        write_match_log(
+            db_session=db_session,
+            match_job_id=match_job_id,
+            match_start_at=match_start_at,
+            match_complete_at=match_complete_at,
+            match_status=match_status,
+            match_runtime=match_runtime,
+            upload_id=upload_id
+        )
+        logger.info('Writing matches to db')
+        for event_type, filename in matched_results_paths.items():
+            logger.info('Writing matches from event type %s and filename %s to db', event_type, filename)
+            with smart_open(filename, 'rb') as matches_filehandle:
+                write_matches_to_db(
+                    db_engine=engine,
+                    event_type=event_type,
+                    jurisdiction=filename.split('/')[-2],
+                    matches_filehandle=matches_filehandle
+                )
+    except Exception as e:
+        logger.error('Error encountered during match_finished: %s', str(e))

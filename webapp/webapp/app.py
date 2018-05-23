@@ -43,6 +43,7 @@ def shutdown_session(exception=None):
 @click.argument('jurisdiction')
 @click.argument('event_type')
 def expunge(jurisdiction, event_type):
+    """Expunges all data for a given jurisdiction and event type"""
     s3 = s3fs.S3FileSystem()
 
     base_path = app_config['base_path'].format(jurisdiction=jurisdiction, event_type=event_type)
