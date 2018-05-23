@@ -8,7 +8,7 @@ import json
 import tempfile
 from datetime import date
 from webapp.config import config as app_config
-from webapp.webapp import logger
+from webapp.logger import logger
 from webapp import SCHEMA_DIRECTORY
 
 from contextlib import contextmanager
