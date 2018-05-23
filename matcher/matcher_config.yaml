@@ -1,0 +1,123 @@
+keys:
+    # Which columns to select for matching
+    - first_name
+    - middle_name
+    - last_name
+    - dob
+    - ssn
+    - dmv_number
+    - dmv_state
+    - race
+    - ethnicity
+    - sex
+
+blocking_rules:
+    # Each key is a name of a column, and each value is the number of
+    # characters to use for blocking. For example `first_name: 1` includes
+    # all people who share the first first letter of their first name
+    # (e.g., Jon, Julie, Jeffrey) in the same block. If there is more than
+    # one rule, entities in a block must share *all* traits.
+    last_name: 2
+    dob: 3
+    first_name: 1
+
+contrasts:
+    # Each top-level key is a column name in the pre-processed DataFrame.
+    # The level is a list of dictionaries with the keys 'method' and 'args'
+    # that call the specified comparison method with the specified arguments.
+    first_name:
+        - method: compare_exact 
+        - method: compare_exact 
+          args:
+               n_chars: 5
+        - method: compare_exact 
+          args:
+               n_chars: -5
+        - method: compare_exact 
+          args:
+               n_chars: 3
+        - method: compare_exact 
+          args:
+               n_chars: -3
+        - method: compare_string_distance
+          args:
+               method: jarowinkler
+    middle_name:
+        - method: compare_exact 
+        - method: compare_exact 
+          args:
+               n_chars: 5
+        - method: compare_exact 
+          args:
+               n_chars: -5
+        - method: compare_exact 
+          args:
+               n_chars: 3
+        - method: compare_exact 
+          args:
+               n_chars: -3
+        - method: compare_string_distance
+          args:
+               method: jarowinkler
+    last_name:
+        - method: compare_exact 
+        - method: compare_exact 
+          args:
+               n_chars: 5
+        - method: compare_exact 
+          args:
+               n_chars: -5
+        - method: compare_exact 
+          args:
+               n_chars: 3
+        - method: compare_exact 
+          args:
+               n_chars: -3
+        - method: compare_string_distance
+          args:
+               method: jarowinkler
+    dob:
+        - method: compare_exact
+        - method: compare_exact
+          args:
+               n_chars: 4
+        - method: compare_swap_month_days
+          args:
+               swap_months:
+    ssn:
+        - method: compare_exact
+        - method: compare_exact
+          args:
+               n_chars: -4
+        - method: compare_string_distance
+          args:
+               method: jaro
+    dmv_number:
+        - method: compare_exact
+        - method: compare_string_distance
+          args:
+               method: jaro
+    race:
+        - method: compare_list
+          args:
+                method: any
+        - method: compare_list
+          args:
+               method: all
+    ethnicity:
+        - method: compare_exact
+    sex:
+        - method: compare_exact
+        - method: compare_exact
+          args:
+               n_chars: -1
+
+clusterer:
+    method: sklearn.cluster.DBSCAN
+    args:
+        eps: 0.2
+        min_samples: 1
+        algorithm: auto
+        leaf_size: 30
+        n_jobs: 4
+

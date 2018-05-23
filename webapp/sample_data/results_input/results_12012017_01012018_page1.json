@@ -23,103 +23,107 @@
     ],
     "filteredData":{
       "jailDurationBarData":[
-		  [{"x": "Jail", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
-		  [{"x": "Jail", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
-		  [{"x": "Jail", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
-		  [{"x": "Jail", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
-		  [{"x": "Jail", "y": 100.0}, {"x": "Jail & Homeless", "y": 100.0}]
+		  [
+			  [{"x": "Jail", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
+			  [{"x": "Jail", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
+			  [{"x": "Jail", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
+			  [{"x": "Jail", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
+			  [{"x": "Jail", "y": 100.0}, {"x": "Jail & Homeless", "y": 100.0}]
+		  ],
+		  ["< 1 day", "1 day", "2-9 days", "10-89 days", "90+ days"]
 	  ],
       "homelessDurationBarData":[
-		  [{"x": "Homeless", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
-		  [{"x": "Homeless", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
-		  [{"x": "Homeless", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
-		  [{"x": "Homeless", "y": 20.0}, {"x": "Jail & Homeless", "y": 100.0}],
-		  [{"x": "Homeless", "y": 80.0}, {"x": "Jail & Homeless", "y": 0.0}]
+		  [
+			  [{"x": "Homeless", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
+			  [{"x": "Homeless", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
+			  [{"x": "Homeless", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
+			  [{"x": "Homeless", "y": 20.0}, {"x": "Jail & Homeless", "y": 100.0}],
+			  [{"x": "Homeless", "y": 80.0}, {"x": "Jail & Homeless", "y": 0.0}]
+		  ],
+		  ["< 1 day", "1 day", "2-9 days", "10-89 days", "90+ days"]
 	  ],
       "jailContactBarData":[
-		  [{"x": "Jail", "y": 100.0}, {"x": "Jail & Homeless", "y": 100.0}],
-		  [{"x": "Jail", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
-		  [{"x": "Jail", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
-		  [{"x": "Jail", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
-		  [{"x": "Jail", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}]
+		  [
+			  [{"x": "Jail", "y": 100.0}, {"x": "Jail & Homeless", "y": 100.0}]
+		  ],
+		  ["1 contact"]
 	  ],
       "homelessContactBarData":[
-		  [{"x": "Homeless", "y": 100.0}, {"x": "Jail & Homeless", "y": 100.0}],
-		  [{"x": "Homeless", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
-		  [{"x": "Homeless", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
-		  [{"x": "Homeless", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
-		  [{"x": "Homeless", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}]
+		  [
+			  [{"x": "Homeless", "y": 100.0}, {"x": "Jail & Homeless", "y": 100.0}]
+		  ],
+		  ["1 contact"]
 	  ],
       "tableData":[
         {
-          "matched_id":18,
-          "booking_id":"3951984",
-          "hmis_id":null,
-          "first_name":"Brian",
-          "last_name":"Marshall",
-          "last_jail_contact":"2017-06-20",
-          "last_hmis_contact":null,
-          "jail_contact":1,
-          "hmis_contact":0,
-          "total_contact":1,
-          "cumu_jail_days":167,
-          "cumu_hmis_days":0
-        },
-        {
-          "matched_id":26,
-          "booking_id":"2864546",
-          "hmis_id":null,
-          "first_name":"Colleen",
-          "last_name":"Friedman",
-          "last_jail_contact":"2017-05-25",
-          "last_hmis_contact":null,
-          "jail_contact":1,
-          "hmis_contact":0,
-          "total_contact":1,
-          "cumu_jail_days":190,
-          "cumu_hmis_days":0
-        },
-        {
-          "matched_id":31,
-          "booking_id":"2226980",
-          "hmis_id":null,
-          "first_name":"Denise",
-          "last_name":"Jacobson",
-          "last_jail_contact":"2017-04-15",
-          "last_hmis_contact":null,
-          "jail_contact":1,
-          "hmis_contact":0,
-          "total_contact":1,
-          "cumu_jail_days":232,
-          "cumu_hmis_days":0
-        },
-        {
-          "matched_id":61,
-          "booking_id":"2308882",
-          "hmis_id":null,
-          "first_name":"Matthew",
-          "last_name":"Kline",
-          "last_jail_contact":"2017-06-06",
-          "last_hmis_contact":null,
-          "jail_contact":1,
-          "hmis_contact":0,
-          "total_contact":1,
-          "cumu_jail_days":178,
-          "cumu_hmis_days":0
-        },
-        {
-          "matched_id":116,
-          "booking_id":null,
+          "matched_id":"116",
+          "jail_id":null,
           "hmis_id":"7774716",
           "first_name":"Jason",
           "last_name":"Hamilton",
           "last_jail_contact":null,
           "last_hmis_contact":"2017-01-23",
-          "jail_contact":0,
+          "jail_contact":null,
           "hmis_contact":1,
           "total_contact":1,
-          "cumu_jail_days":0,
+          "cumu_jail_days":null,
           "cumu_hmis_days":311
+        },
+        {
+          "matched_id":"122",
+          "jail_id":"1423898",
+          "hmis_id":"1354042",
+          "first_name":"Joseph",
+          "last_name":"Ortiz",
+          "last_jail_contact":"2017-09-03",
+          "last_hmis_contact":"2017-12-04",
+          "jail_contact":1,
+          "hmis_contact":1,
+          "total_contact":2,
+          "cumu_jail_days":108,
+          "cumu_hmis_days":21
+        },
+        {
+          "matched_id":"134",
+          "jail_id":null,
+          "hmis_id":"241445",
+          "first_name":"Rachel",
+          "last_name":"Chavez",
+          "last_jail_contact":null,
+          "last_hmis_contact":"2017-02-06",
+          "jail_contact":null,
+          "hmis_contact":1,
+          "total_contact":1,
+          "cumu_jail_days":null,
+          "cumu_hmis_days":298
+        },
+        {
+          "matched_id":"140",
+          "jail_id":null,
+          "hmis_id":"6736265",
+          "first_name":"Sandy",
+          "last_name":"Sloan",
+          "last_jail_contact":null,
+          "last_hmis_contact":"2017-07-04",
+          "jail_contact":null,
+          "hmis_contact":1,
+          "total_contact":1,
+          "cumu_jail_days":null,
+          "cumu_hmis_days":152
+        },
+        {
+          "matched_id":"149",
+          "jail_id":null,
+          "hmis_id":"61970",
+          "first_name":"Tina",
+          "last_name":"Fisher",
+          "last_jail_contact":null,
+          "last_hmis_contact":"2017-04-09",
+          "jail_contact":null,
+          "hmis_contact":1,
+          "total_contact":1,
+          "cumu_jail_days":null,
+          "cumu_hmis_days":239
         }
       ]
     }

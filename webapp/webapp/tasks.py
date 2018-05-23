@@ -1,7 +1,8 @@
 from smart_open import smart_open
 from datetime import datetime
 from goodtables import validate
-from webapp.models import Upload, MergeLog
+from webapp.database import db_session, engine
+from webapp.models import Upload, MergeLog, MatchLog
 from webapp.utils import load_schema_file,\
     create_statement_from_goodtables_schema,\
     column_list_from_goodtables_schema,\
@@ -54,8 +55,9 @@ def sync_upload_metadata(
         file_size = os.fstat(infile.fileno()).st_size
         file_hash = md5(infile.read()).hexdigest()
 
-        db_object = Upload(
-            id=upload_id,
+        write_upload_log(
+            db_session=db_session,
+            upload_id=upload_id,
             jurisdiction_slug=jurisdiction,
             event_type_slug=event_type,
             user_id=flask_user_id,
@@ -71,8 +73,6 @@ def sync_upload_metadata(
             file_hash=file_hash,
             s3_upload_path=s3_upload_path
         )
-        db_session.add(db_object)
-        db_session.commit()
 
 
 def copy_raw_table_to_db(
@@ -291,3 +291,126 @@ def validate_header(event_type, filename_without_all_fields):
         for required_field_name in required_field_names:
             if required_field_name not in first_line:
                 raise ValueError(f"Field name {required_field_name} is required for {event_type} schema but is not present")
+
+
+def write_upload_log(
+    db_session,
+    upload_id,
+    jurisdiction_slug,
+    event_type_slug,
+    user_id,
+    given_filename,
+    upload_start_time,
+    upload_complete_time,
+    upload_status,
+    validate_start_time,
+    validate_complete_time,
+    validate_status,
+    num_rows,
+    file_size,
+    file_hash,
+    s3_upload_path
+):
+    db_object = Upload(
+            id=upload_id,
+            jurisdiction_slug=jurisdiction_slug,
+            event_type_slug=event_type_slug,
+            user_id=user_id,
+            given_filename=given_filename,
+            upload_start_time=upload_start_time,
+            upload_complete_time=upload_complete_time,
+            upload_status=upload_status,
+            validate_start_time=validate_start_time,
+            validate_complete_time=validate_complete_time,
+            validate_status=validate_status,
+            num_rows=num_rows,
+            file_size=file_size,
+            file_hash=file_hash,
+            s3_upload_path=s3_upload_path
+    )
+    db_session.add(db_object)
+    db_session.commit()
+
+
+def write_match_log(db_session, match_job_id, upload_id, match_start_at, match_complete_at, match_status, match_runtime):
+    db_object = MatchLog(
+        id=match_job_id,
+        upload_id=upload_id,
+        match_start_timestamp=match_start_at,
+        match_complete_timestamp=match_complete_at,
+        match_status=match_status,
+        runtime=match_runtime
+    )
+    db_session.add(db_object)
+    db_session.commit()
+
+
+def write_matches_to_db(db_engine, event_type, jurisdiction, matches_filehandle):
+    goodtables_schema = load_schema_file(event_type)
+    table_name = generate_matched_table_name(event_type=event_type, jurisdiction=jurisdiction)
+    reader = csv.reader(matches_filehandle)
+    ordered_column_names = next(reader)
+    matches_filehandle.seek(0)
+
+    # 1. create pseudo-temporary table for the raw matches file
+    # use the CSV's column order but grab the definitions from the goodtables schema
+    unordered_column_list = column_list_from_goodtables_schema(goodtables_schema)
+    primary_key = goodtables_schema['primaryKey']
+
+    all_columns = [('matched_id', 'varchar')] + [col for col in unordered_column_list if col[0] in primary_key]
+    column_definitions = dict((col[0], col) for col in all_columns)
+    ordered_column_list = [column_definitions[ordered_column_name] for ordered_column_name in ordered_column_names]
+    create = create_statement_from_column_list(ordered_column_list, table_name, primary_key)
+    temp_table_name = 'temp_matched_merge_tbl'
+    create = create.replace(table_name, temp_table_name)
+    db_engine.execute(create)
+
+    # 2. copy data from filehandle to 
+    conn = db_engine.raw_connection()
+    cursor = conn.cursor()
+    copy_stmt = 'copy "{}" from stdin with csv header delimiter as \',\' '.format(temp_table_name)
+    try:
+        cursor.copy_expert(copy_stmt, matches_filehandle)
+        big_query = """
+        update {matched_table} as m set matched_id = tmp.matched_id
+        from {temp_table_name} tmp where ({pk}) """.format(
+            create=create,
+            matched_table=table_name,
+            temp_table_name= temp_table_name,
+            pk=' and '.join(['tmp.{col} = m.{col}'.format(col=col) for col in primary_key])
+        )
+        cursor.execute(big_query)
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+    finally:
+        db_engine.execute('drop table if exists {}'.format(temp_table_name))
+
+
+def match_finished(
+    matched_results_paths,
+    match_job_id,
+    match_start_at,
+    match_complete_at,
+    match_status,
+    match_runtime,
+    upload_id=None
+):
+    write_match_log(
+        db_session=db_session,
+        match_job_id=match_job_id,
+        match_start_at=match_start_at,
+        match_complete_at=match_complete_at,
+        match_status=match_status,
+        match_runtime=match_runtime,
+        upload_id=upload_id
+    )
+
+    for event_type, filename in matched_results_paths.items():
+        with smart_open(filename, 'rb') as matches_filehandle:
+            write_matches_to_db(
+                db_engine=engine,
+                event_type=event_type,
+                jurisdiction=filename.split('/')[-2],
+                matches_filehandle=matches_filehandle
+            )

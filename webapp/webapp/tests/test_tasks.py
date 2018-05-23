@@ -1,18 +1,28 @@
 import moto
 import boto
 from webapp.database import Base
-from webapp.tasks import upload_to_s3, copy_raw_table_to_db, upsert_raw_table_to_master, validate_header
-from webapp.utils import makeNamedTemporaryCSV, s3_upload_path, generate_master_table_name
-from webapp.models import MergeLog
+from webapp.models import MergeLog, MatchLog
+import time
 from unittest.mock import patch
 from unittest import TestCase
 import testing.postgresql
-from webapp.tests.utils import create_and_populate_raw_table
+from webapp.tasks import \
+    upload_to_s3,\
+    copy_raw_table_to_db,\
+    upsert_raw_table_to_master,\
+    validate_header,\
+    write_match_log,\
+    write_upload_log,\
+    write_matches_to_db,\
+    match_finished
+from webapp.utils import makeNamedTemporaryCSV, s3_upload_path, generate_master_table_name, generate_matched_table_name
+from webapp.tests.utils import create_and_populate_raw_table, rig_test_client, create_and_populate_matched_table
 from smart_open import smart_open
-from datetime import date
+from datetime import date, datetime, timedelta
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 import csv
+import unicodecsv
 
 
 def test_upload_to_s3():
@@ -252,3 +262,106 @@ class ValidateHeaderTest(TestCase):
             ],
         ]) as filename:
             validate_header('test', filename)
+
+def test_write_match_log():
+    with rig_test_client() as (app, engine):
+        # engine = create_engine(postgresql.url())
+        Base.metadata.create_all(engine)
+        db_session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
+
+        write_upload_log(
+            db_session=db_session,
+            upload_id="234",
+            jurisdiction_slug="test",
+            event_type_slug="hmis_service_stays",
+            user_id=1,
+            given_filename="hmis_test.csv",
+            upload_start_time=datetime.now(),
+            upload_complete_time=datetime.now(),
+            upload_status=True,
+            validate_start_time=datetime.now(),
+            validate_complete_time=datetime.now(),
+            validate_status=True,
+            num_rows=1,
+            file_size=1,
+            file_hash="abcd",
+            s3_upload_path="s3://somewhere"
+        )
+        match_start_timestamp = datetime.now()
+        time.sleep(1)
+        match_complete_timestamp = datetime.now()
+        write_match_log(
+            db_session=db_session,
+            match_job_id="123",
+            upload_id="234",
+            match_start_at=match_start_timestamp,
+            match_complete_at=match_complete_timestamp,
+            match_status=True,
+            match_runtime=match_complete_timestamp - match_start_timestamp
+            )
+
+        log = db_session.query(MatchLog).all()
+        assert log[0].id == "123"
+        assert log[0].upload_id == "234"
+        assert log[0].match_start_timestamp == match_start_timestamp
+        assert log[0].match_status == True
+        assert log[0].runtime == match_complete_timestamp - match_start_timestamp
+
+class WriteMatchesToDBTest(TestCase):
+    def test_write_matches_to_db(self):
+        BOOTSTRAPPED_HMIS_FILE = 'sample_data/matched/bootstrapped_hmis_data_20180401.csv'
+        MATCHES_HMIS_FILE = 'sample_data/matched/matchesonly_hmis_data.csv'
+
+        with testing.postgresql.Postgresql() as postgresql:
+            db_engine = create_engine(postgresql.url())
+            create_and_populate_matched_table(
+                table_name='hmis_service_stays',
+                db_engine=db_engine,
+                file_path=BOOTSTRAPPED_HMIS_FILE
+            )
+            # generate expected matches by taking the first column of the matched id spreadsheet
+            with open(MATCHES_HMIS_FILE, 'rb') as f:
+                reader = unicodecsv.reader(f)
+                next(reader)
+                expected_matched_ids = set(row[0] for row in reader)
+
+            # write these matches to the DB
+            with open(MATCHES_HMIS_FILE, 'rb') as fh:
+                write_matches_to_db(
+                    db_engine=db_engine,
+                    event_type='hmis_service_stays',
+                    jurisdiction='boone',
+                    matches_filehandle=fh
+                )
+
+            full_table_name = generate_matched_table_name('boone', 'hmis_service_stays')
+            retrieved_matched_ids = set([row[0] for row in db_engine.execute('select distinct matched_id from {}'.format(full_table_name))])
+            assert retrieved_matched_ids == expected_matched_ids
+
+@moto.mock_s3_deprecated()
+@patch('webapp.tasks.write_matches_to_db')
+@patch('webapp.tasks.write_match_log')
+def test_match_finished(write_match_log_mock, write_matches_to_db_mock):
+    s3 = boto.connect_s3()
+    bucket = s3.create_bucket('bucket')
+    boto.s3.key.Key(bucket=bucket, name='matcher/jur1/hmis_service_stays').set_contents_from_string('test')
+    boto.s3.key.Key(bucket=bucket, name='matcher/jur1/jail_bookings').set_contents_from_string('test')
+    boto.s3.key.Key(bucket=bucket, name='matcher/jur1/jail_booking_charges').set_contents_from_string('test')
+    match_finished(
+        matched_results_paths={
+            'hmis_service_stays': 's3://bucket/matcher/jur1/hmis_service_stays',
+            'jail_bookings': 's3://bucket/matcher/jur1/jail_bookings',
+            'jail_booking_charges': 's3://bucket/matcher/jur1/jail_booking_charges'
+        },
+        match_job_id='123abc',
+        match_start_at=datetime.today(),
+        match_complete_at=datetime.today(),
+        match_status=True,
+        match_runtime=timedelta(seconds=0),
+        upload_id=None
+    )
+    assert write_match_log_mock.called
+    assert write_matches_to_db_mock.call_count == 3
+    for call_args in write_matches_to_db_mock.call_args_list:
+        assert call_args[1]['jurisdiction'] == 'jur1'
+        assert call_args[1]['event_type'] in {'jail_bookings', 'jail_booking_charges', 'hmis_service_stays'}
