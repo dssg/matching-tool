@@ -142,14 +142,14 @@ function mapDispatchToProps(dispatch) {
       }
     },
     updateStartDate: (startDate) => {
-      dispatch(setAppState('app.matchingFilters.startDate', startDate))
+      dispatch(setAppState('matchingFilters.startDate', startDate))
     },
     updateEndDate: (endDate) => {
-      dispatch(setAppState('app.matchingFilters.endDate', endDate))
+      dispatch(setAppState('matchingFilters.endDate', endDate))
     },
     updateTableSort: (orderColumn, order) => {
-      dispatch(setAppState('app.matchingFilters.order', order))
-      dispatch(setAppState('app.matchingFilters.orderColumn', orderColumn))
+      dispatch(setAppState('matchingFilters.order', order))
+      dispatch(setAppState('matchingFilters.orderColumn', orderColumn))
     },
     nextPage: (event) => {
       dispatch(nextTablePage())
