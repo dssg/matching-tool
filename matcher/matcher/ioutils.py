@@ -21,7 +21,7 @@ dotenv_path = os.path.join(APP_ROOT, '.env')
 load_dotenv(dotenv_path)
 
 
-def load_data_for_matching(base_data_directory:str, event_types:list, keys:list, match_job_id:str):
+def load_data_for_matching(base_data_directory:str, event_types:list, keys:list, match_job_id:str) -> list:
     # We will frame the record linkage problem as a deduplication problem
     logger.debug(f'Loading data for event types: {event_types}')
     try:
@@ -96,20 +96,20 @@ def write_matched_data(
     person_keys:list,
     schema_pk_lookup:dict,
     match_job_id:str
-) -> list:
+) -> dict:
     write_dataframe(df=matches.reset_index(), filepath=f'{base_data_directory}/match_cache/matcher_results/{match_job_id}')
-    matched_results_paths = []
+    matched_results_paths = {}
     logger.debug(schema_pk_lookup)
     for event_type, primary_keys in schema_pk_lookup.items():
         logger.info(f'Writing matched data for {base_data_directory} {event_type}')
-        matched_results_paths.append(write_one_event_type(
+        matched_results_paths['event_type'] = write_one_event_type(
             df=matches,
             base_data_directory=base_data_directory,
             event_type=event_type,
             person_keys=person_keys,
             primary_keys=primary_keys,
             match_job_id=match_job_id
-        ))
+        )
 
     return matched_results_paths
 
