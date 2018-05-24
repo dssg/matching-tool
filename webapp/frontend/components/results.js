@@ -15,7 +15,7 @@ import DataTables from 'material-ui-datatables'
 import Venn from './venn'
 import { connect } from 'react-redux'
 import { join, keys, map, merge, toPairs } from 'ramda'
-import { getMatchingResults, updateControlledDate, updateTableSort, nextTablePage, prevTablePage, updateSetStatus, toggleBarFlag } from '../actions'
+import { getMatchingResults, setAppState, nextTablePage, prevTablePage, updateSetStatus, toggleBarFlag } from '../actions'
 import { Card, CardTitle } from 'material-ui/Card'
 import {GridList, GridTile} from 'material-ui/GridList';
 import html2canvas from 'html2canvas'
@@ -141,11 +141,15 @@ function mapDispatchToProps(dispatch) {
         console.log('Short-circuiting matching results querying because no jurisdiction is selected yet')
       }
     },
-    updateDates: (startDate, endDate) => {
-      dispatch(updateControlledDate(startDate, endDate))
+    updateStartDate: (startDate) => {
+      dispatch(setAppState('app.matchingFilters.startDate', startDate))
+    },
+    updateEndDate: (endDate) => {
+      dispatch(setAppState('app.matchingFilters.endDate', endDate))
     },
     updateTableSort: (orderColumn, order) => {
-      dispatch(updateTableSort(orderColumn, order))
+      dispatch(setAppState('app.matchingFilters.order', order))
+      dispatch(setAppState('app.matchingFilters.orderColumn', orderColumn))
     },
     nextPage: (event) => {
       dispatch(nextTablePage())
@@ -168,8 +172,6 @@ export class Results extends React.Component {
     this.state = {
       open: true,
       flagJailBar: true,
-      startdate: null,
-      enddate: null,
     }
   }
 
@@ -187,14 +189,12 @@ export class Results extends React.Component {
 
   handleStartDate = (event, date) => {
     const startDate = moment(date).format('YYYY-MM-DD')
-    this.setState({startdate: startDate})
-    this.props.updateDates(startDate, this.state.enddate)
+    this.props.updateStartDate(startDate)
   }
 
   handleEndDate = (event, date) => {
     const endDate = moment(date).format('YYYY-MM-DD')
-    this.setState({enddate: endDate})
-    this.props.updateDates(this.state.startdate, endDate)
+    this.props.updateEndDate(endDate)
   }
 
   handleClickToggleChartAndList = () => {
