@@ -349,7 +349,7 @@ def write_match_log(db_session, match_job_id, upload_id, match_start_at, match_c
 def write_matches_to_db(db_engine, event_type, jurisdiction, matches_filehandle):
     goodtables_schema = load_schema_file(event_type)
     table_name = generate_matched_table_name(event_type=event_type, jurisdiction=jurisdiction)
-    reader = csv.reader(matches_filehandle)
+    reader = csv.reader(matches_filehandle, delimiter='|')
     ordered_column_names = next(reader)
     matches_filehandle.seek(0)
 
@@ -369,7 +369,7 @@ def write_matches_to_db(db_engine, event_type, jurisdiction, matches_filehandle)
     # 2. copy data from filehandle to 
     conn = db_engine.raw_connection()
     cursor = conn.cursor()
-    copy_stmt = 'copy "{}" from stdin with csv header delimiter as \',\' '.format(temp_table_name)
+    copy_stmt = 'copy "{}" from stdin with csv header delimiter as \'|\' '.format(temp_table_name)
     try:
         cursor.copy_expert(copy_stmt, matches_filehandle)
         big_query = """

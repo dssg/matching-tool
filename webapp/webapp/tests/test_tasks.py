@@ -321,7 +321,7 @@ class WriteMatchesToDBTest(TestCase):
             )
             # generate expected matches by taking the first column of the matched id spreadsheet
             with open(MATCHES_HMIS_FILE, 'rb') as f:
-                reader = unicodecsv.reader(f)
+                reader = unicodecsv.reader(f, delimiter='|')
                 next(reader)
                 expected_matched_ids = set(row[0] for row in reader)
 
