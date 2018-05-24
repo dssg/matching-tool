@@ -102,7 +102,7 @@ def write_matched_data(
     logger.debug(schema_pk_lookup)
     for event_type, primary_keys in schema_pk_lookup.items():
         logger.info(f'Writing matched data for {base_data_directory} {event_type}')
-        matched_results_paths['event_type'] = write_one_event_type(
+        matched_results_paths[event_type] = write_one_event_type(
             df=matches,
             base_data_directory=base_data_directory,
             event_type=event_type,
