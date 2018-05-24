@@ -98,12 +98,14 @@ def do_match(
         match_runtime =  match_end_time - metadata['match_job_start_time']
         
         match_successful = True
+        status_message = 'new matches are available. Yipee!'
 
     except Exception as e:
         logger.error(f'Matcher failed with message "{str(e)}"')
         match_end_time = datetime.datetime.now()
         match_run_time = match_end_time - metadata['match_job_start_time']
         match_successful = False
+        status_message = 'matching failed. SAD!'
 
     finally:
         if notify_webapp:
@@ -120,7 +122,7 @@ def do_match(
                 ),
                 result_ttl=5000
             )
-            logger.info('Notified the webapp that new matches are available. Yipee!')
+            logger.info(f'Notified the webapp that {status_message}')
 
         logger.info('All done!!')
 
