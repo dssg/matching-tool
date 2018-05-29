@@ -10,11 +10,11 @@ from webapp.tasks import \
     sync_upload_metadata,\
     copy_raw_table_to_db,\
     upsert_raw_table_to_master,\
+    bootstrap_master_tables,\
     sync_merged_file_to_s3,\
     add_missing_fields,\
     validate_file,\
-    validate_header,\
-    bootstrap_matched_tables
+    validate_header
 from webapp.users import can_upload_file, get_jurisdiction_roles
 from webapp.utils import s3_upload_path, notify_matcher, infer_delimiter, unique_upload_id
 
@@ -353,10 +353,7 @@ def merge_file():
             )
             logger.info('Syncing merged file to s3')
 
-            bootstrap_matched_tables(
-                jurisdiction=upload_log.jurisdiction_slug,
-                db_session=db_session
-            )
+            bootstrap_master_tables(upload_log.jurisdiction_slug, db_session)
 
             sync_merged_file_to_s3(
                 upload_log.jurisdiction_slug,

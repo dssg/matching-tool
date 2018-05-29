@@ -17,8 +17,7 @@ from webapp.utils import load_schema_file,\
     primary_key_statement,\
     table_exists,\
     table_has_column,\
-    split_table,\
-    generate_matched_table_name
+    split_table
 from webapp.validations import CHECKS_BY_SCHEMA
 from hashlib import md5
 import logging
@@ -26,6 +25,7 @@ import os
 import re
 import unicodecsv as csv
 import psycopg2
+import s3fs
 
 
 def upload_to_s3(full_s3_path, local_filename):
@@ -129,6 +129,11 @@ def create_merged_table(jurisdiction, event_type, db_session):
     db_session.execute(create)
 
 
+def bootstrap_master_tables(jurisdiction, db_session):
+    for event_type in {'hmis_service_stays', 'jail_bookings'}:
+        create_merged_table(jurisdiction, event_type, db_session)
+
+
 def upsert_raw_table_to_master(
     raw_table_name,
     jurisdiction,
@@ -148,13 +153,14 @@ def upsert_raw_table_to_master(
     start_ts = datetime.today()
     insert_sql = '''
         insert into {master}
-        select raw.*, '{new_ts}' inserted_ts, '{new_ts}' updated_ts
+        select raw.*, '{new_ts}' inserted_ts, '{new_ts}' updated_ts, row_number() over ()::text || '{event_type}' as matched_id
         from "{raw}" as raw
         on conflict ({primary_key})
         do update set {update_string}, updated_ts = '{new_ts}'
     '''.format(
         raw=raw_table_name,
         master=master_table_name,
+        event_type=event_type,
         primary_key=', '.join(["\"{}\"".format(col) for col in goodtables_schema['primaryKey']]),
         update_string=', '.join(update_statements),
         new_ts=start_ts.isoformat()
@@ -173,39 +179,6 @@ def upsert_raw_table_to_master(
     db_session.commit()
     return merge_log.id
 
-def bootstrap_matched_tables(jurisdiction, db_session):
-    bootstrap_matched_table_with_merged(jurisdiction, 'jail_bookings', db_session)
-    bootstrap_matched_table_with_merged(jurisdiction, 'hmis_service_stays', db_session)
-
-def bootstrap_matched_table_with_merged(jurisdiction, event_type, db_session):
-    matched_table_name = generate_matched_table_name(jurisdiction, event_type)
-    matched_schema, _ = split_table(matched_table_name)
-    merged_table_name = generate_master_table_name(jurisdiction, event_type)
-    create_merged_table(jurisdiction, event_type, db_session)
-    if not table_exists(matched_table_name, db_session.bind):
-        db_session.execute('create schema if not exists {}'.format(matched_schema))
-        logging.info('Bootstrapping matched table with merged table')
-        db_session.execute('''
-create table {} as
-select *,
-internal_person_id as source_id,
-row_number() over ()::text as matched_id from {}
-        '''.format(matched_table_name, merged_table_name))
-        columns_to_index = [
-            'matched_id',
-            'jail_entry_date',
-            'jail_exit_date',
-            'client_location_start_date',
-            'client_location_end_date',
-        ]
-        for column in columns_to_index:
-            if table_has_column(matched_table_name, db_session.bind, column):
-                db_session.execute('create index on {} ({})'.format(column))
-        db_session.commit()
-        if table_has_column(matched_table_name, db_session.bind, 'inmate_num'):
-            db_session.execute('update {} set source_id = coalesce(internal_person_id, inmate_num)'.format(matched_table_name))
-            db_session.commit()
-        db_session.commit()
 
 def new_unique_rows(master_table_name, new_ts, db_session):
     return [
@@ -348,7 +321,8 @@ def write_match_log(db_session, match_job_id, upload_id, match_start_at, match_c
 
 def write_matches_to_db(db_engine, event_type, jurisdiction, matches_filehandle):
     goodtables_schema = load_schema_file(event_type)
-    table_name = generate_matched_table_name(event_type=event_type, jurisdiction=jurisdiction)
+    table_name = generate_master_table_name(event_type=event_type, jurisdiction=jurisdiction)
+    logging.info('Writing matches for %s / %s to table %s', event_type, jurisdiction, table_name)
     reader = csv.reader(matches_filehandle, delimiter='|')
     ordered_column_names = next(reader)
     matches_filehandle.seek(0)
@@ -361,17 +335,28 @@ def write_matches_to_db(db_engine, event_type, jurisdiction, matches_filehandle)
     all_columns = [('matched_id', 'varchar')] + [col for col in unordered_column_list if col[0] in primary_key]
     column_definitions = dict((col[0], col) for col in all_columns)
     ordered_column_list = [column_definitions[ordered_column_name] for ordered_column_name in ordered_column_names]
+    logging.info('Final column list for temporary matches-only table: %s', ordered_column_list)
     create = create_statement_from_column_list(ordered_column_list, table_name, primary_key)
     temp_table_name = 'temp_matched_merge_tbl'
     create = create.replace(table_name, temp_table_name)
+    logging.info(create)
     db_engine.execute(create)
 
     # 2. copy data from filehandle to 
     conn = db_engine.raw_connection()
     cursor = conn.cursor()
-    copy_stmt = 'copy "{}" from stdin with csv header delimiter as \'|\' '.format(temp_table_name)
+    pk = ','.join([col for col in primary_key])
+    copy_stmt = 'copy {} from stdin with csv header delimiter as \'|\' force not null {}'.format(temp_table_name, pk)
     try:
+        logging.info(copy_stmt)
         cursor.copy_expert(copy_stmt, matches_filehandle)
+        logging.info('Status message after COPY: %s', cursor.statusmessage)
+        for notice in conn.notices:
+            logging.info('Notice from database connection: %s', notice)
+        conn.commit()
+        cursor = conn.cursor()
+        cursor.execute('select * from {} limit 5'.format(temp_table_name))
+        logging.info('First five rows: %s', [row for row in cursor])
         big_query = """
         update {matched_table} as m set matched_id = tmp.matched_id
         from {temp_table_name} tmp where ({pk}) """.format(
@@ -380,9 +365,13 @@ def write_matches_to_db(db_engine, event_type, jurisdiction, matches_filehandle)
             temp_table_name= temp_table_name,
             pk=' and '.join(['tmp.{col} = m.{col}'.format(col=col) for col in primary_key])
         )
+        logging.info('Updating matches in %s with rows from %s', table_name, temp_table_name)
+        logging.info(big_query)
         cursor.execute(big_query)
+        logging.info('Status message after UPDATE: %s', cursor.statusmessage)
         conn.commit()
     except Exception as e:
+        logging.error('Error encountered! Rolling back merge of matched ids. Original error: %s', str(e))
         conn.rollback()
     finally:
         db_engine.execute('drop table if exists {}'.format(temp_table_name))
@@ -410,12 +399,15 @@ def match_finished(
         )
         logger.info('Writing matches to db')
         for event_type, filename in matched_results_paths.items():
-            logger.info('Writing matches from event type %s and filename %s to db', event_type, filename)
-            with smart_open(filename, 'rb') as matches_filehandle:
+            jurisdiction = filename.split('/')[-3]
+            logger.info('Writing matches from event type %s and filename %s to db. Parsed jurisdiction %s out of filename', event_type, filename, jurisdiction)
+            s3 = s3fs.S3FileSystem()
+            protocolless_filename = filename.replace('s3://', '')
+            with s3.open(protocolless_filename) as matches_filehandle:
                 write_matches_to_db(
                     db_engine=engine,
                     event_type=event_type,
-                    jurisdiction=filename.split('/')[-2],
+                    jurisdiction=jurisdiction,
                     matches_filehandle=matches_filehandle
                 )
     except Exception as e:

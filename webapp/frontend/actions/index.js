@@ -9,12 +9,10 @@ import {
   RESET_UPLOAD_RESPONSE,
   SAVE_MERGE_RESULTS,
   RESET_APP_STATE,
+  SET_APP_STATE,
   SET_ERROR_MESSAGE,
   MATCHING_RESULTS,
   MATCHING_IS_LOADING,
-  UPDATE_CONTROLLED_DATE,
-  UPDATE_TABLE_SORT,
-  UPDATE_DURATION,
   UPDATE_TABLE_DATA,
   NEXT_TABLE_PAGE,
   PREV_TABLE_PAGE,
@@ -154,26 +152,6 @@ export function getMatchingResults(matchingURLParams) {
   }
 }
 
-export function updateControlledDate(startDate, endDate) {
-  return {
-    type: UPDATE_CONTROLLED_DATE,
-    payload: {
-      startDate: startDate,
-      endDate: endDate
-    }
-  }
-}
-
-export function updateTableSort(orderColumn, order) {
-  return {
-    type: UPDATE_TABLE_SORT,
-    payload: {
-      orderColumn: orderColumn,
-      order: order
-    }
-  }
-}
-
 export function nextTablePage() {
   return {
     type: NEXT_TABLE_PAGE
@@ -197,6 +175,13 @@ export function resetAppState(stateKey) {
   return {
     type: RESET_APP_STATE,
     payload: stateKey
+  }
+}
+
+export function setAppState(stateKey, value) {
+  return {
+    type: SET_APP_STATE,
+    payload: { stateKey, value }
   }
 }
 

@@ -38,7 +38,8 @@ describe("Results", () => {
       handleControlledDate: jest.fn(),
       nextPage: jest.fn(),
       prevPage: jest.fn(),
-      updateDates: jest.fn(),
+      updateStartDate: jest.fn(),
+      updateEndDate: jest.fn(),
       updateTableSort: jest.fn(),
       filteredData: {
         tableData: [],
@@ -99,12 +100,21 @@ describe("Results", () => {
     });
   });
 
-  describe('DatePicker#onChange', () => {
-    it("fires off updateDates", () => {
+  describe('StartDatePicker#onChange', () => {
+    it("fires off updateStartDate", () => {
       const wrapper = resultsPage()
-      const callback = props.updateDates
-      wrapper.find('DatePicker').simulate('change', null, new Date(2016, 0, 1))
-      expect(callback.mock.calls[1]).toEqual(['2015-01-01', '2016-01-01'])
+      const callback = props.updateStartDate
+      wrapper.find('DatePicker').first().simulate('change', null, new Date(2016, 0, 1))
+      expect(callback.mock.calls[1]).toEqual(['2016-01-01'])
+    });
+  });
+
+  describe('EndDatePicker#onChange', () => {
+    it("fires off updateEndDate", () => {
+      const wrapper = resultsPage()
+      const callback = props.updateEndDate
+      wrapper.find('DatePicker').last().simulate('change', null, new Date(2016, 0, 1))
+      expect(callback.mock.calls[1]).toEqual(['2016-01-01'])
     });
   });
 
