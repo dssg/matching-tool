@@ -142,7 +142,7 @@ def notify_matcher(jurisdiction, upload_id=None):
 
 
 def lower_first(iterator):
-    return itertools.chain([next(iterator).lower()], iterator)
+    return itertools.chain([next(iterator).lower().replace(b' ', b'_')], iterator)
 
 
 def infer_delimiter(infilename):
