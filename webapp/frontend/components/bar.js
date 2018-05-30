@@ -5,13 +5,50 @@ import { VerticalBarSeries } from 'react-vis'
 import { XAxis } from 'react-vis'
 import { XYPlot } from 'react-vis'
 import { YAxis } from 'react-vis'
+import { Hint, Crosshair } from 'react-vis'
 import React from 'react'
 
 const FlexibleXYPlot = makeWidthFlexible(XYPlot)
 
+const styles = {
+  tooltips: {
+    background: "#3a3a48",
+    borderRadius: "4px",
+    padding: "7px 7px",
+    fontSize: "12px",
+    textAlign: "left",
+    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.5)",
+    color: "white",
+    whiteSpace: "nowrap"
+  }
+}
+
 export default class DurationBarChart extends React.Component {
   constructor(props) {
-    super(props)
+    super(props);
+    this.state = {
+      value: false
+    }
+  }
+
+  handleOnValueMouseOver = (v) => {
+    this.setState({value: v})
+  }
+
+  handleOnSeriesMouseOut = (v) => {
+    this.setState({value: false})
+  }
+
+  renderHint() {
+    if (this.state.value) {
+      return (
+        <Hint value={this.state.value}>
+          <div style={styles.tooltips}>
+            <p>{ (typeof this.state.value.y0 != 'undefined') ? (this.state.value.y - this.state.value.y0).toFixed(2) : (this.state.value.y).toFixed(2)}%</p>
+          </div>
+        </Hint>
+      )
+    }
   }
 
   render() {
@@ -56,8 +93,13 @@ export default class DurationBarChart extends React.Component {
                 <VerticalBarSeries
                   data={entry}
                   key={idx}
-                  opacity={0.8} />
+                  animation={false}
+                  onValueMouseOver={this.handleOnValueMouseOver}
+                  onValueMouseOut={this.handleOnSeriesMouseOut}
+                  opacity={0.8}>
+                </VerticalBarSeries>
               ))}
+              {this.renderHint()}
             </FlexibleXYPlot>
           </div>
           <div className="col-sm-2">

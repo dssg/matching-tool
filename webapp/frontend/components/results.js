@@ -235,8 +235,8 @@ export class Results extends React.Component {
   }
 
   intersectionPercentage = () => {
-    var h = (this.props.bothCount / this.props.homelessCount).toFixed(3)*100
-    var j = (this.props.bothCount / this.props.jailCount).toFixed(3)*100
+    var h = (100*this.props.bothCount / this.props.homelessCount).toPrecision(2)
+    var j = (100*this.props.bothCount / this.props.jailCount).toPrecision(2)
     return (
       <span>
         <strong>{h}%</strong> of HMIS, <strong>{j}%</strong> of Jail
@@ -307,8 +307,7 @@ export class Results extends React.Component {
               title={"Homeless: number of shelter days - " + this.props.filters.startDate + " to " + this.props.filters.endDate}
               titleStyle={{'fontSize': 16, 'marginLeft': 10}} />
             <DurationBarChart
-              data={this.props.filteredData.homelessDurationBarData}
-              legendItemList={["0 day", "1 day", "2-9 days", "10-89 days", "90+ days"]} />
+              data={this.props.filteredData.homelessDurationBarData} />
           </Card>
         </GridTile>
         <GridTile>
@@ -318,8 +317,7 @@ export class Results extends React.Component {
               title={"Homeless: number of contacts - " + this.props.filters.startDate + " to " + this.props.filters.endDate}
               titleStyle={{'fontSize': 16, 'marginLeft': 10}} />
             <DurationBarChart
-              data={this.props.filteredData.homelessContactBarData}
-              legendItemList={["1 contact", "2-9 contacts", "10-99 contacts", "100-499 contacts", "500+ contacts"]} />
+              data={this.props.filteredData.homelessContactBarData} />
           </Card>
         </GridTile>
       </GridList>
