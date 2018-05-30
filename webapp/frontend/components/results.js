@@ -306,8 +306,7 @@ export class Results extends React.Component {
               style={styles.cardTitle}
               title={"Homeless: number of shelter days - " + this.props.filters.startDate + " to " + this.props.filters.endDate}
               titleStyle={{'fontSize': 16, 'marginLeft': 10}} />
-            <DurationBarChart
-              data={this.props.filteredData.homelessDurationBarData} />
+            <DurationBarChart data={this.props.filteredData.homelessDurationBarData} />
           </Card>
         </GridTile>
         <GridTile>

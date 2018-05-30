@@ -5,7 +5,7 @@ import { VerticalBarSeries } from 'react-vis'
 import { XAxis } from 'react-vis'
 import { XYPlot } from 'react-vis'
 import { YAxis } from 'react-vis'
-import { Hint, Crosshair } from 'react-vis'
+import { Hint } from 'react-vis'
 import React from 'react'
 
 const FlexibleXYPlot = makeWidthFlexible(XYPlot)
