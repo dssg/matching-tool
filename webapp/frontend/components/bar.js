@@ -40,11 +40,12 @@ export default class DurationBarChart extends React.Component {
   }
 
   renderHint() {
-    if (this.state.value) {
+    const {value} = this.state
+    if (value) {
       return (
         <Hint value={this.state.value}>
           <div style={styles.tooltips}>
-            <p>{ (typeof this.state.value.y0 != 'undefined') ? (this.state.value.y - this.state.value.y0).toFixed(2) : (this.state.value.y).toFixed(2)}%</p>
+            <p>{ (typeof value.y0 != 'undefined') ? (value.y - value.y0).toFixed(2) : (value.y).toFixed(2)}%</p>
           </div>
         </Hint>
       )
