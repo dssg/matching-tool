@@ -8,7 +8,7 @@ from webapp.models import User, Role
 from webapp.apis.upload import upload_api
 from webapp.apis.chart import chart_api
 from webapp.apis.jobs import jobs_api
-from webapp.utils import generate_matched_table_name, generate_master_table_name
+from webapp.utils import generate_master_table_name
 import click
 import s3fs
 
@@ -48,12 +48,11 @@ def expunge(jurisdiction, event_type):
 
     base_path = app_config['base_path'].format(jurisdiction=jurisdiction, event_type=event_type)
     match_cache_path = app_config['match_cache_path'].format(jurisdiction=jurisdiction)
-    matched_table = generate_matched_table_name(jurisdiction, event_type)
     master_table = generate_master_table_name(jurisdiction, event_type)
 
     msg = 'Expunge all data for jurisdiction {} and event_type {}?'.format(jurisdiction, event_type)
     msg += '\n\ns3 paths (recursive!): {}, {}'.format(base_path, match_cache_path)
-    msg += '\n\ndatabase tables: {}, {}'.format(matched_table, master_table)
+    msg += '\n\ndatabase tables: {}'.format(master_table)
     msg += '\n\nYou should not do this while the system is validating or matching.'
     msg += '\n\nRemove all this?'
     shall = input("%s (y/N) " % msg).lower() == 'y'
@@ -65,7 +64,5 @@ def expunge(jurisdiction, event_type):
     s3.rm(base_path, recursive=True)
     click.echo("Removing match cache path" + match_cache_path)
     s3.rm(match_cache_path, recursive=True)
-    click.echo("Truncating matched database table " + matched_table)
-    engine.execute('truncate {}'.format(matched_table))
     click.echo("Truncating master database table " + master_table)
     engine.execute('truncate {}'.format(master_table))

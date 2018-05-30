@@ -1,9 +1,7 @@
 import logging
 import pandas as pd
-from webapp import db, app
-from webapp.database import db_session
-from webapp.utils import generate_matched_table_name, table_exists
-from collections import OrderedDict
+from webapp import db
+from webapp.utils import generate_master_table_name, table_exists
 from webapp.logger import logger
 import numpy as np
 import io
@@ -131,14 +129,14 @@ def get_records_by_time(
     order,
     set_status
 ):
-    matched_hmis_table = generate_matched_table_name(jurisdiction, 'hmis_service_stays')
-    matched_bookings_table = generate_matched_table_name(jurisdiction, 'jail_bookings')
-    hmis_exists = table_exists(matched_hmis_table, db.engine)
-    bookings_exists = table_exists(matched_bookings_table, db.engine)
+    hmis_table = generate_master_table_name(jurisdiction, 'hmis_service_stays')
+    bookings_table = generate_master_table_name(jurisdiction, 'jail_bookings')
+    hmis_exists = table_exists(hmis_table, db.engine)
+    bookings_exists = table_exists(bookings_table, db.engine)
     if not hmis_exists:
-        raise ValueError('HMIS matched table {} does not exist. Please try again later.'.format(matched_hmis_table))
+        raise ValueError('HMIS table {} does not exist. Please try again later.'.format(hmis_table))
     if not bookings_exists:
-        raise ValueError('Bookings matched table {} does not exist. Please try again later.'.format(matched_bookings_table))
+        raise ValueError('Bookings table {} does not exist. Please try again later.'.format(bookings_table))
     columns = [
         ("regexp_replace(matched_id::text, '[^\w]', '', 'g')", 'matched_id'),
         ("coalesce(hmis_summary.first_name, jail_summary.first_name)", 'first_name'),
@@ -155,6 +153,7 @@ def get_records_by_time(
     ]
     if not any(alias == order_column for expression, alias in columns):
         raise ValueError('Given order column expression does not match any alias in query. Exiting to avoid SQL injection attacks')
+
     base_query = """WITH booking_duration_lookup AS (
         select coalesce(booking_number, internal_event_id) as booking_id,
             max(case when jail_exit_date is not null
@@ -218,11 +217,10 @@ def get_records_by_time(
     FROM hmis_summary
     FULL OUTER JOIN jail_summary USING(matched_id)
     """.format(
-        hmis_table=matched_hmis_table,
-        booking_table=matched_bookings_table,
+        hmis_table=hmis_table,
+        booking_table=bookings_table,
         columns=",\n".join("{} as {}".format(expression, alias) for expression, alias in columns),
     )
-
 
     logging.info('Querying table records')
     if order not in {'asc', 'desc'}:
@@ -250,6 +248,7 @@ def get_records_by_time(
         end_date=end_time,
         offset=offset,
     )]
+
     query = """
     SELECT
     *,
@@ -260,12 +259,12 @@ def get_records_by_time(
         not ({start} > %(end_time)s AND {exit} > %(end_time)s)
     """
     hmis_query = query.format(
-        table_name=matched_hmis_table,
+        table_name=hmis_table,
         start="client_location_start_date",
         exit="client_location_end_date"
     )
     bookings_query = query.format(
-        table_name=matched_bookings_table,
+        table_name=bookings_table,
         start="jail_entry_date",
         exit="jail_exit_date"
     )
@@ -311,7 +310,7 @@ def get_records_by_time(
         }
     ]
     logging.info('Retrieving bar data from database')
-    filtered_data = retrieve_bar_data(matched_hmis_table, matched_bookings_table, start_time, end_time)
+    filtered_data = retrieve_bar_data(hmis_table, bookings_table, start_time, end_time)
     logging.info('Done retrieving bar data from database')
     filtered_data['tableData'] = rows_to_show
     return {
@@ -321,7 +320,7 @@ def get_records_by_time(
     }
 
 
-def retrieve_bar_data(matched_hmis_table, matched_bookings_table, start_time, end_time):
+def retrieve_bar_data(hmis_table, bookings_table, start_time, end_time):
     query = """
     SELECT
     {event_id} as event_id,
@@ -335,7 +334,7 @@ def retrieve_bar_data(matched_hmis_table, matched_bookings_table, start_time, en
     """
     filtered_hmis = pd.read_sql(
         query.format(
-            table_name=matched_hmis_table,
+            table_name=hmis_table,
             start="client_location_start_date",
             exit="client_location_end_date",
             event_id="internal_event_id",
@@ -349,7 +348,7 @@ def retrieve_bar_data(matched_hmis_table, matched_bookings_table, start_time, en
 
     filtered_bookings = pd.read_sql(
         query.format(
-            table_name=matched_bookings_table,
+            table_name=bookings_table,
             start="jail_entry_date",
             exit="jail_exit_date",
             event_id="coalesce(booking_number, internal_event_id)"
@@ -466,10 +465,10 @@ def get_metadata(upload_id):
     return df
 
 def source_data_to_filehandle(jurisdiction, event_type):
-    matched_table = generate_matched_table_name(jurisdiction, event_type)
+    master_table = generate_master_table_name(jurisdiction, event_type)
     out_filehandle = io.BytesIO()
     cursor = db.engine.raw_connection().cursor()
-    copy_stmt = 'copy {} to stdout with csv header delimiter as \'|\''.format(matched_table)
+    copy_stmt = 'copy {} to stdout with csv header delimiter as \'|\''.format(master_table)
     cursor.copy_expert(copy_stmt, out_filehandle)
     out_filehandle.seek(0)
     return out_filehandle

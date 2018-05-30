@@ -2,13 +2,13 @@ import unittest
 import re
 import json
 import requests_mock
-from webapp.tests.utils import rig_all_the_things, rig_test_client_with_engine,\
-    authenticate,\
-    create_and_populate_matched_table, load_json_example
+from webapp.tests.utils import rig_all_the_things,\
+    create_and_populate_master_table, load_json_example
 from datetime import date
 from smart_open import smart_open
 from webapp.database import db_session
 from webapp.models import Upload, MergeLog
+from webapp.utils import generate_master_table_name
 from io import BytesIO
 import unicodecsv as csv
 import pandas as pd
@@ -30,10 +30,10 @@ class GetMatchedResultsCase(unittest.TestCase):
         with rig_all_the_things() as (app, engine):
             # Create matched jail_bookings
             table_name = 'jail_bookings'
-            create_and_populate_matched_table(table_name, engine, booking_file)
+            create_and_populate_master_table(table_name, engine, booking_file)
             # Create matched hmis_service_stays
             table_name = 'hmis_service_stays'
-            create_and_populate_matched_table(table_name, engine, hmis_file)
+            create_and_populate_master_table(table_name, engine, hmis_file)
             response = app.get(url)
             self.assertEqual(response.status_code, 200)
 
@@ -204,13 +204,14 @@ class MergeFileTestCase(unittest.TestCase):
             # and make sure that the merge log has a record of this
             assert db_session.query(MergeLog).filter(MergeLog.upload_id == '123-456').one
 
-            # make sure that the matched table has been bootstrapped
-            total_rows = db_session.query('count(*) from matched.boone_hmis_service_stays').one()
+            # make sure that the master table has been bootstrapped
+            master_table = generate_master_table_name('boone', 'hmis_service_stays')
+            total_rows = db_session.query('count(*) from {}'.format(master_table)).one()
             assert total_rows == (ROWS_IN_GOOD_HMIS_FILE - 1, )
 
-            # make sure that we filled in some source ids
+            # make sure that we filled in some matched ids
             total_rows = db_session.query(
-                'count(source_id is not null) from matched.boone_hmis_service_stays'
+                'count(matched_id is not null) from {}'.format(master_table)
             ).one()
             assert total_rows == (ROWS_IN_GOOD_HMIS_FILE - 1, )
 
@@ -278,10 +279,10 @@ class DownloadSourceTestCase(unittest.TestCase):
         with rig_all_the_things() as (app, engine):
             # Create matched jail_bookings
             table_name = 'jail_bookings'
-            create_and_populate_matched_table(table_name, engine, MATCHED_BOOKING_FILE)
+            create_and_populate_master_table(table_name, engine, MATCHED_BOOKING_FILE)
             # Create matched hmis_service_stays
             table_name = 'hmis_service_stays'
-            create_and_populate_matched_table(table_name, engine, MATCHED_HMIS_FILE)
+            create_and_populate_master_table(table_name, engine, MATCHED_HMIS_FILE)
             db_session.commit()
             response = app.get('/api/chart/download_source?jurisdiction=boone&eventType=jail_bookings')
             assert response.status_code == 200

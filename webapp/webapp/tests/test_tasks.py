@@ -15,8 +15,8 @@ from webapp.tasks import \
     write_upload_log,\
     write_matches_to_db,\
     match_finished
-from webapp.utils import makeNamedTemporaryCSV, s3_upload_path, generate_master_table_name, generate_matched_table_name
-from webapp.tests.utils import create_and_populate_raw_table, rig_test_client, create_and_populate_matched_table
+from webapp.utils import makeNamedTemporaryCSV, s3_upload_path, generate_master_table_name
+from webapp.tests.utils import create_and_populate_raw_table, rig_test_client, create_and_populate_master_table
 from smart_open import smart_open
 from datetime import date, datetime, timedelta
 from sqlalchemy import create_engine
@@ -314,7 +314,7 @@ class WriteMatchesToDBTest(TestCase):
 
         with testing.postgresql.Postgresql() as postgresql:
             db_engine = create_engine(postgresql.url())
-            create_and_populate_matched_table(
+            create_and_populate_master_table(
                 table_name='hmis_service_stays',
                 db_engine=db_engine,
                 file_path=BOOTSTRAPPED_HMIS_FILE
@@ -334,24 +334,25 @@ class WriteMatchesToDBTest(TestCase):
                     matches_filehandle=fh
                 )
 
-            full_table_name = generate_matched_table_name('boone', 'hmis_service_stays')
+            full_table_name = generate_master_table_name('boone', 'hmis_service_stays')
             retrieved_matched_ids = set([row[0] for row in db_engine.execute('select distinct matched_id from {}'.format(full_table_name))])
             assert retrieved_matched_ids == expected_matched_ids
 
+@moto.mock_s3()
 @moto.mock_s3_deprecated()
 @patch('webapp.tasks.write_matches_to_db')
 @patch('webapp.tasks.write_match_log')
 def test_match_finished(write_match_log_mock, write_matches_to_db_mock):
     s3 = boto.connect_s3()
     bucket = s3.create_bucket('bucket')
-    boto.s3.key.Key(bucket=bucket, name='matcher/jur1/hmis_service_stays').set_contents_from_string('test')
-    boto.s3.key.Key(bucket=bucket, name='matcher/jur1/jail_bookings').set_contents_from_string('test')
-    boto.s3.key.Key(bucket=bucket, name='matcher/jur1/jail_booking_charges').set_contents_from_string('test')
+    boto.s3.key.Key(bucket=bucket, name='matcher/jur1/hmis_service_stays/matched').set_contents_from_string('test')
+    boto.s3.key.Key(bucket=bucket, name='matcher/jur1/jail_bookings/matched').set_contents_from_string('test')
+    boto.s3.key.Key(bucket=bucket, name='matcher/jur1/jail_booking_charges/matched').set_contents_from_string('test')
     match_finished(
         matched_results_paths={
-            'hmis_service_stays': 's3://bucket/matcher/jur1/hmis_service_stays',
-            'jail_bookings': 's3://bucket/matcher/jur1/jail_bookings',
-            'jail_booking_charges': 's3://bucket/matcher/jur1/jail_booking_charges'
+            'hmis_service_stays': 's3://bucket/matcher/jur1/hmis_service_stays/matched',
+            'jail_bookings': 's3://bucket/matcher/jur1/jail_bookings/matched',
+            'jail_booking_charges': 's3://bucket/matcher/jur1/jail_booking_charges/matched'
         },
         match_job_id='123abc',
         match_start_at=datetime.today(),

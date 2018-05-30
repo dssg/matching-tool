@@ -114,12 +114,8 @@ def generate_master_table_name(jurisdiction, event_type):
 def master_table_column_list(goodtables_schema):
     base_column_list = column_list_from_goodtables_schema(goodtables_schema)
     # mutate column list
-    full_column_list = base_column_list + [('inserted_ts', 'timestamp'), ('updated_ts', 'timestamp')]
+    full_column_list = base_column_list + [('inserted_ts', 'timestamp'), ('updated_ts', 'timestamp'), ('matched_id', 'varchar')]
     return full_column_list
-
-
-def generate_matched_table_name(jurisdiction, event_type):
-    return 'matched.{jurisdiction}_{event_type}'.format(**locals())
 
 
 def notify_matcher(jurisdiction, upload_id=None):
