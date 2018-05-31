@@ -472,3 +472,12 @@ def source_data_to_filehandle(jurisdiction, event_type):
     cursor.copy_expert(copy_stmt, out_filehandle)
     out_filehandle.seek(0)
     return out_filehandle
+
+def last_upload_date():
+    query = """
+    SELECT * From upload_log WHERE validate_status IS True Order By upload_start_time DESC Limit 1;
+    """
+    result = db.engine.execute(query)
+    last_upload = [row for row in result]
+    return last_upload
+

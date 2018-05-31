@@ -21,10 +21,12 @@ import {
   FETCHING_RESULT,
   SHOW_JOBS,
   SHOW_HISTORY,
-  TOGGLE_BAR_FLAG
+  TOGGLE_BAR_FLAG,
+  SET_LAST_UPLOAD_DATE
 } from '../constants/index'
 import { length, filter } from 'ramda'
 import { validJurisdictions } from '../utils/jurisdictions'
+import moment from 'moment'
 
 export function selectEventType(eventType) {
   return {
@@ -321,5 +323,26 @@ export function getHistory() {
 export function toggleBarFlag() {
   return {
     type: TOGGLE_BAR_FLAG,
+  }
+}
+
+export function getLastUploadDate() {
+  return function(dispatch) {
+    return fetch('api/chart/last_upload_date', { 'method': 'GET', dataType: 'json', credentials: 'include'})
+      .then((resp) => {
+        return resp.json()
+      })
+      .then((data) => {
+        dispatch(setLastUploadDate(data['results']))
+        dispatch(setAppState('matchingFilters.endDate', moment(data['results']).format('YYYY-MM-DD')))
+        dispatch(setAppState('matchingFilters.startDate',moment(data['results']).subtract(1, 'year').format('YYYY-MM-DD')))
+      })
+  }
+}
+
+function setLastUploadDate(result) {
+  return {
+    type: SET_LAST_UPLOAD_DATE,
+    payload: result
   }
 }

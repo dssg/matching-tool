@@ -19,7 +19,7 @@ import Venn from './venn'
 import FieldsHelp from './fields-help'
 import { connect } from 'react-redux'
 import { join, keys, map, merge, toPairs } from 'ramda'
-import { getMatchingResults, setAppState, nextTablePage, prevTablePage, updateSetStatus, toggleBarFlag } from '../actions'
+import { getMatchingResults, setAppState, nextTablePage, prevTablePage, updateSetStatus, toggleBarFlag, getLastUploadDate } from '../actions'
 import { Card, CardText, CardTitle } from 'material-ui/Card'
 import {GridList, GridTile} from 'material-ui/GridList';
 import html2canvas from 'html2canvas'
@@ -141,7 +141,8 @@ function mapStateToProps(state) {
     serverError: state.app.serverError,
     filters: state.app.matchingFilters,
     totalTableRows: state.app.matchingResults.totalTableRows,
-    barFlag: state.app.barFlag
+    barFlag: state.app.barFlag,
+    lastUploadDate: state.app.lastUploadDate,
   }
 }
 
@@ -175,6 +176,9 @@ function mapDispatchToProps(dispatch) {
     },
     toggleBarFlag: () => {
       dispatch(toggleBarFlag())
+    },
+    setLastUploadDate: () => {
+      dispatch(getLastUploadDate())
     }
   }
 }
@@ -271,9 +275,8 @@ export class Results extends React.Component {
   }
 
   componentDidMount() {
-    this.handleEndDate('blah', new moment())
+    this.props.setLastUploadDate()
     this.handleStartDate('blah', new moment().subtract(1, 'year'))
-
   }
 
   componentDidUpdate(prevProps) {
@@ -451,16 +454,17 @@ export class Results extends React.Component {
                 <div style={styles.datepicker}>
                   <h5 style={styles.h5}>Start Date:
                     <DatePicker
-                      defaultDate={new moment().subtract(1, 'year').toDate()}
+                      value={moment(this.props.filters.startDate).toDate()}
                       maxDate={new moment().toDate()}
-                      hintText="Pick the Start Date"
+                      hintText={this.props.filters.startDate}
                       onChange={this.handleStartDate} />
                   </h5>
-                  <h5 style={styles.h5}>End Date:
+                  <h5 style={styles.h5}>End Date (Last upload: {moment(this.props.lastUploadDate).format('YYYY-MM-DD')}):
                     <DatePicker
-                      defaultDate={new moment().toDate()}
+                      value={moment(this.props.filters.endDate).toDate()}
+                      onShow={this.handleOnShow}
                       maxDate={new moment().toDate()}
-                      hintText="Pick the End Date"
+                      hintText={"Last upload date " + this.props.filters.endDate}
                       onChange={this.handleEndDate} />
                   </h5>
                   <RaisedButton
