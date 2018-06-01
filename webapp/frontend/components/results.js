@@ -3,20 +3,24 @@ import DatePicker from 'material-ui/DatePicker'
 import Drawer from 'material-ui/Drawer'
 import DurationBarChart from './bar'
 import FloatingActionButton from 'material-ui/FloatingActionButton'
+import IconButton from 'material-ui/IconButton'
+import ActionHelp from 'material-ui/svg-icons/action/help';
 import Loadable from 'react-loading-overlay'
 import Header from './header'
 import moment from 'moment'
 import MenuItem from 'material-ui/MenuItem'
 import NavigationClose from 'material-ui/svg-icons/navigation/close'
+import Popover from 'material-ui/Popover'
 import RaisedButton from 'material-ui/RaisedButton'
 import React from 'react'
 import SelectField from 'material-ui/SelectField'
 import DataTables from 'material-ui-datatables'
 import Venn from './venn'
+import FieldsHelp from './fields-help'
 import { connect } from 'react-redux'
 import { join, keys, map, merge, toPairs } from 'ramda'
 import { getMatchingResults, setAppState, nextTablePage, prevTablePage, updateSetStatus, toggleBarFlag } from '../actions'
-import { Card, CardTitle } from 'material-ui/Card'
+import { Card, CardText, CardTitle } from 'material-ui/Card'
 import {GridList, GridTile} from 'material-ui/GridList';
 import html2canvas from 'html2canvas'
 import SourceDownloader from './source-downloader'
@@ -102,6 +106,15 @@ const styles = {
   tableColumn: {
     paddingLeft: '8px',
     paddingRight: '8x'
+  },
+  helpIcon: {
+    width: 18,
+    height: 18
+  },
+  helpIconRoot: {
+    width: 36,
+    height: 36,
+    padding: 0
   }
 }
 
@@ -170,20 +183,33 @@ export class Results extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      open: true,
+      controlPanelOpen: true,
+      helpOpen: false,
       flagJailBar: true,
     }
   }
 
-  handleToggle = () => {
+  handleControlPanelToggle = () => {
     this.setState({
-      open: !this.state.open
+      controlPanelOpen: !this.state.controlPanelOpen
     })
   }
 
-  handleClose = () => {
+  handleControlPanelClose = () => {
     this.setState({
-      open: false,
+      controlPanelOpen: false,
+    })
+  }
+
+  handleHelpToggle = () => {
+    this.setState({
+      helpOpen: !this.state.helpOpen
+    })
+  }
+
+  handleHelpClose = () => {
+    this.setState({
+      helpOpen: false,
     })
   }
 
@@ -383,7 +409,7 @@ export class Results extends React.Component {
 
   render() {
     const contentStyle = {  transition: 'margin-left 300ms cubic-bezier(0.23, 1, 0.32, 1)' }
-    if (this.state.open) {
+    if (this.state.controlPanelOpen) {
       contentStyle.marginLeft = '25%'
     }
     if (this.props.serverError) {
@@ -403,20 +429,20 @@ export class Results extends React.Component {
           <FloatingActionButton
             style={styles.floatingActionButtonAdd}
             mini={true}
-            onClick={this.handleToggle} >
+            onClick={this.handleControlPanelToggle} >
             <ContentAdd />
           </FloatingActionButton>
           <Drawer
             docked={true}
             width={'25%'}
-            open={this.state.open}
+            open={this.state.controlPanelOpen}
             containerStyle={{height: 'calc(100% - 93px)', top: 48}}
-            onRequestChange={(open) => this.setState({open})} >
+            onRequestChange={(open) => this.setState({controlPanelOpen: open})} >
             <div style={styles.container}>
               <Card style={styles.panel}>
                 <CardTitle title="Control Panel" titleStyle={{'fontSize': 20, }} />
                 <FloatingActionButton
-                  onClick={this.handleClose}
+                  onClick={this.handleControlPanelClose}
                   mini={true}
                   secondary={true}
                   style={styles.floatingActionButtonClose} >
@@ -472,6 +498,13 @@ export class Results extends React.Component {
         <div style={contentStyle}>
           <div>
             <h4 style={styles.h4}>Results - {this.props.filters.startDate} through {this.props.filters.endDate} - {this.props.filters.setStatus}</h4>
+            <IconButton
+              tooltip="Results Page Help"
+              onClick={this.handleHelpToggle}
+              iconStyle={styles.helpIcon}
+              style={styles.helpIconRoot} >
+              <ActionHelp />
+            </IconButton>
             <h5 style={styles.summary}>
                 Total: <strong>{this.props.totalCount}</strong>&nbsp;
                 Jail: <strong>{this.props.jailCount}</strong>&nbsp;
@@ -481,6 +514,28 @@ export class Results extends React.Component {
             <hr style={styles.hr}/>
           </div>
           { this.props.barFlag ? this.renderBarChart() : this.renderTable() }
+          <Drawer 
+            openSecondary={true}
+            width={'25%'}
+            open={this.state.helpOpen}
+            containerStyle={{height: 'calc(100% - 93px)', top: 48}}
+            onRequestChange={(open) => this.setState({helpOpen: open})}>
+            <div style={styles.container}>
+              <Card style={styles.panel}>
+                <CardTitle title="Results Fields" titleStyle={{'fontSize': 20, }} />
+                <FloatingActionButton
+                  onClick={this.handleHelpClose}
+                  mini={true}
+                  secondary={true}
+                  style={styles.floatingActionButtonClose} >
+                  <NavigationClose />
+                </FloatingActionButton>
+                <CardText>
+                  <FieldsHelp />
+                </CardText>
+              </Card>
+            </div>
+          </Drawer>
         </div>
       </div>
     )
