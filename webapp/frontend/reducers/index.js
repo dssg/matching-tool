@@ -25,7 +25,8 @@ import {
   FETCHING_RESULT,
   SHOW_JOBS,
   SHOW_HISTORY,
-  TOGGLE_BAR_FLAG
+  TOGGLE_BAR_FLAG,
+  SET_LAST_UPLOAD_DATE
 } from '../constants/index'
 
 import resetAppState from './reset-app-state'
@@ -35,8 +36,9 @@ import { nextTablePage, prevTablePage } from './update-table-page'
 import { combineReducers } from 'redux'
 import { routerReducer } from 'react-router-redux'
 import update from 'immutability-helper'
+import moment from 'moment'
 
-
+const today = new moment().format('YYYY-MM-DD')
 const initialState = {
   app: {
     serverError: null,
@@ -56,6 +58,7 @@ const initialState = {
       q: []
     },
     history: [],
+    lastUploadDate: '',
     uploadResponse: {
       status: '',
       isFetching: false,
@@ -75,8 +78,8 @@ const initialState = {
     },
     availableJurisdictionalRoles: [],
     matchingFilters: {
-      startDate: '',
-      endDate: '',
+      startDate: today,
+      endDate: today,
       limit: 11,
       offset: 0,
       orderColumn: 'matched_id',
@@ -261,6 +264,12 @@ const app = createReducer(initialState, {
   [TOGGLE_BAR_FLAG]: (state, payload) => {
     const newState = update(state, {
       barFlag: {$set: !state.barFlag}
+    })
+    return newState
+  },
+  [SET_LAST_UPLOAD_DATE]: (state, payload) => {
+    const newState = update(state, {
+      lastUploadDate: {$set: payload}
     })
     return newState
   }
