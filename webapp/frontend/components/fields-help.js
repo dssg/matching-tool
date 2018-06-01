@@ -2,8 +2,8 @@ export default (props) => {
   return (
     <div>
       <p><b>matched_id</b> The identifier generated for this person by the most recent matching process. Will not be stable across runs of the matcher</p>
-      <p><b>jail_id</b> The person identifier from the uploaded jail bookings dataset</p>
-      <p><b>hmis_id</b> The person identifier from the uploaded hmis service stays dataset</p>
+      <p><b>jail_id</b> The person identifier(s) from the uploaded jail bookings dataset</p>
+      <p><b>hmis_id</b> The person identifier(s) from the uploaded hmis service stays dataset</p>
       <p><b>first_name</b> The first name of the person, selected by sorting the first names from all events alphabetically and choosing the last one from that list</p>
       <p><b>last_name</b> The last name of the person, selected by sorting the last names from all events alphabetically and choosing the last one from that list</p>
       <p><b>last_jail_contact</b> The most recent jail entry date associated with this person</p>
