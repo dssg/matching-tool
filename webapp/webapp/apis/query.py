@@ -149,6 +149,7 @@ def get_records_by_time(
         ("jail_summary.jail_contact", 'jail_contact'),
         ("jail_summary.last_jail_contact", 'last_jail_contact'),
         ("jail_summary.cumu_jail_days", 'cumu_jail_days'),
+        ("jail_summary.percent_bookings_homeless_flag", "percent_bookings_homeless_flag"),
         ("coalesce(hmis_summary.hmis_contact, 0) + coalesce(jail_summary.jail_contact, 0)", 'total_contact'),
     ]
     if not any(alias == order_column for expression, alias in columns):
@@ -159,7 +160,8 @@ def get_records_by_time(
             max(case when jail_exit_date is not null
             then date_part('day', jail_exit_date::timestamp - jail_entry_date::timestamp)::int \
             else date_part('day', updated_ts::timestamp - jail_entry_date::timestamp)::int
-            end) as length_of_stay
+            end) as length_of_stay,
+            bool_or(coalesce(homeless, 'N') = 'Y') as any_homeless
         FROM (
             SELECT
                *
@@ -200,7 +202,8 @@ def get_records_by_time(
             count(distinct(coalesce(booking_number, internal_event_id))) AS jail_contact,
             to_char(max(jail_entry_date::timestamp), 'YYYY-MM-DD') as last_jail_contact,
             max(first_name) as first_name,
-            max(last_name) as last_name
+            max(last_name) as last_name,
+            100 * count(case when any_homeless then 1 else null end) / count(*)::float as percent_bookings_homeless_flag
         FROM (
             SELECT
                *

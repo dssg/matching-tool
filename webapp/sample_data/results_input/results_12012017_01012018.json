@@ -66,6 +66,7 @@
           "jail_contact":null,
           "hmis_contact":1,
           "total_contact":1,
+		  "percent_bookings_homeless_flag": null,
           "cumu_jail_days":null,
           "cumu_hmis_days":311
         },
@@ -80,6 +81,7 @@
           "jail_contact":1,
           "hmis_contact":1,
           "total_contact":2,
+		  "percent_bookings_homeless_flag": 0,
           "cumu_jail_days":108,
           "cumu_hmis_days":21
         },
@@ -94,6 +96,7 @@
           "jail_contact":null,
           "hmis_contact":1,
           "total_contact":1,
+		  "percent_bookings_homeless_flag": null,
           "cumu_jail_days":null,
           "cumu_hmis_days":298
         },
@@ -108,6 +111,7 @@
           "jail_contact":null,
           "hmis_contact":1,
           "total_contact":1,
+		  "percent_bookings_homeless_flag": null,
           "cumu_jail_days":null,
           "cumu_hmis_days":152
         },
@@ -122,6 +126,7 @@
           "jail_contact":null,
           "hmis_contact":1,
           "total_contact":1,
+		  "percent_bookings_homeless_flag": null,
           "cumu_jail_days":null,
           "cumu_hmis_days":239
         },
@@ -136,6 +141,7 @@
           "jail_contact":1,
           "hmis_contact":null,
           "total_contact":1,
+		  "percent_bookings_homeless_flag": 0,
           "cumu_jail_days":167,
           "cumu_hmis_days":null
         },
@@ -150,6 +156,7 @@
           "jail_contact":1,
           "hmis_contact":null,
           "total_contact":1,
+		  "percent_bookings_homeless_flag": 100.0,
           "cumu_jail_days":209,
           "cumu_hmis_days":null
         },
@@ -164,6 +171,7 @@
           "jail_contact":1,
           "hmis_contact":null,
           "total_contact":1,
+		  "percent_bookings_homeless_flag": 0,
           "cumu_jail_days":249,
           "cumu_hmis_days":null
         },
@@ -178,6 +186,7 @@
           "jail_contact":1,
           "hmis_contact":null,
           "total_contact":1,
+		  "percent_bookings_homeless_flag": 0,
           "cumu_jail_days":197,
           "cumu_hmis_days":null
         }
