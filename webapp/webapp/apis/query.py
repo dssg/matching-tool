@@ -156,7 +156,7 @@ def get_records_by_time(
         raise ValueError('Given order column expression does not match any alias in query. Exiting to avoid SQL injection attacks')
 
     base_query = """WITH booking_duration_lookup AS (
-        select coalesce(booking_number, internal_event_id) as booking_id,
+        select coalesce(nullif(booking_number, ''), internal_event_id) as booking_id,
             max(case when jail_exit_date is not null
             then date_part('day', jail_exit_date::timestamp - jail_entry_date::timestamp)::int \
             else date_part('day', updated_ts::timestamp - jail_entry_date::timestamp)::int
@@ -208,7 +208,7 @@ def get_records_by_time(
             SELECT
                *
             FROM {booking_table}
-            join booking_duration_lookup bdl on (bdl.booking_id = coalesce(booking_number, internal_event_id))
+            join booking_duration_lookup bdl on (bdl.booking_id = coalesce(nullif(booking_number, ''), internal_event_id))
             WHERE
                 not (jail_entry_date < %(start_date)s AND jail_exit_date < %(start_date)s) and
                 not (jail_entry_date > %(end_date)s AND jail_exit_date > %(end_date)s)
