@@ -1,13 +1,14 @@
 import moto
-import boto
+import s3fs
 from webapp.database import Base
 from webapp.models import MergeLog, MatchLog
 import time
 from unittest.mock import patch
 from unittest import TestCase
 import testing.postgresql
+from webapp.storage import open_sesame
 from webapp.tasks import \
-    upload_to_s3,\
+    upload_to_storage,\
     copy_raw_table_to_db,\
     upsert_raw_table_to_master,\
     validate_header,\
@@ -15,22 +16,18 @@ from webapp.tasks import \
     write_upload_log,\
     write_matches_to_db,\
     match_finished
-from webapp.utils import makeNamedTemporaryCSV, s3_upload_path, generate_master_table_name
+from webapp.utils import makeNamedTemporaryCSV, upload_path, generate_master_table_name
 from webapp.tests.utils import create_and_populate_raw_table, rig_test_client, create_and_populate_master_table
-from smart_open import smart_open
 from datetime import date, datetime, timedelta
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
-import csv
-import unicodecsv
+import unicodecsv as csv
 
 
 def test_upload_to_s3():
-    # smart_open uses boto2, new moto defaults to boto3
-    # so use the _deprecated suffix
-    with moto.mock_s3_deprecated():
-        s3_conn = boto.connect_s3()
-        s3_conn.create_bucket('test-bucket')
+    with moto.mock_s3():
+        s3 = s3fs.S3FileSystem()
+        s3.touch('test-bucket')
         with makeNamedTemporaryCSV([
             [u'col1', u'col2'],
             [u'val1_1', u'val1_2'],
@@ -40,12 +37,12 @@ def test_upload_to_s3():
                 'raw_uploads_path': 's3://test-bucket/{jurisdiction}/{event_type}/uploaded/{date}/{upload_id}'
             }
             with patch.dict('webapp.utils.app_config', sample_config):
-                upload_path = s3_upload_path('boone', 'hmis', '123-567-abc')
-                upload_to_s3(upload_path, filename)
+                final_upload_path = upload_path('boone', 'hmis', '123-567-abc')
+                upload_to_storage(final_upload_path, filename)
 
         current_date = date.today().isoformat()
         expected_s3_path = 's3://test-bucket/boone/hmis/uploaded/{}/123-567-abc'.format(current_date)
-        with smart_open(expected_s3_path) as expected_s3_file:
+        with open_sesame(expected_s3_path, 'rb') as expected_s3_file:
             content = expected_s3_file.read()
             assert 'val1_1' in content.decode('utf-8')
 
@@ -56,11 +53,11 @@ def test_copy_raw_table_to_db():
     # we expect the raw table to be copied into a new table with proper schema and return the table name
     with testing.postgresql.Postgresql() as postgresql:
         engine = create_engine(postgresql.url())
-        with moto.mock_s3_deprecated():
-            s3_conn = boto.connect_s3()
-            s3_conn.create_bucket('test-bucket')
+        with moto.mock_s3():
+            s3 = s3fs.S3FileSystem()
+            s3.touch('test-bucket')
             full_s3_path = 's3://test-bucket/123-456'
-            with smart_open(full_s3_path, 'w') as writefile:
+            with open_sesame(full_s3_path, 'wb') as writefile:
                 writer = csv.writer(writefile)
                 for row in [
                     [u'internal_person_id', u'internal_event_id', u'location_id', 'full_name', 'birthdate', 'ssn'],
@@ -81,11 +78,11 @@ class RawTableDuplicateCheck(TestCase):
         # and presented in a user-friendly format
         with testing.postgresql.Postgresql() as postgresql:
             engine = create_engine(postgresql.url())
-            with moto.mock_s3_deprecated():
-                s3_conn = boto.connect_s3()
-                s3_conn.create_bucket('test-bucket')
+            with moto.mock_s3():
+                s3 = s3fs.S3FileSystem()
+                s3.touch('test-bucket')
                 full_s3_path = 's3://test-bucket/123-456'
-                with smart_open(full_s3_path, 'w') as writefile:
+                with open_sesame(full_s3_path, 'wb') as writefile:
                     writer = csv.writer(writefile)
                     for row in [
                     [u'internal_person_id', u'internal_event_id', u'location_id', 'full_name', 'birthdate', 'ssn'],
@@ -321,7 +318,7 @@ class WriteMatchesToDBTest(TestCase):
             )
             # generate expected matches by taking the first column of the matched id spreadsheet
             with open(MATCHES_HMIS_FILE, 'rb') as f:
-                reader = unicodecsv.reader(f, delimiter='|')
+                reader = csv.reader(f, delimiter='|')
                 next(reader)
                 expected_matched_ids = set(row[0] for row in reader)
 
@@ -339,15 +336,17 @@ class WriteMatchesToDBTest(TestCase):
             assert retrieved_matched_ids == expected_matched_ids
 
 @moto.mock_s3()
-@moto.mock_s3_deprecated()
 @patch('webapp.tasks.write_matches_to_db')
 @patch('webapp.tasks.write_match_log')
 def test_match_finished(write_match_log_mock, write_matches_to_db_mock):
-    s3 = boto.connect_s3()
-    bucket = s3.create_bucket('bucket')
-    boto.s3.key.Key(bucket=bucket, name='matcher/jur1/hmis_service_stays/matched').set_contents_from_string('test')
-    boto.s3.key.Key(bucket=bucket, name='matcher/jur1/jail_bookings/matched').set_contents_from_string('test')
-    boto.s3.key.Key(bucket=bucket, name='matcher/jur1/jail_booking_charges/matched').set_contents_from_string('test')
+    s3 = s3fs.S3FileSystem()
+    s3.touch('bucket')
+    with open_sesame('s3://bucket/matcher/jur1/hmis_service_stays/matched', 'wb') as f:
+        f.write(b'test')
+    with open_sesame('s3://bucket/matcher/jur1/jail_bookings/matched', 'wb') as f:
+        f.write(b'test')
+    with open_sesame('s3://bucket/matcher/jur1/jail_booking_charges/matched', 'wb') as f:
+        f.write(b'test')
     match_finished(
         matched_results_paths={
             'hmis_service_stays': 's3://bucket/matcher/jur1/hmis_service_stays/matched',

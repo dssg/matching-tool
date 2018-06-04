@@ -6,17 +6,17 @@ from webapp.logger import logger
 from webapp.database import db_session
 from webapp.models import Upload, MergeLog
 from webapp.tasks import \
-    upload_to_s3,\
+    upload_to_storage,\
     sync_upload_metadata,\
     copy_raw_table_to_db,\
     upsert_raw_table_to_master,\
     bootstrap_master_tables,\
-    sync_merged_file_to_s3,\
+    sync_merged_file_to_storage,\
     add_missing_fields,\
     validate_file,\
     validate_header
 from webapp.users import can_upload_file, get_jurisdiction_roles
-from webapp.utils import s3_upload_path, notify_matcher, infer_delimiter, unique_upload_id
+from webapp.utils import upload_path, notify_matcher, infer_delimiter, unique_upload_id
 
 from werkzeug.utils import secure_filename
 
@@ -231,12 +231,12 @@ def validate_async(uploaded_file_name, jurisdiction, full_filename, event_type, 
         try:
             # 4. upload to s3
             upload_start_time = datetime.today()
-            upload_path = s3_upload_path(jurisdiction, event_type, upload_id)
-            upload_to_s3(upload_path, filename_with_all_fields)
+            final_upload_path = upload_path(jurisdiction, event_type, upload_id)
+            upload_to_storage(final_upload_path, filename_with_all_fields)
 
             # 5. load into raw table
             copy_raw_table_to_db(
-                upload_path,
+                final_upload_path,
                 event_type,
                 upload_id,
                 db_session.get_bind()
@@ -245,7 +245,7 @@ def validate_async(uploaded_file_name, jurisdiction, full_filename, event_type, 
             upload_complete_time = datetime.today()
             # 6. sync upload metadata to db
             sync_upload_metadata_partial(
-                s3_upload_path=upload_path,
+                s3_upload_path=final_upload_path,
                 validate_start_time=validate_start_time,
                 validate_complete_time=validate_complete_time,
                 validate_status=True,
@@ -306,7 +306,9 @@ def upload_file():
         uploaded_file = request.files[filenames[0]]
         filename = secure_filename(uploaded_file.filename)
         cwd = os.getcwd()
-        full_filename = os.path.join(cwd + '/tmp', filename)
+        tmp_dir = os.path.join(cwd, 'tmp')
+        os.makedirs(tmp_dir, exist_ok=True)
+        full_filename = os.path.join(tmp_dir, filename)
         uploaded_file.save(full_filename)
         upload_id = unique_upload_id()
         q = get_q(get_redis_connection())
@@ -355,7 +357,7 @@ def merge_file():
 
             bootstrap_master_tables(upload_log.jurisdiction_slug, db_session)
 
-            sync_merged_file_to_s3(
+            sync_merged_file_to_storage(
                 upload_log.jurisdiction_slug,
                 upload_log.event_type_slug,
                 db_session.get_bind()

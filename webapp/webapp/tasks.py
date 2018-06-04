@@ -1,9 +1,9 @@
-from smart_open import smart_open
 from datetime import datetime
 from goodtables import validate
 from webapp.database import db_session, engine
 from webapp.logger import logger
 from webapp.models import Upload, MergeLog, MatchLog
+from webapp.storage import open_sesame
 from webapp.utils import load_schema_file,\
     create_statement_from_goodtables_schema,\
     column_list_from_goodtables_schema,\
@@ -25,12 +25,11 @@ import os
 import re
 import unicodecsv as csv
 import psycopg2
-import s3fs
 
 
-def upload_to_s3(full_s3_path, local_filename):
-    with smart_open(full_s3_path, 'wb') as outfile:
-        with smart_open(local_filename, 'rb') as infile:
+def upload_to_storage(full_path, local_filename):
+    with open_sesame(full_path, 'wb') as outfile:
+        with open_sesame(local_filename, 'rb') as infile:
             outfile.write(infile.read())
 
 
@@ -50,7 +49,7 @@ def sync_upload_metadata(
     upload_complete_time=None,
     upload_status=None,
 ):
-    with smart_open(local_filename, 'rb') as infile:
+    with open_sesame(local_filename, 'rb') as infile:
         num_rows = sum(1 for _ in infile)
         infile.seek(0)
         file_size = os.fstat(infile.fileno()).st_size
@@ -93,7 +92,7 @@ def copy_raw_table_to_db(
     db_engine.execute(create_statement)
     logging.info('Successfully created table')
     primary_key = primary_key_statement(goodtables_schema['primaryKey'])
-    with smart_open(full_s3_path, 'rb') as infile:
+    with open_sesame(full_s3_path, 'rb') as infile:
         conn = db_engine.raw_connection()
         cursor = conn.cursor()
         copy_stmt = 'copy "{}" from stdin with csv force not null {}  header delimiter as \',\' '.format(table_name, primary_key)
@@ -196,10 +195,10 @@ def total_unique_rows(raw_table_name, primary_key, db_engine):
     )][0]
 
 
-def sync_merged_file_to_s3(jurisdiction, event_type, db_engine):
+def sync_merged_file_to_storage(jurisdiction, event_type, db_engine):
     full_s3_path = merged_file_path(jurisdiction, event_type)
     table_name = generate_master_table_name(jurisdiction, event_type)
-    with smart_open(full_s3_path, 'wb') as outfile:
+    with open_sesame(full_s3_path, 'wb') as outfile:
         cursor = db_engine.raw_connection().cursor()
         copy_stmt = 'copy "{}" to stdout with csv header delimiter as \'|\''.format(table_name)
         cursor.copy_expert(copy_stmt, outfile)
@@ -401,9 +400,7 @@ def match_finished(
         for event_type, filename in matched_results_paths.items():
             jurisdiction = filename.split('/')[-3]
             logger.info('Writing matches from event type %s and filename %s to db. Parsed jurisdiction %s out of filename', event_type, filename, jurisdiction)
-            s3 = s3fs.S3FileSystem()
-            protocolless_filename = filename.replace('s3://', '')
-            with s3.open(protocolless_filename) as matches_filehandle:
+            with open_sesame(filename, 'rb') as matches_filehandle:
                 write_matches_to_db(
                     db_engine=engine,
                     event_type=event_type,
