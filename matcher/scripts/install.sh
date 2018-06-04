@@ -21,10 +21,10 @@ sudo curl -L https://github.com/docker/compose/releases/download/1.20.1/docker-c
 sudo chmod +x /usr/local/bin/docker-compose
 
 echo "Cloning CSH repository"
-git clone https://${GITHUB_USER}:${GITHUB_PASSWORD}@github.com/dssg/csh.git
+git clone https://${GITHUB_USER}:${GITHUB_PASSWORD}@github.com/dssg/matching-tool.git
 
 echo "Building the infrastructure"
-cd csh
+cd matching-tool
 # TODO: this will need to be removed before merging
 git checkout environment_file
 
