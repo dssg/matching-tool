@@ -1,4 +1,4 @@
-# csh
+# matching-tool
 Integrating HMIS and criminal-justice data
 
 ## Requirements
