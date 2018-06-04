@@ -11,6 +11,7 @@ export default (props) => {
       <p><b>jail_contact</b> The number of jail bookings with any days in the specified time window for this person</p>
       <p><b>hmis_contact</b> The number of HMIS service stays with any days in the specified time window for this person</p>
       <p><b>total_contact</b> The number of jail bookings and HMIS service stays with any days in the specified time window for this person</p>
+      <p><b>percent_bookings_homeless_flag</b>The percentage of jail bookings for this person that have the 'homeless' flag marked True.</p>
       <p><b>cumu_jail_days</b> The cumulative number of days associated with all jail bookings with any days in the specified time window for this person. All days associated with the booking will be counted, even if the booking is only partially within the specified time window.  If the booking had not yet ended as of upload time, the upload time is used as the end time.</p>
       <p><b>cumu_hmis_days</b> The cumulative number of days associated with all HMIS service stays with any days in the specified time window for this person. All days associated with the stay will be counted, even if the stay is only partially within the specified time window.  If the stay had not yet ended as of upload time, the upload time is used as the end time.</p>
     </div>

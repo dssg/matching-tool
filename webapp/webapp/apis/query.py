@@ -149,17 +149,19 @@ def get_records_by_time(
         ("jail_summary.jail_contact", 'jail_contact'),
         ("jail_summary.last_jail_contact", 'last_jail_contact'),
         ("jail_summary.cumu_jail_days", 'cumu_jail_days'),
+        ("jail_summary.percent_bookings_homeless_flag", "percent_bookings_homeless_flag"),
         ("coalesce(hmis_summary.hmis_contact, 0) + coalesce(jail_summary.jail_contact, 0)", 'total_contact'),
     ]
     if not any(alias == order_column for expression, alias in columns):
         raise ValueError('Given order column expression does not match any alias in query. Exiting to avoid SQL injection attacks')
 
     base_query = """WITH booking_duration_lookup AS (
-        select coalesce(booking_number, internal_event_id) as booking_id,
+        select coalesce(nullif(booking_number, ''), internal_event_id) as booking_id,
             max(case when jail_exit_date is not null
             then date_part('day', jail_exit_date::timestamp - jail_entry_date::timestamp)::int \
             else date_part('day', updated_ts::timestamp - jail_entry_date::timestamp)::int
-            end) as length_of_stay
+            end) as length_of_stay,
+            bool_or(coalesce(homeless, 'N') = 'Y') as any_homeless
         FROM (
             SELECT
                *
@@ -200,12 +202,13 @@ def get_records_by_time(
             count(distinct(coalesce(booking_number, internal_event_id))) AS jail_contact,
             to_char(max(jail_entry_date::timestamp), 'YYYY-MM-DD') as last_jail_contact,
             max(first_name) as first_name,
-            max(last_name) as last_name
+            max(last_name) as last_name,
+            round(100 * count(case when any_homeless then 1 else null end) / count(*)::float)::text || '%%' as percent_bookings_homeless_flag
         FROM (
             SELECT
                *
             FROM {booking_table}
-            join booking_duration_lookup bdl on (bdl.booking_id = coalesce(booking_number, internal_event_id))
+            join booking_duration_lookup bdl on (bdl.booking_id = coalesce(nullif(booking_number, ''), internal_event_id))
             WHERE
                 not (jail_entry_date < %(start_date)s AND jail_exit_date < %(start_date)s) and
                 not (jail_entry_date > %(end_date)s AND jail_exit_date > %(end_date)s)

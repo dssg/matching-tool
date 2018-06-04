@@ -23,37 +23,37 @@
     ],
     "filteredData":{
       "jailDurationBarData":[
-		  [
-			  [{"x": "Jail", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
-			  [{"x": "Jail", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
-			  [{"x": "Jail", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
-			  [{"x": "Jail", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
-			  [{"x": "Jail", "y": 100.0}, {"x": "Jail & Homeless", "y": 0.0}]
-		  ],
-		  ["< 1 day", "1 day", "2-9 days", "10-89 days", "90+ days"]
-	  ],
+          [
+              [{"x": "Jail", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
+              [{"x": "Jail", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
+              [{"x": "Jail", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
+              [{"x": "Jail", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
+              [{"x": "Jail", "y": 100.0}, {"x": "Jail & Homeless", "y": 0.0}]
+          ],
+          ["< 1 day", "1 day", "2-9 days", "10-89 days", "90+ days"]
+      ],
       "homelessDurationBarData":[
-		  [
-			  [{"x": "Homeless", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
-			  [{"x": "Homeless", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
-			  [{"x": "Homeless", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
-			  [{"x": "Homeless", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
-			  [{"x": "Homeless", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}]
-		  ],
-		  ["< 1 day", "1 day", "2-9 days", "10-89 days", "90+ days"]
-	  ],
+          [
+              [{"x": "Homeless", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
+              [{"x": "Homeless", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
+              [{"x": "Homeless", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
+              [{"x": "Homeless", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}],
+              [{"x": "Homeless", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}]
+          ],
+          ["< 1 day", "1 day", "2-9 days", "10-89 days", "90+ days"]
+      ],
       "jailContactBarData":[
-		  [
-			  [{"x": "Jail", "y": 100.0}, {"x": "Jail & Homeless", "y": 0.0}]
-		  ],
-		  ["1 contact"]
-	  ],
+          [
+              [{"x": "Jail", "y": 100.0}, {"x": "Jail & Homeless", "y": 0.0}]
+          ],
+          ["1 contact"]
+      ],
       "homelessContactBarData":[
-		  [
-			  [{"x": "Homeless", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}]
-		  ],
-		  ["1 contact"]
-	  ],
+          [
+              [{"x": "Homeless", "y": 0.0}, {"x": "Jail & Homeless", "y": 0.0}]
+          ],
+          ["1 contact"]
+      ],
       "tableData":[
         {
           "matched_id":"122",
@@ -66,6 +66,7 @@
           "jail_contact":1,
           "hmis_contact":null,
           "total_contact":1,
+          "percent_bookings_homeless_flag": "0%",
           "cumu_jail_days":108,
           "cumu_hmis_days":null
         },
@@ -80,6 +81,7 @@
           "jail_contact":1,
           "hmis_contact":null,
           "total_contact":1,
+          "percent_bookings_homeless_flag": "0%",
           "cumu_jail_days":167,
           "cumu_hmis_days":null
         },
@@ -94,6 +96,7 @@
           "jail_contact":1,
           "hmis_contact":null,
           "total_contact":1,
+          "percent_bookings_homeless_flag": "100%",
           "cumu_jail_days":209,
           "cumu_hmis_days":null
         },
@@ -108,6 +111,7 @@
           "jail_contact":1,
           "hmis_contact":null,
           "total_contact":1,
+          "percent_bookings_homeless_flag": "0%",
           "cumu_jail_days":249,
           "cumu_hmis_days":null
         },
@@ -122,6 +126,7 @@
           "jail_contact":1,
           "hmis_contact":null,
           "total_contact":1,
+          "percent_bookings_homeless_flag": "0%",
           "cumu_jail_days":197,
           "cumu_hmis_days":null
         }
