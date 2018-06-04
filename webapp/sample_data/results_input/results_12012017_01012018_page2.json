@@ -66,7 +66,7 @@
           "jail_contact":1,
           "hmis_contact":null,
           "total_contact":1,
-          "percent_bookings_homeless_flag": 0,
+          "percent_bookings_homeless_flag": "0%",
           "cumu_jail_days":167,
           "cumu_hmis_days":null
         },
@@ -81,7 +81,7 @@
           "jail_contact":1,
           "hmis_contact":null,
           "total_contact":1,
-          "percent_bookings_homeless_flag": 100.0,
+          "percent_bookings_homeless_flag": "100%",
           "cumu_jail_days":209,
           "cumu_hmis_days":null
         },
@@ -96,7 +96,7 @@
           "jail_contact":1,
           "hmis_contact":null,
           "total_contact":1,
-          "percent_bookings_homeless_flag": 0,
+          "percent_bookings_homeless_flag": "0%",
           "cumu_jail_days":249,
           "cumu_hmis_days":null
         },
@@ -111,7 +111,7 @@
           "jail_contact":1,
           "hmis_contact":null,
           "total_contact":1,
-          "percent_bookings_homeless_flag": 0,
+          "percent_bookings_homeless_flag": "0%",
           "cumu_jail_days":197,
           "cumu_hmis_days":null
         }

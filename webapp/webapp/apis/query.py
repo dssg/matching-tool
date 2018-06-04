@@ -203,7 +203,7 @@ def get_records_by_time(
             to_char(max(jail_entry_date::timestamp), 'YYYY-MM-DD') as last_jail_contact,
             max(first_name) as first_name,
             max(last_name) as last_name,
-            100 * count(case when any_homeless then 1 else null end) / count(*)::float as percent_bookings_homeless_flag
+            round(100 * count(case when any_homeless then 1 else null end) / count(*)::float)::text || '%%' as percent_bookings_homeless_flag
         FROM (
             SELECT
                *
