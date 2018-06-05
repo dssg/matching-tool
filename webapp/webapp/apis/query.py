@@ -31,7 +31,8 @@ def get_histogram_bar_chart_data(data, distribution_function, shared_ids, data_n
                 "x": "Jail & Homeless",
                 "y": int(distribution_intersection.iloc[bin_index])/len(intersection_data.matched_id.unique())*100
             }
-        except:
+        except Exception as e:
+            logger.error('Error encountered while calculating intersection distribution: %s', e)
             all_status = {
                 "x": "Jail & Homeless",
                 "y": 0
@@ -197,9 +198,9 @@ def get_records_by_time(
     ), jail_summary AS (
         SELECT
             matched_id::text,
-            string_agg(distinct coalesce(internal_person_id, inmate_number)::text, ',') as jail_id,
+            string_agg(distinct coalesce(nullif(internal_person_id, ''), inmate_number)::text, ',') as jail_id,
             sum(jail.length_of_stay) as cumu_jail_days,
-            count(distinct(coalesce(booking_number, internal_event_id))) AS jail_contact,
+            count(distinct(coalesce(nullif(booking_number, ''), internal_event_id))) AS jail_contact,
             to_char(max(jail_entry_date::timestamp), 'YYYY-MM-DD') as last_jail_contact,
             max(first_name) as first_name,
             max(last_name) as last_name,
@@ -354,7 +355,7 @@ def retrieve_bar_data(hmis_table, bookings_table, start_time, end_time):
             table_name=bookings_table,
             start="jail_entry_date",
             exit="jail_exit_date",
-            event_id="coalesce(booking_number, internal_event_id)"
+            event_id="coalesce(nullif(booking_number, ''), internal_event_id)"
         ),
         con=db.engine,
         params={
