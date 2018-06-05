@@ -24,26 +24,26 @@ def unique_upload_id():
     return str(uuid4())
 
 
-def s3_upload_path(jurisdiction, event_type, upload_id):
+def upload_path(jurisdiction, event_type, upload_id):
     datestring = date.today().isoformat()
     path_template = app_config['raw_uploads_path']
 
-    full_s3_path = path_template.format(
+    full_path = path_template.format(
         event_type=event_type,
         jurisdiction=jurisdiction,
         date=datestring,
         upload_id=upload_id
     )
-    return full_s3_path
+    return full_path
 
 
 def merged_file_path(jurisdiction, event_type):
     path_template = app_config['merged_uploads_path']
-    full_s3_path = path_template.format(
+    full_path = path_template.format(
         event_type=event_type,
         jurisdiction=jurisdiction
     )
-    return full_s3_path
+    return full_path
 
 
 @contextmanager

@@ -1,17 +1,20 @@
 import unittest
 import re
+import os
 import json
 import requests_mock
-from webapp.tests.utils import rig_all_the_things,\
+from webapp.tests.utils import full_rig_with_s3, full_rig_without_s3,\
     create_and_populate_master_table, load_json_example
 from datetime import date
-from smart_open import smart_open
+from webapp.storage import open_sesame
 from webapp.database import db_session
 from webapp.models import Upload, MergeLog
 from webapp.utils import generate_master_table_name
 from io import BytesIO
 import unicodecsv as csv
 import pandas as pd
+from unittest.mock import patch
+from tempfile import TemporaryDirectory
 
 GOOD_HMIS_FILE = 'sample_data/uploader_input/hmis_service_stays/good.csv'
 ROWS_IN_GOOD_HMIS_FILE = 11
@@ -27,7 +30,7 @@ class GetMatchedResultsCase(unittest.TestCase):
     maxDiff = None
 
     def both_schema_test(self, booking_file, hmis_file, url, expected_data):
-        with rig_all_the_things() as (app, engine):
+        with full_rig_with_s3() as (app, engine):
             # Create matched jail_bookings
             table_name = 'jail_bookings'
             create_and_populate_master_table(table_name, engine, booking_file)
@@ -101,7 +104,7 @@ class GetMatchedResultsCase(unittest.TestCase):
 
 class UploadFileTestCase(unittest.TestCase):
     def test_good_file(self):
-        with rig_all_the_things() as (app, engine):
+        with full_rig_with_s3() as (app, engine):
             response = app.post(
                 '/api/upload/upload_file?jurisdiction=boone&eventType=hmis_service_stays',
                 content_type='multipart/form-data',
@@ -132,8 +135,8 @@ class UploadFileTestCase(unittest.TestCase):
 
             current_date = date.today().isoformat()
             expected_s3_path = 's3://test-bucket/boone/hmis_service_stays/uploaded/{}/{}'.format(current_date, response_data['upload_result']['uploadId'])
-            with smart_open(expected_s3_path) as expected_s3_file:
-                with smart_open(GOOD_HMIS_FILE) as source_file:
+            with open_sesame(expected_s3_path) as expected_s3_file:
+                with open_sesame(GOOD_HMIS_FILE) as source_file:
                     # we do not expect the file on s3 to be the same as the
                     # uploaded source file - missing columns should be filled in
                     s3_df = pd.read_csv(expected_s3_file)
@@ -143,7 +146,7 @@ class UploadFileTestCase(unittest.TestCase):
             assert db_session.query(Upload).filter(Upload.id == response_data['upload_result']['uploadId']).one
 
     def test_file_with_duplicates(self):
-        with rig_all_the_things() as (app, engine):
+        with full_rig_with_s3() as (app, engine):
             response = app.post(
                 '/api/upload/upload_file?jurisdiction=boone&eventType=hmis_service_stays',
                 content_type='multipart/form-data',
@@ -188,7 +191,7 @@ class MergeFileTestCase(unittest.TestCase):
 
     @requests_mock.mock()
     def test_good_file(self, request_mock):
-        with rig_all_the_things() as (app, engine):
+        with full_rig_with_s3() as (app, engine):
             upload_id = self.do_upload(app, request_mock)
             # okay, here's what we really want to test.
             # call the merge endpoint
@@ -197,7 +200,7 @@ class MergeFileTestCase(unittest.TestCase):
             assert response_data['status'] == 'valid'
             # make sure that there is a new merged file on s3
             expected_s3_path = 's3://test-bucket/boone/hmis_service_stays/merged'
-            with smart_open(expected_s3_path, 'rb') as expected_s3_file:
+            with open_sesame(expected_s3_path, 'rb') as expected_s3_file:
                 reader = csv.reader(expected_s3_file)
                 assert len([row for row in reader]) == ROWS_IN_GOOD_HMIS_FILE
 
@@ -217,7 +220,7 @@ class MergeFileTestCase(unittest.TestCase):
 
     @requests_mock.mock()
     def test_error_transaction(self, request_mock):
-        with rig_all_the_things() as (app, engine):
+        with full_rig_with_s3() as (app, engine):
             upload_id = self.do_upload(app, request_mock)
             # try and merge an id that doesn't exist, should cause error
             response = app.post('/api/upload/merge_file?uploadId={}'.format('garbage'))
@@ -258,7 +261,7 @@ class MergeBookingsFileTestCase(unittest.TestCase):
 
     @requests_mock.mock()
     def test_good_file(self, request_mock):
-        with rig_all_the_things() as (app, engine):
+        with full_rig_with_s3() as (app, engine):
             upload_id = self.do_upload(app, request_mock)
             # okay, here's what we really want to test.
             # call the merge endpoint
@@ -267,16 +270,42 @@ class MergeBookingsFileTestCase(unittest.TestCase):
             assert response_data['status'] == 'valid'
             # make sure that there is a new merged file on s3
             expected_s3_path = 's3://test-bucket/boone/jail_bookings/merged'
-            with smart_open(expected_s3_path, 'rb') as expected_s3_file:
+            with open_sesame(expected_s3_path, 'rb') as expected_s3_file:
                 reader = csv.reader(expected_s3_file)
                 assert len([row for row in reader]) == 11
 
             # and make sure that the merge log has a record of this
             assert db_session.query(MergeLog).filter(MergeLog.upload_id == '123-456').one
 
+    @requests_mock.mock()
+    def test_file_storage(self, request_mock):
+        with TemporaryDirectory() as temp_dir:
+            root_dir = os.getcwd()
+            s3_less_config = {
+                'raw_uploads_path': os.path.join(temp_dir, '{jurisdiction}-{event_type}-uploaded-{date}-{upload_id}'),
+                'merged_uploads_path': os.path.join(temp_dir, '{jurisdiction}-{event_type}-merged')
+            }
+            with full_rig_without_s3() as (app, engine):
+                with patch.dict('webapp.utils.app_config', s3_less_config):
+                    upload_id = self.do_upload(app, request_mock)
+                    # okay, here's what we really want to test.
+                    # call the merge endpoint
+                    response = app.post('/api/upload/merge_file?uploadId={}'.format(upload_id))
+                    response_data = json.loads(response.get_data().decode('utf-8'))
+                    assert response_data['status'] == 'valid'
+                    # make sure that there is a new merged file on the FS
+                    expected_path = os.path.join(temp_dir, 'boone-jail_bookings-merged')
+                    with open(expected_path, 'rb') as expected_file:
+                        reader = csv.reader(expected_file)
+                        assert len([row for row in reader]) == 11
+
+                    # and make sure that the merge log has a record of this
+                    assert db_session.query(MergeLog).filter(MergeLog.upload_id == '123-456').one
+
+
 class DownloadSourceTestCase(unittest.TestCase):
     def test_download_file(self):
-        with rig_all_the_things() as (app, engine):
+        with full_rig_with_s3() as (app, engine):
             # Create matched jail_bookings
             table_name = 'jail_bookings'
             create_and_populate_master_table(table_name, engine, MATCHED_BOOKING_FILE)

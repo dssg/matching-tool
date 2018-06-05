@@ -7,8 +7,8 @@ from sqlalchemy import create_engine
 import contextlib
 import testing.postgresql
 from unittest.mock import patch
-from moto import mock_s3_deprecated
-import boto
+from moto import mock_s3
+import s3fs
 
 from flask_security import SQLAlchemySessionUserDatastore
 from flask_security.utils import encrypt_password
@@ -164,7 +164,16 @@ def rig_test_client():
 
 
 @contextlib.contextmanager
-def rig_all_the_things():
+def full_rig_with_s3():
+    with full_rig_without_s3() as (app, engine):
+        with mock_s3():
+            s3 = s3fs.S3FileSystem()
+            s3.touch('test-bucket')
+            yield app, engine
+
+
+@contextlib.contextmanager
+def full_rig_without_s3():
     fake_redis_connection = FakeStrictRedis()
     queue = Queue(async=False, connection=fake_redis_connection)
     with patch('webapp.apis.upload.notify_matcher', return_value=None):
@@ -173,10 +182,7 @@ def rig_all_the_things():
                 with patch.dict('webapp.utils.app_config', SAMPLE_CONFIG):
                     with rig_test_client() as (app, engine):
                         authenticate(app)
-                        with mock_s3_deprecated():
-                            s3_conn = boto.connect_s3()
-                            s3_conn.create_bucket('test-bucket')
-                            yield app, engine
+                        yield app, engine
 
 
 def authenticate(
