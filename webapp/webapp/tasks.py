@@ -76,7 +76,7 @@ def sync_upload_metadata(
 
 
 def copy_raw_table_to_db(
-    full_s3_path,
+    full_path,
     event_type,
     upload_id,
     db_engine
@@ -92,7 +92,7 @@ def copy_raw_table_to_db(
     db_engine.execute(create_statement)
     logging.info('Successfully created table')
     primary_key = primary_key_statement(goodtables_schema['primaryKey'])
-    with open_sesame(full_s3_path, 'rb') as infile:
+    with open_sesame(full_path, 'rb') as infile:
         conn = db_engine.raw_connection()
         cursor = conn.cursor()
         copy_stmt = 'copy "{}" from stdin with csv force not null {}  header delimiter as \',\' '.format(table_name, primary_key)
@@ -196,9 +196,9 @@ def total_unique_rows(raw_table_name, primary_key, db_engine):
 
 
 def sync_merged_file_to_storage(jurisdiction, event_type, db_engine):
-    full_s3_path = merged_file_path(jurisdiction, event_type)
+    full_path = merged_file_path(jurisdiction, event_type)
     table_name = generate_master_table_name(jurisdiction, event_type)
-    with open_sesame(full_s3_path, 'wb') as outfile:
+    with open_sesame(full_path, 'wb') as outfile:
         cursor = db_engine.raw_connection().cursor()
         copy_stmt = 'copy "{}" to stdout with csv header delimiter as \'|\''.format(table_name)
         cursor.copy_expert(copy_stmt, outfile)
