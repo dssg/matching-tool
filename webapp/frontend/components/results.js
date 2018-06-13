@@ -16,6 +16,7 @@ import React from 'react'
 import SelectField from 'material-ui/SelectField'
 import DataTables from 'material-ui-datatables'
 import Venn from './venn'
+import WarningPopup from './warning.js'
 import FieldsHelp from './fields-help'
 import { connect } from 'react-redux'
 import { join, keys, map, merge, toPairs } from 'ramda'
@@ -190,6 +191,7 @@ export class Results extends React.Component {
       controlPanelOpen: true,
       helpOpen: false,
       flagJailBar: true,
+      showWarning: false,
     }
   }
 
@@ -219,12 +221,21 @@ export class Results extends React.Component {
 
   handleStartDate = (event, date) => {
     const startDate = moment(date).format('YYYY-MM-DD')
-    this.props.updateStartDate(startDate)
+    if (startDate > this.props.filters.endDate) {
+      this.setState({ showWarning: true })
+    } else {
+      this.props.updateStartDate(startDate)
+    }
   }
 
   handleEndDate = (event, date) => {
     const endDate = moment(date).format('YYYY-MM-DD')
-    this.props.updateEndDate(endDate)
+    if (this.props.filters.startDate > endDate) {
+      this.setState({ showWarning: true })
+    }
+    else {
+      this.props.updateEndDate(endDate)
+    }
   }
 
   handleClickToggleChartAndList = () => {
@@ -279,7 +290,7 @@ export class Results extends React.Component {
     this.handleStartDate('blah', new moment().subtract(1, 'year'))
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps, prevState) {
     if (this.props.filters != prevProps.filters || this.props.selectedJurisdictionSlug != prevProps.selectedJurisdictionSlug) {
       this.props.updateMatchingResults(
         this.props.selectedJurisdictionSlug,
@@ -410,6 +421,16 @@ export class Results extends React.Component {
     }
   }
 
+  handleWarningClose = () => {
+    this.setState({showWarning: false});
+  }
+
+  renderWarningPopup() {
+    return (
+      <WarningPopup open={this.state.showWarning} handleClose={this.handleWarningClose}/>
+    )
+  }
+
   render() {
     const contentStyle = {  transition: 'margin-left 300ms cubic-bezier(0.23, 1, 0.32, 1)' }
     if (this.state.controlPanelOpen) {
@@ -467,6 +488,7 @@ export class Results extends React.Component {
                       hintText={"Last upload date " + this.props.filters.endDate}
                       onChange={this.handleEndDate} />
                   </h5>
+                  { this.renderWarningPopup() }
                   <RaisedButton
                     label={ this.props.barFlag ? "Show List of Results" : "Show Duration Chart"}
                     labelStyle={{fontSize: '10px',}}
@@ -491,7 +513,7 @@ export class Results extends React.Component {
                 label={ this.props.barFlag ? "Download Duration Charts" : "Download List of Results" }
                 labelStyle={{fontSize: '10px',}}
                 secondary={true}
-                onClick={ this.props.barFlag? this.handleDownloadChart : this.handleDownloadList}
+                onClick={ this.props.barFlag ? this.handleDownloadChart : this.handleDownloadList}
                 style={styles.button} />
             </div>
             <div style={styles.datepicker}>
@@ -518,7 +540,7 @@ export class Results extends React.Component {
             <hr style={styles.hr}/>
           </div>
           { this.props.barFlag ? this.renderBarChart() : this.renderTable() }
-          <Drawer 
+          <Drawer
             openSecondary={true}
             width={'25%'}
             open={this.state.helpOpen}
