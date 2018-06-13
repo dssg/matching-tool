@@ -221,7 +221,7 @@
         },
         {
             "name": "charge_position",
-            "type": "integer"
+            "type": "string"
         },
         {
             "name": "statute",
@@ -255,7 +255,7 @@
         },
         {
             "name": "bond_amount",
-            "type": "integer"
+            "type": "string"
         },
         {
             "name": "source_name",
