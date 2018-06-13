@@ -7,7 +7,7 @@ import numpy as np
 from typing import List
 
 import matcher.contraster as contraster
-import matcher.rules as rules
+import matcher.scorer as scorer
 import matcher.cluster as cluster
 import matcher.ioutils as ioutils
 import matcher.utils as utils
@@ -25,6 +25,7 @@ class Matcher:
         self.contrast_rules = contrast_rules
         self.blocking_rules = blocking_rules
         self.metadata = {'matcher_initialization_time': datetime.datetime.now()}
+        self.scorer = scorer.Scorer(operation='mean')
 
     def block_and_match(self, df):
         ## We will split-apply-combinei
@@ -76,7 +77,7 @@ class Matcher:
         logger.debug(f"Contrasts created")
 
         contrasts.index.rename(['matcher_index_left', 'matcher_index_right'], inplace=True)
-        contrasts = rules.compactify(contrasts, operation='mean')
+        contrasts = self.scorer.compactify(contrasts)
         logger.debug('Summary distances generated. Making you some stats about them.')
         metadata['scores'] = utils.summarize_column(contrasts.matches)
         logger.debug('Caching those contrasts and distances for you.')
