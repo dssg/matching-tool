@@ -290,7 +290,7 @@ export class Results extends React.Component {
     this.handleStartDate('blah', new moment().subtract(1, 'year'))
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate(prevProps) {
     if (this.props.filters != prevProps.filters || this.props.selectedJurisdictionSlug != prevProps.selectedJurisdictionSlug) {
       this.props.updateMatchingResults(
         this.props.selectedJurisdictionSlug,
