@@ -9,10 +9,6 @@ POSTGRES_PASSWORD=csh
 SECRET_KEY=dev
 SECURITY_PASSWORD_SALT=abcdefg
 
-# AWS access (for S3)
-AWS_ACCESS_KEY_ID=""
-AWS_SECRET_ACCESS_KEY=""
-
 # Mail configuration (optional, only needed for reset password functionality in webapp)
 MAIL_SERVER=""
 MAIL_PORT=625
