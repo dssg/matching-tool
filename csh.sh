@@ -6,11 +6,10 @@ PROJECT="$(cat .project-name)"
 
 function help_menu () {
 cat << EOF
-Usage: ${0} {start|stop|build|rebuild|run|logs|status|destroy|all|} [OPTIONS]
+Usage: ${0} {start|stop|build|rebuild|run|logs|status|destroy|all|}
 
 OPTIONS:
    -h|help             Show this message
-   --create-db	
    start
    stop
    rebuild
@@ -21,19 +20,19 @@ OPTIONS:
 
 INFRASTRUCTURE:
    All the infrastructure needed is turned on!
-        $ ${0} start
+        $ ./csh.sh start
 
    Check the status of the containers:
-        $ ${0} status
+        $ ./csh.sh status
 
    Stop the csh's infrastructure:
-        $ ${0} stop
+        $ ./csh.sh stop
 
    Destroy all the resources related to the csh:
-        $ ${0} destroy
+        $ ./csh.sh destroy
 
    Infrastructure logs:
-        $ ${0} -l
+        $ ./csh.sh -l
 
 EOF
 }

@@ -26,6 +26,8 @@ RUN pip install -r requirements.txt
 
 ADD setup.py /csh/webapp/setup.py
 
+RUN pip install --editable .
+
 # Build frontend output.js
 WORKDIR /csh/webapp/frontend
 RUN npm run build && ls -alF /csh/webapp/webapp/static 

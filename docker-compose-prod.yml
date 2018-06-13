@@ -8,7 +8,7 @@ services:
             - 5444:5432
         env_file:
           - .env
-  
+
     webapp:
         container_name: webapp
         build: ./webapp
@@ -76,3 +76,12 @@ services:
        container_name: csh_queue
        ports:
          - 6379:6379
+
+    nginx:
+        image: "nginx:1.13.5"
+        ports:
+            - 80:80
+        volumes:
+            - ./webapp/conf.d:/etc/nginx/conf.d
+        depends_on: 
+            - webapp

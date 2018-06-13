@@ -1,51 +1,78 @@
 version: '3'
 
 services:
+    db:
+        container_name: csh_db
+        image: postgres:10
+        ports:
+            - 5444:5432
+        env_file:
+          - .env
+  
     webapp:
         container_name: webapp
         build: ./webapp
+        depends_on:
+            - db
         volumes:
-            - ./webapp/tmp:/csh/webapp/tmp
+            - '.:/csh'
         ports:
             - 5000:5000
         env_file:
             - webapp.env
             - .env
+        environment:
+            - AWS_ACCESS_KEY_ID
+            - AWS_SECRET_ACCESS_KEY
 
-    matcher_worker:
+    matcher:
+        container_name: matcher
         build: ./matcher
-        container_name: matcher_worker
-        command: python manage.py
-        depends_on:
-            - redis
+        volumes:
+            - '.:/csh' # HOST:CONTAINER
+        ports:
+            - 5001:5000 # HOST:CONTAINER
         env_file:
             - matcher.env
             - .env
+        environment:
+            - AWS_ACCESS_KEY_ID
+            - AWS_SECRET_ACCESS_KEY
+
+    matcher_worker:
+        image: csh_matcher
+        container_name: matcher_worker
+        command: python manage.py
+        volumes:
+            - '.:/csh'
+        depends_on:
+            - redis
+            - matcher
+        env_file:
+            - matcher.env
+            - .env
+        environment:
+            - AWS_ACCESS_KEY_ID
+            - AWS_SECRET_ACCESS_KEY
 
     webapp_worker:
-        image: matchingtool_webapp
+        image: csh_webapp
         container_name: webapp_worker
         command: python manage.py runworker
         volumes:
-            - ./webapp/tmp:/csh/webapp/tmp
+            - '.:/csh'
         depends_on:
             - redis
             - webapp
         env_file:
             - webapp.env
             - .env
+        environment:
+          - AWS_ACCESS_KEY_ID
+          - AWS_SECRET_ACCESS_KEY
 
     redis:
        image: redis
        container_name: csh_queue
        ports:
          - 6379:6379
-
-    nginx:
-        image: "nginx:1.13.5"
-        ports:
-            - 80:80
-        volumes:
-            - ./webapp/conf.d:/etc/nginx/conf.d
-        depends_on: 
-            - webapp
