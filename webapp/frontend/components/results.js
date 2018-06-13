@@ -223,9 +223,8 @@ export class Results extends React.Component {
     const startDate = moment(date).format('YYYY-MM-DD')
     if (startDate > this.props.filters.endDate) {
       this.setState({ showWarning: true })
-    } else {
-      this.props.updateStartDate(startDate)
     }
+    this.props.updateStartDate(startDate)
   }
 
   handleEndDate = (event, date) => {
@@ -233,9 +232,7 @@ export class Results extends React.Component {
     if (this.props.filters.startDate > endDate) {
       this.setState({ showWarning: true })
     }
-    else {
-      this.props.updateEndDate(endDate)
-    }
+    this.props.updateEndDate(endDate)
   }
 
   handleClickToggleChartAndList = () => {
