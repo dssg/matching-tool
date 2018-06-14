@@ -100,7 +100,31 @@ def do_match(
         match_successful = True
         status_message = 'new matches are available. Yipee!'
 
+    except Exception as e:
+        match_end_time = datetime.datetime.now()
+        match_run_time = match_end_time - metadata['match_job_start_time']
+        match_successful = False
+        status_message = 'matching failed. SAD!'
+        try:
+            matched_results_paths
+        except NameError:
+            matched_results_paths = None
+
+        try:
+            match_end_time
+        except NameError:
+            match_end_time = datetime.datetime.now()
+
+        try:
+            match_runtime
+        except NameError:
+            match_runtime = match_end_time - metadata['match_job_start_time']
+
+        logger.error(f'Matcher failed with message "{str(e)}"')
+
+    finally:
         if notify_webapp:
+            logger.error("Notifying the webapp")
             job = q.enqueue_call(
                 func='webapp.match_finished',
                 args=(
@@ -115,30 +139,5 @@ def do_match(
                 result_ttl=5000
             )
             logger.info(f'Notified the webapp that {status_message}')
-
-    except Exception as e:
-        match_end_time = datetime.datetime.now()
-        match_run_time = match_end_time - metadata['match_job_start_time']
-        match_successful = False
-        status_message = 'matching failed. SAD!'
-        if notify_webapp:
-            logger.error(f'Matcher failed with message "{str(e)}"')
-            logger.error("Notifying the webapp")
-            job = q.enqueue_call(
-                func='webapp.match_finished',
-                args=(
-                    None,
-                    metadata['match_job_id'],
-                    metadata['match_job_start_time'],
-                    None,
-                    match_successful,
-                    None,
-                    upload_id
-                ),
-                result_ttl=5000
-            )
-            logger.info(f'Notified the webapp that {status_message}')
-
-    finally:
         logger.info('Matcher done!!')
 
