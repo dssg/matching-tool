@@ -22,6 +22,7 @@ from datetime import date, datetime, timedelta
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 import unicodecsv as csv
+import re
 
 
 def test_upload_to_s3():
@@ -320,7 +321,7 @@ class WriteMatchesToDBTest(TestCase):
             with open(MATCHES_HMIS_FILE, 'rb') as f:
                 reader = csv.reader(f, delimiter='|')
                 next(reader)
-                expected_matched_ids = set(row[0] for row in reader)
+                expected_matched_ids = set(re.sub(r'\W+', '', row[0]) for row in reader)
 
             # write these matches to the DB
             with open(MATCHES_HMIS_FILE, 'rb') as fh:

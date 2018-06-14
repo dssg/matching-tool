@@ -139,7 +139,7 @@ def get_records_by_time(
     if not bookings_exists:
         raise ValueError('Bookings table {} does not exist. Please try again later.'.format(bookings_table))
     columns = [
-        ("regexp_replace(matched_id::text, '[^\w]', '', 'g')", 'matched_id'),
+        ("matched_id::text", 'matched_id'),
         ("coalesce(hmis_summary.first_name, jail_summary.first_name)", 'first_name'),
         ("coalesce(hmis_summary.last_name, jail_summary.last_name)", 'last_name'),
         ("hmis_summary.hmis_id", 'hmis_id'),

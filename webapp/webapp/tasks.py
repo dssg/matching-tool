@@ -357,7 +357,7 @@ def write_matches_to_db(db_engine, event_type, jurisdiction, matches_filehandle)
         cursor.execute('select * from {} limit 5'.format(temp_table_name))
         logging.info('First five rows: %s', [row for row in cursor])
         big_query = """
-        update {matched_table} as m set matched_id = tmp.matched_id
+update {matched_table} as m set matched_id = regexp_replace(tmp.matched_id::text, '[^\w]', '', 'g')
         from {temp_table_name} tmp where ({pk}) """.format(
             create=create,
             matched_table=table_name,
