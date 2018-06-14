@@ -75,7 +75,7 @@ class ActionTimeLine extends React.Component {
       <TimelineEvent
           title={"Completed Task #" + item.index + " - " + item.validate_start_time}
           icon={<i className="material-icons md-18">cloud_upload</i>}
-          iconColor={(item['validate_status'] || item['upload_status']) ? "#43C6DB" : "#ff7456" }
+          iconColor={(item['validate_status'] && item['upload_status'] && item['match_status']) ? "#43C6DB" : "#ff7456" }
           key={idx}>
 
         {keys(lookup).map((k) => {

@@ -18,7 +18,7 @@ from matcher.logger import logger
 
 
 from redis import Redis
-from rq import Queue 
+from rq import Queue
 redis_connection = Redis(host='redis', port=6379)
 q = Queue('webapp', connection=redis_connection)
 
@@ -96,19 +96,35 @@ def do_match(
         logger.info('Finished')
         match_end_time = datetime.datetime.now()
         match_runtime =  match_end_time - metadata['match_job_start_time']
-        
+
         match_successful = True
         status_message = 'new matches are available. Yipee!'
 
     except Exception as e:
-        logger.error(f'Matcher failed with message "{str(e)}"')
         match_end_time = datetime.datetime.now()
         match_run_time = match_end_time - metadata['match_job_start_time']
         match_successful = False
         status_message = 'matching failed. SAD!'
+        try:
+            matched_results_paths
+        except NameError:
+            matched_results_paths = None
+
+        try:
+            match_end_time
+        except NameError:
+            match_end_time = datetime.datetime.now()
+
+        try:
+            match_runtime
+        except NameError:
+            match_runtime = match_end_time - metadata['match_job_start_time']
+
+        logger.error(f'Matcher failed with message "{str(e)}"')
 
     finally:
         if notify_webapp:
+            logger.error("Notifying the webapp")
             job = q.enqueue_call(
                 func='webapp.match_finished',
                 args=(
@@ -123,6 +139,5 @@ def do_match(
                 result_ttl=5000
             )
             logger.info(f'Notified the webapp that {status_message}')
-
-        logger.info('All done!!')
+        logger.info('Matcher done!!')
 
