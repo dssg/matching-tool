@@ -306,7 +306,6 @@ def write_upload_log(
 
 
 def write_match_log(db_session, match_job_id, upload_id, match_start_at, match_complete_at, match_status, match_runtime):
-    logger.info("Start writing to match log")
     db_object = MatchLog(
         id=match_job_id,
         upload_id=upload_id,
