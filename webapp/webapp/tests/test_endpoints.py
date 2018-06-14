@@ -318,7 +318,7 @@ class DownloadSourceTestCase(unittest.TestCase):
             assert response.headers["Content-Disposition"] == "attachment; filename=jail_bookings.csv"
             assert response.headers["Content-type"] == "text/csv"
             data = response.get_data()
-            reader = csv.reader(BytesIO(data), delimiter='|')
+            reader = csv.reader(BytesIO(data))
             with open(MATCHED_BOOKING_FILE, 'rb') as source_file:
                 source_reader = csv.reader(source_file)
                 for returned_row, expected_row in zip(reader, source_reader):

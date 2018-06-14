@@ -472,7 +472,7 @@ def source_data_to_filehandle(jurisdiction, event_type):
     master_table = generate_master_table_name(jurisdiction, event_type)
     out_filehandle = io.BytesIO()
     cursor = db.engine.raw_connection().cursor()
-    copy_stmt = 'copy {} to stdout with csv header delimiter as \'|\''.format(master_table)
+    copy_stmt = 'copy {} to stdout with csv header delimiter as \',\''.format(master_table)
     cursor.copy_expert(copy_stmt, out_filehandle)
     out_filehandle.seek(0)
     return out_filehandle
