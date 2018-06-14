@@ -306,6 +306,7 @@ def write_upload_log(
 
 
 def write_match_log(db_session, match_job_id, upload_id, match_start_at, match_complete_at, match_status, match_runtime):
+    logger.info("Start writing to match log")
     db_object = MatchLog(
         id=match_job_id,
         upload_id=upload_id,
@@ -341,7 +342,7 @@ def write_matches_to_db(db_engine, event_type, jurisdiction, matches_filehandle)
     logging.info(create)
     db_engine.execute(create)
 
-    # 2. copy data from filehandle to 
+    # 2. copy data from filehandle to
     conn = db_engine.raw_connection()
     cursor = conn.cursor()
     pk = ','.join([col for col in primary_key])
@@ -409,3 +410,6 @@ def match_finished(
                 )
     except Exception as e:
         logger.error('Error encountered during match_finished: %s', str(e))
+
+    finally:
+        logger.info('All done!')
