@@ -35,14 +35,21 @@ pip install -r requirements-dev.txt
 docker-compose up -d
 #+END_SRC
 
-You can test the API with
-
-#+BEGIN_SRC shell
-http 0.0.0.0:5001/poke
-#+END_SRC
+Run the matcher by calling `matcher.do_match()`.
 
 Also, there is a postgres container running, you can access it using:
 
 #+BEGIN_SRC shell
 psql "postgresql://csh:csh@0.0.0.0:5444/csh"
 #+END_SRC
+
+* Configuring the matcher
+
+The matching process can be customized in several ways by editing the `[matcher_config.yaml](matcher_config.yaml)` file. There are four major components to the configuration file:
+
+- *`keys`:* which columns in the source data should be used for matching (e.g., `first_name`, `ssn`)
+- *`blocking_rules`:* which columns (and which parts of them) to use for blocking data before matching. Comparisons will only be made between records that are in the same block. This should be a dictionary where each key is a column name and each value defines how many characters from that column to use for blocking. For example, `first_name: 1` will include all people who share the first letter of their first names (e.g., Jon, Julie, Jeffrey) in the same block. Negative values will search starting from the **last** letter. For example, `last_name: -2` will block together records that share the **last** two letters of their last names. If multiple rules are given, records must share **all** characteristics to be in the same block.
+- *`contrasts`:* which comparisons to make between records. Each top-level key is a column name (e.g., `first_name`), and the values should be lists of dictionaries with the keys `method` and `args` that define which of the [contraster](matcher/contraster.py)'s methods will be applied to the column. 
+- *`clusterer`:* a dictionary where the `method` key defines which clustering algorithm to use and the `args` key sets the model's hyperparameters.
+
+The default `[matcher_config.yaml](matcher_config.yaml)` file is one we expect to work reasonably well for may jurisdictions where data partners are sharing all available columns. We have provided an example of a smaller configuration file for jurisdictions where less data is shared and hashed social security numbers are given: `[matcher_config_for_reduced_dataset.yaml](matcher_config_for_reduced_dataset.yaml)`.
