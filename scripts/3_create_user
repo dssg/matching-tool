@@ -1,0 +1,76 @@
+#!/bin/bash
+	
+VALID_EVENT_TYPES=(hmis_service_stays jail_bookings jail_booking_aliases jail_booking_charges case_charges hmis_aliases by_name_list)
+
+function help_menu () {
+cat << EOF
+Usage: ${0} JURISDICTION EMAIL PASSWORD EVENT_TYPES 
+Initializes the database with a user that can access the given event types.
+Valid event types: ${VALID_EVENT_TYPES[@]}
+EOF
+}
+
+if [[ $# -eq 0 ]]; then
+	help_menu
+	exit 0
+fi
+
+JURISDICTION=$1
+if [ -z "$JURISDICTION" ]; then
+	help_menu
+	exit 1
+fi
+PARSED_JURISDICTION=`echo $JURISDICTION | sed -r 's/( )(\w)/\2/g' | tr '[:upper:]' '[:lower:]'`
+echo "Successfully parsed jurisdiction and converted to ${PARSED_JURISDICTION}"
+echo ""
+
+EMAIL=$2
+if [ -z "$EMAIL" ]; then
+	help_menu
+	exit 1
+fi
+echo "Successfully parsed email ${EMAIL}"
+echo ""
+
+PASSWORD=$3
+
+if [ -z "$PASSWORD" ]; then
+	help_menu
+	exit 1
+fi
+
+echo "Successfully parsed password ${PASSWORD}"
+echo ""
+shift
+shift
+shift
+EVENT_TYPES=$@
+if [ -z "$EVENT_TYPES" ]; then
+	help_menu
+	exit 1
+fi
+echo "Received event types ${EVENT_TYPES}"
+echo ""
+for EVENT_TYPE in $EVENT_TYPES; do
+	for item in "${VALID_EVENT_TYPES[@]}"; do
+    		[[ $EVENT_TYPE == "$item" ]] && break 2
+	done
+	echo "$EVENT_TYPE is not a valid event type. Valid event types are ${VALID_EVENT_TYPES[@]}"
+	exit 1
+done
+
+echo "Successfully validated event types"
+echo "Ensuring docker infrastructure is running"
+./scripts/run start
+
+echo "Upgrading database schema to HEAD version"
+docker exec -it webapp alembic upgrade head
+echo "Creating user $EMAIL"
+docker exec -it webapp flask users create --password $PASSWORD -a $EMAIL
+for EVENT_TYPE in $EVENT_TYPES; do
+	ROLE=${PARSED_JURISDICTION}_${EVENT_TYPE}
+	echo "Creating role $ROLE and adding user $EMAIL"
+	docker exec -it webapp flask roles create $ROLE
+	docker exec -it webapp flask roles add $EMAIL $ROLE
+done
+

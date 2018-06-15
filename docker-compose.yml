@@ -1,78 +1,51 @@
 version: '3'
 
 services:
-    db:
-        container_name: csh_db
-        image: postgres:10
-        ports:
-            - 5444:5432
-        env_file:
-          - .env
-  
     webapp:
         container_name: webapp
         build: ./webapp
-        depends_on:
-            - db
         volumes:
-            - '.:/csh'
+            - ./webapp/tmp:/csh/webapp/tmp
         ports:
             - 5000:5000
         env_file:
             - webapp.env
             - .env
-        environment:
-            - AWS_ACCESS_KEY_ID
-            - AWS_SECRET_ACCESS_KEY
-
-    matcher:
-        container_name: matcher
-        build: ./matcher
-        volumes:
-            - '.:/csh' # HOST:CONTAINER
-        ports:
-            - 5001:5000 # HOST:CONTAINER
-        env_file:
-            - matcher.env
-            - .env
-        environment:
-            - AWS_ACCESS_KEY_ID
-            - AWS_SECRET_ACCESS_KEY
 
     matcher_worker:
-        image: csh_matcher
+        build: ./matcher
         container_name: matcher_worker
         command: python manage.py
-        volumes:
-            - '.:/csh'
         depends_on:
             - redis
-            - matcher
         env_file:
             - matcher.env
             - .env
-        environment:
-            - AWS_ACCESS_KEY_ID
-            - AWS_SECRET_ACCESS_KEY
 
     webapp_worker:
-        image: csh_webapp
+        image: matchingtool_webapp
         container_name: webapp_worker
         command: python manage.py runworker
         volumes:
-            - '.:/csh'
+            - ./webapp/tmp:/csh/webapp/tmp
         depends_on:
             - redis
             - webapp
         env_file:
             - webapp.env
             - .env
-        environment:
-          - AWS_ACCESS_KEY_ID
-          - AWS_SECRET_ACCESS_KEY
 
     redis:
        image: redis
        container_name: csh_queue
        ports:
          - 6379:6379
+
+    nginx:
+        image: "nginx:1.13.5"
+        ports:
+            - 80:80
+        volumes:
+            - ./webapp/conf.d:/etc/nginx/conf.d
+        depends_on: 
+            - webapp

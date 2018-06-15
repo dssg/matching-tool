@@ -1,0 +1,108 @@
+#!/bin/bash
+
+function help_menu () {
+cat << EOF
+Usage: ${0} PGHOST PGPORT SUPER_USER NEW_DATABASE
+Creates a Postgres database for the matching web application.
+
+You will be asked to paste in the Postgres superuser password a few times.
+
+Arguments:
+PGHOST - The address of the Postgres installation.
+PGPORT - The port of the Postgres installation.
+SUPER_USER - The name of the Postgres superuser that can create database and grant roles
+NEW_DATABASE - The name of the new database to create
+EOF
+}
+
+if [[ $# -eq 0 ]]; then
+	help_menu
+	exit 0
+fi
+
+HOST=$1
+if [ -z "$HOST" ]; then
+	help_menu
+	exit 1
+fi
+
+PORT=$2
+if [ -z "$PORT" ]; then
+	help_menu
+	exit 1
+fi
+
+SUPER_USER=$3
+if [ -z "$SUPER_USER" ]; then
+	help_menu
+	exit 1
+fi
+
+NEW_DATABASE=$4
+if [ -z "$NEW_DATABASE" ]; then
+	help_menu
+	exit 1
+fi
+
+
+NEW_PASSWORD=`pwgen 16 1`
+
+sudo add-apt-repository 'deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main'
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | \
+	  sudo apt-key add -
+sudo apt-get update
+sudo apt-get install -y python3-pip postgresql-client-10 pwgen
+
+echo "Installing awscli and httpie"
+pip3 install awscli httpie
+
+
+
+echo "Installing docker-compose"
+sudo curl -L https://github.com/docker/compose/releases/download/1.20.1/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+
+
+psql -X -h "$HOST" -p "$PORT" -U "$SUPER_USER" -d "postgres" <<-END
+	create role ${NEW_DATABASE} nosuperuser nocreatedb nocreaterole inherit login password '${NEW_PASSWORD}';
+    grant ${NEW_DATABASE} to ${SUPER_USER};
+END
+
+echo "Successfully created role and user"
+echo ""
+
+createdb -h "$HOST" \
+         -p "$PORT" \
+         -U "$SUPER_USER" \
+         --maintenance-db="postgres" \
+         --owner="${NEW_DATABASE}" \
+         --template="template0" \
+         "$NEW_DATABASE"
+
+echo "Created database"
+echo ""
+
+psql -X -h "$HOST" -p "$PORT" -U "$SUPER_USER" -d "postgres" <<-END
+grant all on database $NEW_DATABASE to ${NEW_DATABASE};
+--grant all on all tables in schema public to ${NEW_DATABASE};
+grant usage on schema public to ${NEW_DATABASE};
+alter default privileges in schema public grant all on tables to ${NEW_DATABASE};
+END
+
+echo "Generated database grants"
+echo ""
+
+SECRET_KEY=`pwgen 16 1`
+SECURITY_PASSWORD_SALT=`pwgen 16 1`
+
+echo "Populating .env file with database information and other secrets by copying _env and populating with newly generated data"
+cp _env .env
+sed -i "s/POSTGRES_HOST=\w*/POSTGRES_HOST=${HOST}/" .env
+sed -i "s/POSTGRES_PORT=.*/POSTGRES_PORT=${PORT}/" .env
+sed -i "s/POSTGRES_DB=\w*/POSTGRES_DB=${NEW_DATABASE}/" .env
+sed -i "s/POSTGRES_USER=\w*/POSTGRES_USER=${NEW_DATABASE}/" .env
+sed -i "s/POSTGRES_PASSWORD=\w*/POSTGRES_PASSWORD=${NEW_PASSWORD}/" .env
+sed -i "s/SECRET_KEY=\w*/SECRET_KEY=${SECRET_KEY}/" .env
+sed -i "s/SECURITY_PASSWORD_SALT=\w*/SECURITY_PASSWORD_SALT=${SECURITY_PASSWORD_SALT}/" .env
+
+echo "Successfully populated .env file"
