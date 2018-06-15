@@ -1,3 +1,7 @@
+# This configuration file is intended as an example for jurisdictions where
+# only a small subset of personal data is available to the matcher and where
+# hashed SSNs are used.
+
 keys:
     # Which columns to select for matching
     - first_name
