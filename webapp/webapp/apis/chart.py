@@ -83,7 +83,7 @@ def get_last_upload_date():
         assert len(last_upload) == 1
         last_upload_date = last_upload[0]['upload_start_time']
         logger.info(type(last_upload_date))
-        last_upload_date = last_upload_date.strftime('%Y-%m-%d %I:%M:%S %p')
+        last_upload_date = last_upload_date.strftime('%Y-%m-%d')
         return jsonify(results=last_upload_date)
     except:
         return jsonify("no valid upload date")
