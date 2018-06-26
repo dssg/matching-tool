@@ -127,7 +127,7 @@ DATA_FIELDS = {
         classification          text,
         detention               text,
         location_type           text,
-        relocation_date         timestamp,
+        location_date           timestamp,
         case_number             text,
         source_name             text,
         created_date            timestamp,
