@@ -24,6 +24,10 @@ def unique_upload_id():
     return str(uuid4())
 
 
+def generate_raw_table_name(upload_id):
+    return 'raw_{}'.format(upload_id)
+
+
 def upload_path(jurisdiction, event_type, upload_id):
     datestring = date.today().isoformat()
     path_template = app_config['raw_uploads_path']

@@ -9,7 +9,7 @@ from datetime import date
 from webapp.storage import open_sesame
 from webapp.database import db_session
 from webapp.models import Upload, MergeLog
-from webapp.utils import generate_master_table_name
+from webapp.utils import generate_master_table_name, generate_raw_table_name, table_exists
 from io import BytesIO
 import unicodecsv as csv
 import pandas as pd
@@ -276,6 +276,9 @@ class MergeBookingsFileTestCase(unittest.TestCase):
 
             # and make sure that the merge log has a record of this
             assert db_session.query(MergeLog).filter(MergeLog.upload_id == '123-456').one
+
+            # and make sure that the raw table is no longer there
+            assert not table_exists(generate_raw_table_name(upload_id), db_session.bind)
 
     @requests_mock.mock()
     def test_file_storage(self, request_mock):
