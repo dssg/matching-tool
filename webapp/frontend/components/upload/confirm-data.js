@@ -32,8 +32,7 @@ function mapDispatchToProps(dispatch) {
 
 const styles = {
   button: { margin: 12, },
-  step: { marginLeft: 75 },
-  table: { overflow: 'scroll' }
+  step: { marginLeft: 75 }
 }
 
 class ConfirmData extends React.Component {
@@ -56,7 +55,7 @@ class ConfirmData extends React.Component {
         <p>Your {this.props.selectedEventType.name} file was successfully validated. {this.props.numRows} valid rows were found.</p>
         <p>Verify that the first ten rows shown below uploaded in the way you expect. If you are satisfied then click 'Confirm Upload' below, or else click 'Cancel Upload' to try again.</p>
         {this.renderButtons()}
-        <div style={styles.table}>
+        <div>
           <Reactable.Table
             className="table"
             data={this.props.exampleRows}
