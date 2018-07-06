@@ -232,7 +232,7 @@ class MergeFileTestCase(unittest.TestCase):
             # call the merge endpoint
             response = app.post('/api/upload/merge_file?uploadId={}'.format(upload_id))
             response_data = json.loads(response.get_data().decode('utf-8'))
-            assert response_data['status'] == 'valid'
+            assert response_data['status'] == 'success'
             # make sure that there is a new merged file on s3
             expected_s3_path = 's3://test-bucket/boone/hmis_service_stays/merged'
             with open_sesame(expected_s3_path, 'rb') as expected_s3_file:
@@ -264,7 +264,7 @@ class MergeFileTestCase(unittest.TestCase):
             # now merge the right one, the db should not be in a weird state
             response = app.post('/api/upload/merge_file?uploadId={}'.format(upload_id))
             response_data = json.loads(response.get_data().decode('utf-8'))
-            assert response_data['status'] == 'valid'
+            assert response_data['status'] == 'success'
 
 
 class MergeBookingsFileTestCase(unittest.TestCase):
@@ -302,7 +302,7 @@ class MergeBookingsFileTestCase(unittest.TestCase):
             # call the merge endpoint
             response = app.post('/api/upload/merge_file?uploadId={}'.format(upload_id))
             response_data = json.loads(response.get_data().decode('utf-8'))
-            assert response_data['status'] == 'valid'
+            assert response_data['status'] == 'success'
             # make sure that there is a new merged file on s3
             expected_s3_path = 's3://test-bucket/boone/jail_bookings/merged'
             with open_sesame(expected_s3_path, 'rb') as expected_s3_file:
@@ -330,7 +330,7 @@ class MergeBookingsFileTestCase(unittest.TestCase):
                     # call the merge endpoint
                     response = app.post('/api/upload/merge_file?uploadId={}'.format(upload_id))
                     response_data = json.loads(response.get_data().decode('utf-8'))
-                    assert response_data['status'] == 'valid'
+                    assert response_data['status'] == 'success'
                     # make sure that there is a new merged file on the FS
                     expected_path = os.path.join(temp_dir, 'boone-jail_bookings-merged')
                     with open(expected_path, 'rb') as expected_file:

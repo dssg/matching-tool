@@ -13,6 +13,8 @@ from webapp import SCHEMA_DIRECTORY
 
 from contextlib import contextmanager
 import requests
+import psycopg2
+from retrying import retry
 from sqlalchemy import MetaData, Table
 
 from redis import Redis
@@ -196,3 +198,16 @@ def list_all_schemas_primary_keys(path=SCHEMA_DIRECTORY):
         schema = load_schema_file(event_type)
         result[event_type.replace('-', '_')] = schema['primaryKey']
     return result
+
+def retry_if_db_error(exception):
+    is_db_error = isinstance(exception, psycopg2.DatabaseError)
+    logger.warning('Inspected exception %s to see if it is a db error. Decided %s', str(exception), is_db_error)
+    return is_db_error
+
+DEFAULT_RETRY_KWARGS = {
+    'retry_on_exception': retry_if_db_error,
+    'wait_fixed': 1000,
+    'stop_max_delay': 10000
+}
+
+db_retry = retry(**DEFAULT_RETRY_KWARGS)

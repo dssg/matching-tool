@@ -3,6 +3,7 @@ import RaisedButton from 'material-ui/RaisedButton'
 import Reactable from 'reactable'
 import { pickFile, resetEventType, resetUploadResponse, confirmUpload } from '../../actions'
 import { connect } from 'react-redux'
+import {red500} from 'material-ui/styles/colors'
 
 function mapStateToProps(state) {
   return {
@@ -11,7 +12,8 @@ function mapStateToProps(state) {
     fieldOrder: state.app.uploadResponse.fieldOrder,
     numRows: state.app.uploadResponse.rowCount,
     uploadId: state.app.uploadResponse.uploadId,
-    mergingIsLoading: state.app.mergingIsLoading
+    mergingIsLoading: state.app.mergingIsLoading,
+    mergeProblem: state.app.mergeResults.status === 'error',
   }
 }
 
@@ -33,13 +35,15 @@ function mapDispatchToProps(dispatch) {
 
 const styles = {
   button: { margin: 12, },
-  step: { marginLeft: 75 }
+  step: { marginLeft: 75 },
+  error: { color: red500 }
 }
 
 class ConfirmData extends React.Component {
   renderButtons() {
     return (
       <div>
+        <p style={this.props.mergeProblem ? error : {}}>{this.props.mergeProblem ? 'There was a problem confirming the upload. Please try again.' : ''}</p>
         <RaisedButton
           onMouseUp={this.props.confirm(this.props.uploadId)}
           disabled={this.props.mergingIsLoading}

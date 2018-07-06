@@ -372,7 +372,7 @@ def merge_file():
                 return make_response(jsonify(status='error'), 500)
             db_session.commit()
             return jsonify(
-                status='valid',
+                status='success',
                 new_unique_rows=merge_log.new_unique_rows,
                 total_unique_rows=merge_log.total_unique_rows
             )

@@ -14,3 +14,4 @@ flask-script
 colorlog
 flask-mail
 s3fs
+retrying

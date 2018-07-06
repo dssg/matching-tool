@@ -18,7 +18,8 @@ from webapp.utils import load_schema_file,\
     table_exists,\
     table_has_column,\
     split_table,\
-    generate_raw_table_name
+    generate_raw_table_name,\
+    db_retry
 from webapp.validations import CHECKS_BY_SCHEMA
 from hashlib import md5
 import logging
@@ -34,6 +35,7 @@ def upload_to_storage(full_path, local_filename):
             outfile.write(infile.read())
 
 
+@db_retry
 def sync_upload_metadata(
     upload_id,
     event_type,
@@ -75,7 +77,7 @@ def sync_upload_metadata(
             s3_upload_path=s3_upload_path
         )
 
-
+@db_retry
 def copy_raw_table_to_db(
     full_path,
     event_type,
@@ -119,6 +121,7 @@ def copy_raw_table_to_db(
     return table_name
 
 
+@db_retry
 def create_merged_table(jurisdiction, event_type, db_session):
     master_table_name = generate_master_table_name(jurisdiction, event_type)
     goodtables_schema = load_schema_file(event_type)
@@ -129,11 +132,13 @@ def create_merged_table(jurisdiction, event_type, db_session):
     db_session.execute(create)
 
 
+@db_retry
 def bootstrap_master_tables(jurisdiction, db_session):
     for event_type in {'hmis_service_stays', 'jail_bookings'}:
         create_merged_table(jurisdiction, event_type, db_session)
 
 
+@db_retry
 def upsert_raw_table_to_master(
     raw_table_name,
     jurisdiction,
@@ -181,6 +186,7 @@ def upsert_raw_table_to_master(
     return merge_log.id
 
 
+@db_retry
 def new_unique_rows(master_table_name, new_ts, db_session):
     return [
         row[0] for row in
@@ -188,6 +194,7 @@ def new_unique_rows(master_table_name, new_ts, db_session):
     ][0]
 
 
+@db_retry
 def total_unique_rows(raw_table_name, primary_key, db_engine):
     return [
         row[0] for row in
@@ -197,6 +204,7 @@ def total_unique_rows(raw_table_name, primary_key, db_engine):
     )][0]
 
 
+@db_retry
 def sync_merged_file_to_storage(jurisdiction, event_type, db_engine):
     full_path = merged_file_path(jurisdiction, event_type)
     table_name = generate_master_table_name(jurisdiction, event_type)
@@ -282,6 +290,7 @@ def validate_header(event_type, filename_without_all_fields):
                 raise ValueError(f"Field name {required_field_name} is required for {event_type} schema but is not present")
 
 
+@db_retry
 def write_upload_log(
     db_session,
     upload_id,
@@ -321,6 +330,7 @@ def write_upload_log(
     db_session.commit()
 
 
+@db_retry
 def write_match_log(db_session, match_job_id, upload_id, match_start_at, match_complete_at, match_status, match_runtime):
     db_object = MatchLog(
         id=match_job_id,
@@ -334,6 +344,7 @@ def write_match_log(db_session, match_job_id, upload_id, match_start_at, match_c
     db_session.commit()
 
 
+@db_retry
 def write_matches_to_db(db_engine, event_type, jurisdiction, matches_filehandle):
     goodtables_schema = load_schema_file(event_type)
     table_name = generate_master_table_name(event_type=event_type, jurisdiction=jurisdiction)
