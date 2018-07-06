@@ -234,6 +234,20 @@ def add_missing_fields(event_type, infilename):
     return outfilename
 
 
+def two_pass_validation(event_type, filename_with_all_fields):
+    first_pass_rows = 100
+    initial_report = validate_file(event_type, filename_with_all_fields, row_limit=first_pass_rows)
+    if len(initial_report['tables'][0]['errors']) >= first_pass_rows:
+        initial_report['tables'][0]['errors'].append({
+            'column-number': None,
+            'row-number': None,
+            'message': f'Too many errors in first {first_pass_rows}, rest of file skipped. Please fix errors and try again.'
+        })
+        return initial_report
+    else:
+        return validate_file(event_type, filename_with_all_fields, row_limit=10000000)
+
+
 def validate_file(event_type, filename_with_all_fields, row_limit=1000):
     report = validate(
         filename_with_all_fields,

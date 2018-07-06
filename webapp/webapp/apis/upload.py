@@ -13,7 +13,7 @@ from webapp.tasks import \
     bootstrap_master_tables,\
     sync_merged_file_to_storage,\
     add_missing_fields,\
-    validate_file,\
+    two_pass_validation,\
     validate_header
 from webapp.users import can_upload_file, get_jurisdiction_roles
 from webapp.utils import upload_path, notify_matcher, infer_delimiter, unique_upload_id
@@ -190,7 +190,7 @@ def format_error_report(exception_message):
     }
 
 
-def validate_async(uploaded_file_name, jurisdiction, full_filename, event_type, flask_user_id, upload_id, row_limit):
+def validate_async(uploaded_file_name, jurisdiction, full_filename, event_type, flask_user_id, upload_id):
     validate_start_time = datetime.today()
     try:
         # 1. validate header
@@ -199,7 +199,7 @@ def validate_async(uploaded_file_name, jurisdiction, full_filename, event_type, 
         filename_with_all_fields = add_missing_fields(event_type, full_filename)
 
         # 3. validate body
-        body_validation_report = validate_file(event_type, filename_with_all_fields, row_limit)
+        body_validation_report = two_pass_validation(event_type, filename_with_all_fields)
         sync_upload_metadata_partial = partial(
             sync_upload_metadata,
             upload_id=upload_id,
@@ -314,7 +314,7 @@ def upload_file():
         q = get_q(get_redis_connection())
         job = q.enqueue_call(
             func=validate_async,
-            args=(uploaded_file.filename, jurisdiction, full_filename, event_type, current_user.id, upload_id, 10000000),
+            args=(uploaded_file.filename, jurisdiction, full_filename, event_type, current_user.id, upload_id),
             result_ttl=5000,
             timeout=3600,
             meta={'event_type': event_type, 'filename': filename, 'upload_id': upload_id}
