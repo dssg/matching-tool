@@ -12,6 +12,11 @@ module.exports = {
     publicPath: 'http://localhost:2992/assets/',
     filename: 'output.js',
   },
+  devServer: {
+    contentBase: path.resolve(__dirname, '../webapp/static'),
+    open: true,
+    index: 'index.htm'
+  },
   resolve: {
     root: path.resolve(__dirname, './'),
     extensions: ['', '.js']
