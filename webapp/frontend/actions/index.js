@@ -189,11 +189,19 @@ export function setAppState(stateKey, value) {
 
 export function confirmUpload(uploadId) {
   return function(dispatch) {
+    dispatch(setAppState('mergingIsLoading', true))
     return fetch('api/upload/merge_file?uploadId='+uploadId, { method: 'POST', credentials: 'include'})
-        .then((resp) => resp.json())
-        .then((data) => {
-          dispatch(saveMergeResults(data))
-        })
+      .then((resp) => {
+        if(!resp.ok) {
+          dispatch(errorMessage('Error merging data. Please try again later.'))
+          dispatch(setAppState('mergingIsLoading', false))
+        }
+        return resp.json()
+      })
+      .then((data) => {
+        dispatch(saveMergeResults(data))
+        dispatch(setAppState('mergingIsLoading', false))
+      })
   }
 }
 

@@ -11,6 +11,7 @@ function mapStateToProps(state) {
     fieldOrder: state.app.uploadResponse.fieldOrder,
     numRows: state.app.uploadResponse.rowCount,
     uploadId: state.app.uploadResponse.uploadId,
+    mergingIsLoading: state.app.mergingIsLoading
   }
 }
 
@@ -40,7 +41,12 @@ class ConfirmData extends React.Component {
   renderButtons() {
     return (
       <div>
-        <RaisedButton onMouseUp={this.props.confirm(this.props.uploadId)} style={styles.button} label="Confirm Upload" />
+        <RaisedButton
+          onMouseUp={this.props.confirm(this.props.uploadId)}
+          disabled={this.props.mergingIsLoading}
+          style={styles.button}
+          label="Confirm Upload"
+        />
         <RaisedButton
           label="Cancel Upload"
           onClick={this.props.resetToStep0}
