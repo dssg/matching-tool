@@ -4,6 +4,7 @@ from webapp.logger import logger
 import pandas as pd
 from webapp.apis import query
 from webapp.users import can_upload_file
+import json
 
 chart_api = Blueprint('chart_api', __name__, url_prefix='/api/chart')
 
@@ -11,26 +12,10 @@ chart_api = Blueprint('chart_api', __name__, url_prefix='/api/chart')
 @chart_api.route('/get_schema', methods=['GET'])
 @login_required
 def get_records_by_time():
-    start_date = request.args.get('startDate')
-    end_date = request.args.get('endDate')
-    jurisdiction = request.args.get('jurisdiction')
-    limit = request.args.get('limit', 10)
-    offset = request.args.get('offset', 0)
-    order_column = request.args.get('orderColumn')
-    order = request.args.get('order')
-    set_status = request.args.get('setStatus')
-    logger.info(f'Pulling data from {start_date} to {end_date}')
-    records = query.get_records_by_time(
-        start_date,
-        end_date,
-        jurisdiction,
-        limit,
-        offset,
-        order_column,
-        order,
-        set_status
-    )
-    return jsonify(results=records)
+    sample_results_filename = 'sample_data/results_input/results_12012017_01012018.json'
+    with open(sample_results_filename) as f:
+        records = json.load(f)['results']
+        return jsonify(results=records)
 
 
 @chart_api.route('/download_list', methods=['GET'])
@@ -78,6 +63,7 @@ def download_source():
 @chart_api.route('/last_upload_date', methods=['GET'])
 @login_required
 def get_last_upload_date():
+    return jsonify(results='2017-01-01')
     last_upload = query.last_upload_date()
     try:
         assert len(last_upload) == 1

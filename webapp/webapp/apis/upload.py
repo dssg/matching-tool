@@ -105,7 +105,19 @@ def format_validation_report(report, event_type_slug):
 @upload_api.route('/jurisdictional_roles.json', methods=['GET'])
 @login_required
 def jurisdiction_roles():
-    return jsonify(results=get_jurisdiction_roles())
+
+    roles = [{
+        "jurisdictionSlug": "your_county",
+        "jurisdiction": "Your County",
+        "eventTypeSlug": "hmis_service_stays",
+        "eventType": "HMIS"
+    }, {
+        "jurisdictionSlug": "your_county",
+        "jurisdiction": "Your County",
+        "eventTypeSlug": "jail_bookings",
+        "eventType": "Jail Bookings"
+    }]
+    return jsonify(results=roles)
 
 
 @upload_api.route('/validated_result/<job_key>', methods=['GET'])
