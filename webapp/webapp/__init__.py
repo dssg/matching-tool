@@ -13,9 +13,9 @@ SCHEMA_DIRECTORY = 'schemas/uploader/'
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app)
 
-app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
-app.config['DEBUG'] = os.environ['DEBUG']
-app.config['SECURITY_PASSWORD_SALT'] = os.environ['SECURITY_PASSWORD_SALT']
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev')
+app.config['DEBUG'] = os.environ.get('DEBUG', True)
+app.config['SECURITY_PASSWORD_SALT'] = os.environ.get('SECURITY_PASSWORD_SALT', 'salt')
 app.config['SQLALCHEMY_DATABASE_URI'] = dburl
 app.config["JSON_SORT_KEYS"] = False
 app.config["SECURITY_RECOVERABLE"] = True
