@@ -20,6 +20,7 @@ GOOD_HMIS_FILE = 'sample_data/uploader_input/hmis_service_stays/good.csv'
 ROWS_IN_GOOD_HMIS_FILE = 11
 HMIS_FILE_WITH_DUPLICATES = 'sample_data/uploader_input/hmis_service_stays/duplicates.csv'
 HMIS_FILE_TOO_MANY_ERRORS = 'sample_data/uploader_input/hmis_service_stays/too-many-errors.csv'
+HMIS_FILE_BAD_DELIMITER = 'sample_data/uploader_input/hmis_service_stays/bad-delimiter.csv'
 BOOKINGS_FILE = 'sample_data/uploader_input/jail_bookings/missing-fields.csv'
 MATCHED_BOOKING_FILE = 'sample_data/matched/matched_bookings_data_20171207.csv'
 MATCHED_HMIS_FILE = 'sample_data/matched/matched_hmis_data_20171207.csv'
@@ -180,6 +181,22 @@ class UploadFileTestCase(unittest.TestCase):
             assert response_data['validation']['status'] == 'invalid'
             assert any('Too many errors' in row['message'] for row in response_data['upload_result']['errorReport'])
 
+    def test_file_bad_delimiter(self):
+        with full_rig_with_s3() as (app, engine):
+            response = app.post(
+                '/api/upload/upload_file?jurisdiction=boone&eventType=hmis_service_stays',
+                content_type='multipart/form-data',
+                data={'file_field': (open(HMIS_FILE_BAD_DELIMITER, 'rb'), 'myfile.csv')}
+            )
+            response_data = json.loads(response.get_data().decode('utf-8'))
+            job_key = response_data['jobKey']
+            assert response_data['status'] == 'validating'
+
+            response = app.get('/api/upload/validated_result/' + job_key)
+            response_data = json.loads(response.get_data().decode('utf-8'))
+            assert 'validation' in response_data
+            assert response_data['validation']['status'] == 'invalid'
+            assert any('Unknown delimiter' in row['message'] for row in response_data['upload_result']['errorReport'])
 
 class MergeFileTestCase(unittest.TestCase):
     def do_upload(self, app, request_mock):
