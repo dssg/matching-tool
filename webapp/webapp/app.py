@@ -35,7 +35,6 @@ def health_check():
 
 @app.teardown_appcontext
 def shutdown_session(exception=None):
-    print('removing session!')
     db_session.remove()
 
 
