@@ -68,6 +68,7 @@ const initialState = {
       rowCount: '',
       uploadId: ''
     },
+    mergingIsLoading: false,
     mergeResults: {
       totalUniqueRows: '',
       newUniqueRows: '',
