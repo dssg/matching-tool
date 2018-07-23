@@ -10,7 +10,8 @@ pages:
         - {Installing: admin/install.md}
         - {Troubleshooting: admin/troubleshooting.md}
         - {Updating: admin/updating.md}
+        - {Configuring the Matching Service: admin/matching.md}
     - For Developers:
-        - {Creating a new Schema: dev/schemas.md}
+        - {Creating or Modifying a Schema: dev/schemas.md}
         - {Modifying the Webapp: dev/webapp.md}
-        - {Modifying the Matching Service : dev/matching.md}
+        - {Modifying the Matching Service: dev/matching.md}

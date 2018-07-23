@@ -1,1 +1,1 @@
-# Creating a new Schema
+# Creating or Modifying a Schema
