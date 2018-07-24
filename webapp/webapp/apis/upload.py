@@ -192,6 +192,16 @@ def format_error_report(exception_message):
 
 def validate_async(uploaded_file_name, jurisdiction, full_filename, event_type, flask_user_id, upload_id):
     validate_start_time = datetime.today()
+    sync_upload_metadata_partial = partial(
+        sync_upload_metadata,
+        upload_id=upload_id,
+        event_type=event_type,
+        jurisdiction=jurisdiction,
+        flask_user_id=flask_user_id,
+        given_filename=uploaded_file_name,
+        local_filename=full_filename,
+        db_session=db_session
+    )
     try:
         # 1. validate header
         validate_header(event_type, full_filename)
@@ -200,16 +210,6 @@ def validate_async(uploaded_file_name, jurisdiction, full_filename, event_type, 
 
         # 3. validate body
         body_validation_report = two_pass_validation(event_type, filename_with_all_fields)
-        sync_upload_metadata_partial = partial(
-            sync_upload_metadata,
-            upload_id=upload_id,
-            event_type=event_type,
-            jurisdiction=jurisdiction,
-            flask_user_id=flask_user_id,
-            given_filename=uploaded_file_name,
-            local_filename=full_filename,
-            db_session=db_session
-        )
 
         validate_complete_time = datetime.today()
         if not body_validation_report['valid']:

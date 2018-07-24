@@ -153,7 +153,7 @@ def infer_delimiter(infilename):
         first_row = next(reader)
         if len(first_row) > 1:
             return ','
-        raise ValueError('Unknown delimiter')
+        raise ValueError('Unknown delimiter. Must use either comma (,) or pipe (|)')
 
 
 def split_table(table_name):
