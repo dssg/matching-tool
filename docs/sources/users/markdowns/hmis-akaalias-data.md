@@ -1,6 +1,6 @@
 # Schemas
 
-1. **Internal Person ID**
+### 1. **Internal Person ID**
     1. **Data Field Column Name** : `internal_person_id`
     2. **Data Field Type** : `varchar`
     3. **Description** : `Internal database identification number associated with the individual`
