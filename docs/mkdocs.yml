@@ -1,6 +1,10 @@
 site_name: Matching Tool
 docs_dir: sources
 theme: material
+markdown_extensions:
+    - toc:
+        permalink: True
+        baselevel: 2
 pages:
     - {Home: index.md}
     - For Users:
