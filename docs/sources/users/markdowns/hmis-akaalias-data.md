@@ -1,11 +1,11 @@
 # Schemas
 
 ### 1. Internal Person ID
-##### > **Data Field Column Name** : `internal_person_id`
-##### > **Data Field Type** : `varchar`
-##### > **Description** : `Internal database identification number associated with the individual`
-##### > **Required by Upload System** : `NO`
-##### > **Required for Good Match** : `YES`
+##### &lt;p&gt; **Data Field Column Name** : `internal_person_id`&lt;/p&gt;
+#####  **Data Field Type** : `varchar`
+#####  **Description** : `Internal database identification number associated with the individual`
+#####  **Required by Upload System** : `NO`
+#####  **Required for Good Match** : `YES`
 #####  **Nullable** : `YES`
 
 
