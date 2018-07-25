@@ -17,7 +17,8 @@ from webapp.utils import load_schema_file,\
     primary_key_statement,\
     table_exists,\
     table_has_column,\
-    split_table
+    split_table,\
+    generate_raw_table_name
 from webapp.validations import CHECKS_BY_SCHEMA
 from hashlib import md5
 import logging
@@ -83,7 +84,7 @@ def copy_raw_table_to_db(
 ):
     goodtables_schema = load_schema_file(event_type)
     logging.info('Loaded schema: %s', goodtables_schema)
-    table_name = 'raw_{}'.format(upload_id)
+    table_name = generate_raw_table_name(upload_id)
     create_statement = create_statement_from_goodtables_schema(
         goodtables_schema,
         table_name
@@ -175,6 +176,7 @@ def upsert_raw_table_to_master(
         merge_complete_timestamp=end_ts,
     )
     db_session.add(merge_log)
+    db_session.execute('drop table "{}"'.format(raw_table_name))
     db_session.commit()
     return merge_log.id
 
