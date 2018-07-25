@@ -1,12 +1,12 @@
 # Schemas
 
 ### 1. Internal Person ID
-1.   **Data Field Column Name** : `internal_person_id`
-2.   **Data Field Type** : `varchar`
-3.   **Description** : `Internal database identification number associated with the individual`
-4.   **Required by Upload System** : `NO`
-5.   **Required for Good Match** : `YES`
-6.   **Nullable** : `YES`
+    1.   **Data Field Column Name** : `internal_person_id`
+    2.   **Data Field Type** : `varchar`
+    3.   **Description** : `Internal database identification number associated with the individual`
+    4.   **Required by Upload System** : `NO`
+    5.   **Required for Good Match** : `YES`
+    6.   **Nullable** : `YES`
 
 
 ### 2. Internal Event ID
