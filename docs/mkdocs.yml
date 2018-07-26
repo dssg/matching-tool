@@ -6,6 +6,13 @@ pages:
     - For Users:
         - {Using the Tool: users/using.md}
         - {Schemas: users/schemas.md}
+            - {Booking AKA/Alias Schema: users/schemas/booking-akaalias-data.md}
+            - {Booking Charge Schema: users/schemas/booking-charging-data.md}
+            - {Booking Schema: users/schemas/booking-data.md}
+            - {By-Name Schema: users/schemas/by-name-list.md}
+            - {Case Charge Schema: users/schemas/case-charge-data.md}
+            - {Homelessness Services AKA/Alias Schema: users/schemas/hmis-akaalias-data.md}
+            - {Homelessness Service Stays Schema: users/schemas/hmis-data.md}
     - For Administrators:
         - {Installing: admin/install.md}
         - {Troubleshooting: admin/troubleshooting.md}
