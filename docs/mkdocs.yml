@@ -5,7 +5,7 @@ pages:
     - {Home: index.md}
     - For Users:
         - {Using the Tool: users/using.md}
-        - {Schemas: users/schemas.md}
+        - Schemas:
             - {Booking AKA/Alias Schema: users/schemas/booking-akaalias-data.md}
             - {Booking Charge Schema: users/schemas/booking-charging-data.md}
             - {Booking Schema: users/schemas/booking-data.md}
