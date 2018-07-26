@@ -1,4 +1,4 @@
-# Schemas 
+# Case Charge Schema 
 
 ### 1. Internal Person ID
 ##### **Data Field Column Name** : `internal_person_id`
@@ -13,7 +13,7 @@
 ### 2. Internal Event ID
 ##### **Data Field Column Name** : `internal_event_id`
 ##### **Data Field Type** : `varchar`
-##### **Description** : `Internal database unique primary key for booking table`
+##### **Description** : `Internal database unique primary key for cases table`
 ##### **Example** : `498376`
 ##### **Required by Upload System** : `~ - at least 1`
 ##### **Required for Good Match** : `YES`
@@ -193,7 +193,7 @@
 ### 20. Race/Ethnicity
 ##### **Data Field Column Name** : `race`
 ##### **Data Field Type** : `char(1)-uppercase`
-##### **Description** : `Combined race and ethnicity of the individual (W = White, B = Black or African American, A = Asian, I = American Indian or Alaskan Native, P = Native Hawaiian or Other Pacific Islander, H = Hispanic or Latino, O = Other, D = Inmate doesn't know, R = Inmate refused, N = Data not collected); if ethnicity is recorded in a separate field, do not use H code`
+##### **Description** : `Combined race and ethnicity of the individual (W = White, B = Black or African American, A = Asian, I = American Indian or Alaskan Native, P = Native Hawaiian or Other Pacific Islander, H = Hispanic or Latino, O = Other, D = Defendant doesn't know, R = Defendant refused, N = Data not collected); if ethnicity is recorded in a separate field, do not use H code`
 ##### **Example** : `B`
 ##### **Required by Upload System** : `YES`
 ##### **Required for Good Match** : `YES`
@@ -203,7 +203,7 @@
 ### 21. Ethnicity
 ##### **Data Field Column Name** : `ethnicity`
 ##### **Data Field Type** : `text-uppercase`
-##### **Description** : `Ethnicity, if recorded separately (HISPANIC, NOT HISPANIC, INMATE DOESN'T KNOW, INMATE REFUSED, DATA NOT COLLECTED)`
+##### **Description** : `Ethnicity, if recorded separately (HISPANIC, NOT HISPANIC, DEFENDANT DOESN'T KNOW, DEFENDANT REFUSED, DATA NOT COLLECTED)`
 ##### **Example** : `HISPANIC`
 ##### **Required by Upload System** : `NO`
 ##### **Required for Good Match** : `YES`
@@ -213,7 +213,7 @@
 ### 22. Sex/Gender
 ##### **Data Field Column Name** : `sex`
 ##### **Data Field Type** : `char(2)-uppercase`
-##### **Description** : `Sex or gender of the individual (F = Female, M = Male, MT = Transgender Female to Male, FT = Transgender Male to Female, O = Doesn't Identify as Male, Female, or Transgender, D = Inmate doesn't know, R = Inmate Refused, N = Data not collected)`
+##### **Description** : `Sex or gender of the individual (F = Female, M = Male, MT = Transgender Female to Male, FT = Transgender Male to Female, O = Doesn't Identify as Male, Female, or Transgender, D = Defendant doesn't know, R = Defendant Refused, N = Data not collected)`
 ##### **Example** : `F`
 ##### **Required by Upload System** : `YES`
 ##### **Required for Good Match** : `YES`
@@ -330,17 +330,7 @@
 ##### **Nullable** : `YES`
 
 
-### 34. Booking Number
-##### **Data Field Column Name** : `booking_number`
-##### **Data Field Type** : `varchar`
-##### **Description** : `Booking number (if an additional number is used beyond the internal database id) and should be unique to each row`
-##### **Example** : `04CR02948`
-##### **Required by Upload System** : `~ - at least 1`
-##### **Required for Good Match** : `YES`
-##### **Nullable** : `YES`
-
-
-### 35. Charge Date
+### 34. Charge Date
 ##### **Data Field Column Name** : `charge_date`
 ##### **Data Field Type** : `timestamp with timezone`
 ##### **Description** : `Date the charge was applied (YYYY-MM-DDTHH:MM:SS+TZ)`
@@ -350,7 +340,7 @@
 ##### **Nullable** : `NO`
 
 
-### 36. Charge Position
+### 35. Charge Position
 ##### **Data Field Column Name** : `charge_position`
 ##### **Data Field Type** : `int`
 ##### **Description** : `Position of the charge in the list of charges for a case or arrest.`
@@ -358,6 +348,16 @@
 ##### **Required by Upload System** : `YES`
 ##### **Required for Good Match** : `NO`
 ##### **Nullable** : `YES`
+
+
+### 36. Case Number
+##### **Data Field Column Name** : `case_number`
+##### **Data Field Type** : `text-uppercase`
+##### **Description** : `Case or court docket number`
+##### **Example** : `04CR02948`
+##### **Required by Upload System** : `~ - at least 1`
+##### **Required for Good Match** : `YES`
+##### **Nullable** : `NO`
 
 
 ### 37. Statute
@@ -424,7 +424,7 @@
 ##### **Data Field Column Name** : `source_name`
 ##### **Data Field Type** : `text-uppercase`
 ##### **Description** : `Name of the data source, such as the court office providing the data`
-##### **Example** : `DOVE COUNTY JAIL`
+##### **Example** : `CLERK OF THE CIRCUIT COURT OF DOVE COUNTY`
 ##### **Required by Upload System** : `YES`
 ##### **Required for Good Match** : `YES`
 ##### **Nullable** : `YES`
@@ -433,8 +433,8 @@
 ### 44. Date Created
 ##### **Data Field Column Name** : `created_date`
 ##### **Data Field Type** : `timestamp with timezone`
-##### **Description** : `Date the entry was created in the database (typically an internal database timestamp, (YYYY-MM-DDTHH:MM:SS+TZ))`
-##### **Example** : `2004-07-17T01:23:45+05`
+##### **Description** : `Date the entry was created in the database (typically an internal database timestamp)`
+##### **Example** : `2004-07-15T01:23:45`
 ##### **Required by Upload System** : `YES`
 ##### **Required for Good Match** : `NO`
 ##### **Nullable** : `YES`
@@ -443,8 +443,8 @@
 ### 45. Date Updated
 ##### **Data Field Column Name** : `updated_date`
 ##### **Data Field Type** : `timestamp with timezone`
-##### **Description** : `Date the entry was last updated in the database (typically an internal database timestamp, (YYYY-MM-DDTHH:MM:SS+TZ))`
-##### **Example** : `2004-07-17T01:23:45+05`
+##### **Description** : `Date the entry was last updated in the database (typically an internal database timestamp)`
+##### **Example** : `2006-10-19T13:45:06`
 ##### **Required by Upload System** : `YES`
 ##### **Required for Good Match** : `NO`
 ##### **Nullable** : `YES`

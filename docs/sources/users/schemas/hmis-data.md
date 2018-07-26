@@ -1,4 +1,4 @@
-# Schemas
+# Homelessness Service Stays Schema
 
 ### 1. Internal Person ID
 ##### **Data Field Column Name** : `internal_person_id`
