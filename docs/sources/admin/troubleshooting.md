@@ -1,5 +1,21 @@
 This document's goal is to familiarize matching tool administrators with the right places to look to investigate problems that come up in a deployment of the matching tool. 
 
+## Data Flow Overview
+
+To help with general troubleshooting, it helps to gain some familiarity with how data flows through the application and different containers. Below is a step-by-step overview of data flow.
+
+1. The user uploads a tabular dataset through the webapp UI, which is run by the `webapp` container. This data goes through the [upload_file](https://github.com/dssg/matching-tool/blob/master/webapp/webapp/apis/upload.py#L299) endpoint and is immediately saved to a temporary directory on the filesystem that is shared with the `webapp_worker` container. It tells the `webapp_worker` container to validate the file asynchronously and begins polling the asynchronous job for results.
+2. The `webapp_worker` container runs the (validate_async)[https://github.com/dssg/matching-tool/blob/master/webapp/webapp/apis/upload.py#L193] function asynchronously. This saves some metadata about the upload to the `upload_log` Postgres table and runs a variety of validations on the data. It culminates in uploading the validated and transformed file to storage (S3 by default) at the (`RAW_UPLOADS_PATH`)[https://github.com/dssg/matching-tool/blob/master/webapp.env] location, and returns the validation results.
+3. Assuming the file has no validation problems and the user clicks 'confirm upload', the (merge_file)[https://github.com/dssg/matching-tool/blob/master/webapp/webapp/apis/upload.py#L337] endpoint is called. This loads the stored file into the database under the path `raw_{upload_id}` and merges it with the 'master' table for the relevant jurisdiction and event type.
+
+This 'master' table serves as both the source for the results dashboard. Data is sent from here to the matcher, and data from the matcher is synced back into it. The 'merge' consists of adding rows from the new uploaded file that do not have their primary keys (see primaryKey attribute of the relevent (schema file)[https://github.com/dssg/matching-tool/tree/master/webapp/schemas/uploader] present in the master table, and updating data in the master table with any matching rows from the upload. Placeholder matching ids (of format {event_type}_{internal_person_id}) are populated.
+
+The 'master' table is exported to storage (at (`MERGED_UPLOADS_PATH`)[https://github.com/dssg/matching-tool/blob/master/webapp.env]) and the `matcher_worker` container is notified (via the (do_match)[https://github.com/dssg/matching-tool/blob/master/matcher/matcher/tasks.py] function) to begin matching asynchronously.
+4. The `matcher_container` loads *all* master tables from storage for matching.  It loads the (matcher_config.yaml)[https://github.com/dssg/matching-tool/blob/master/matcher/matcher_config.yaml] file in the container for configuration. The internals of the matching algorithm are outside of the scope of this document, but its data output is written to storage (at (`BASE_PATH/matched`)[https://github.com/dssg/matching-tool/blob/master/webapp.env]) , and the `webapp_worker` is notified of the completed matching job.
+5. The `webapp_worker` container runs the (match_finished)[https://github.com/dssg/matching-tool/blob/master/matcher/matcher/tasks.py] function to merge the matched data into the `master` table. The new data is loaded into a temporary table again and joined with the `master` table on the primary key again, this time just uploading the matched_id column with the new values from the matcher.
+6. As the user queries the results dashboard, the `master` table is queried.
+
+
 ## General Troubleshooting Tools
 
 Below are several general tools you can use to diagnose a variety of problems. These are referred to by many of the specific use cases further down in this document.
@@ -52,8 +68,19 @@ If the user *does* have entries here, refer to the [docker logs](troubleshooting
 
 ### System failure
 
-Although the majority of messages that users will see coming from the upload portion of the tool should be *validation* errors (user-fixable, referenced in the [Users](/users/using.md) section of the guide), occasionally they may see a message that indicates a 'System Failure'/'System Error' and they need to come to you for help. In this case, there is something that failed during the upload process in a way that the system did not expect. You should look at the [docker logs](troubleshooting.md#docker-logs) for both the webapp and webapp_worker containers that cover the period that the user was using the tool. If there's a lot of output, you can filter to 'ERROR' messages (e.g. `docker logs webapp | grep ERROR`), though often the messages surrounding an error message will give helpful context.
+Although the majority of messages that users will see coming from the upload portion of the tool should be *validation* errors (user-fixable, referenced in the [Users](/users/using.md) section of the guide), occasionally they may see a message that indicates a 'System Failure'/'System Error' and they need to come to you for help. In this case, there is something that failed during the upload process in a way that the system did not expect. You should look at the [docker logs](troubleshooting.md#docker-logs) for both the webapp and `webapp_worker` containers that cover the period that the user was using the tool. If there's a lot of output, you can filter to 'ERROR' messages (e.g. `docker logs webapp | grep ERROR`), though often the messages surrounding an error message will give helpful context.
 
 
 ## Matching Issues
 
+### Matching Failure
+
+If a user reports that the app's timeline indicates that a matching job failed, you can look at the [docker logs](troubleshooting.md#docker-logs) for the `matcher_worker` container. Warning: The matcher outputs a **lot** of log messages, you will likely want to heavily filter the logs. For instance, just looking at the last 100 lines or so (e.g. ``docker logs matcher_worker --tail 100`` would let you see any errors that were thrown and stopped the matching job.
+
+### Matching Oddities
+Sometimes, the matching process may complete but the results look weird. Often this may show itself in the form of matching results being far lower than expected, and is corroborated by placeholder match ids (the placeholder format is `{event_type}_{person_id}`, e.g. `hmis_service_stays_123897124` showing up in the webapp results dashboard. This means that the database table that the webapp uses to populate the dashboard did not receive all of the rows of matching results it expected to receive. The reasons for this can be divided into two possibilities: Either the matcher's results (that are saved to S3) were incorrect, or they were loaded incorrectly. To find out which, compare the length of the matcher's results to the length of the corresponding database table. The matcher's results are located under the `BASE_PATH` (defined webapp.env)/matched key/file. The database [table to query](troubleshooting.md#querying-the-database) is `{jurisdiction}_{event_type}_master`.
+
+- If the matcher results are shorter, then a problem happened with the matching service or prior to that. You can perform the same type of length check on the matcher's input at `BASE_PATH/merged` to ensure that the matcher received the correct length dataset.
+	- If the matcher's input and output are not the same length, you will have to dig into the matcher logs. 
+	- If the matcher's input and output are the same length, then a problem happened while exporting the master table to place where the matcher reads it. Check the `webapp` logs for any errors that may have happened while doing this.
+- If the results are the same length, then a problem happened while joining the matching results into the database. Check the `webapp_worker` logs for any messages that match those under the (match_finished)[https://github.com/dssg/matching-tool/blob/master/webapp/webapp/tasks.py#L395-L430] code path. 
