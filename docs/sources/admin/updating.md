@@ -1,5 +1,29 @@
 # Updating the Tool
 
+## Updating Code
+
+To apply any type of code update, you must rebuild the containers and start them again. 
+
+Once you have the directory on your host machine populated with this new code, this can be accomplished via
+
+```bash
+./scripts/run rebuild
+./scripts/run start
+```
+
+This will rebuild and start *all* containers.
+
+
+## Updating Environment Variables
+
+To apply changes to environment variables (e.g. in webapp.env, matcher.env, or .env files), you must remove and recreate the affected containers. For instance, if the `webapp.env` file is changed, you can apply these changes to the `webapp` container by:
+
+```bash
+docker-compose stop webapp
+docker rm webapp
+./scripts/run start
+```
+
 ## User and Role Management
 
 Access to the matching tool web application is handled with users and roles.
