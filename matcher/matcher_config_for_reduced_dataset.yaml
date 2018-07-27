@@ -43,21 +43,8 @@ contrasts:
                method: jarowinkler
     middle_name:
         - method: compare_exact 
-        - method: compare_exact 
           args:
-               n_chars: 5
-        - method: compare_exact 
-          args:
-               n_chars: -5
-        - method: compare_exact 
-          args:
-               n_chars: 3
-        - method: compare_exact 
-          args:
-               n_chars: -3
-        - method: compare_string_distance
-          args:
-               method: jarowinkler
+               n_chars: 1
     last_name:
         - method: compare_exact 
         - method: compare_exact 
