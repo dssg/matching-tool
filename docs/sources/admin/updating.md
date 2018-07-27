@@ -12,7 +12,7 @@ The matching-tool repository comes with a convenience script for adding users an
 
 It is located in the repository path `/scripts/3_create_user`. To run it, you need the following information:
 
-- A short, lowercase name for your jurisdiction (e.g. 'cook'). Don't include spaces as it will confuse the script. This is just the name that shows up at the top of the webapp. This should match whatever jurisdiction name that was picked on initial tool installation. If you don't know what this is, you can query the `public.role` table in the webapp database to see what role names exist.
+- A short, lowercase name for your jurisdiction (e.g. 'cook'). Don't include spaces as it will confuse the script. This is the name that is displayed to the user in the browser at the top of the screen. This should match whatever jurisdiction name that was picked on initial tool installation. If you don't know what this is, you can query the `public.role` table in the webapp database to see what role names exist.
 - An email address for the web app login user
 - A password for the web app login user
 - A list of 'event types' that the user will have access to upload (e.g. `hmis_service_stays`, `jail_bookings`). If you want to see all the available event types, run the script without any to see the full list (e.g. `./scripts/3_create_user`)
