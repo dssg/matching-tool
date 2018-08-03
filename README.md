@@ -68,35 +68,6 @@ The web app is tested on the following browsers:
 If you test with any other browsers, add them to this list!
 
 
-## S3 Credentials
-This project utilizes [smart_open](https://github.com/RaRe-Technologies/smart_open) for S3 connectivity, which itself uses [Boto 2](http://boto.cloudhackers.com/en/latest/). Credentials are handled at the Boto level, so you may utilize either environment variables or Boto config files to pass credentials to the application.
-
-See more details at the [Boto Docs](http://boto.cloudhackers.com/en/latest/boto_config_tut.html)
-
-For development, we recommend using moto's [standalone server mode](https://github.com/spulec/moto#stand-alone-server-mode). The server is in requirements_dev already, so here's a quick guide without changing any code:
-
-1. Create a `~/.boto` file with:
-
-```
-[Boto]
-is_secure = False
-https_validate_certificates = False
-proxy_port = 3000
-proxy = 127.0.0.1
-
-[Credentials]
-aws_access_key_id = fake
-aws_secret_access_key = fake
-```
-2. `moto_server s3 -p3000`
-3. Create the bucket specified in your docker-compose file. You will have to do this each time you start the fake server. The example has 'your-bucket', so for instance you can run this in a python console:
-
-```
-import boto
-conn = boto.connect_s3()
-conn.create_bucket('your-bucket')
-```
-
 ## Acceptance Testing
 
 This repository has acceptance tests written using Nightwatch, which comes bundled in our JS developer dependencies so you don't need to install it separately. However, requires a locally running Selenium server and the Chrome driver. Later we will add other browsers to this setup.
