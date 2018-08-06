@@ -24,6 +24,14 @@ docker rm webapp
 ./scripts/run start
 ```
 
+
+## Clearing a Master Table for a Schema
+
+If column names, data types, or the primary key have changed in one of the schemas, you will have to delete the master table for that schema in the database. This is because once data has been uploaded for a particular schema, this master table will reflect the column names and data types present in the schema at that time, and all uploads are merged into this table for a coherent timeline of events. There is no procedure for 'upgrading' a master table with a new schema, because many schema updates will invalidate existing data. We recommend simply deleting the table and re-uploading any data.
+
+The master table resides in the `{jurisdiction}_{event_type}_master` in the [Postgres database](troubleshooting.md#querying-the-database). Example: A jurisdiction of `cook`, and event type of `hmis_service_stays` would be stored in `cook_hmis_service_stays_master`. Once this table has been deleted, it will be recreated upon the next user upload with the new schema.
+
+
 ## User and Role Management
 
 Access to the matching tool web application is handled with users and roles.
