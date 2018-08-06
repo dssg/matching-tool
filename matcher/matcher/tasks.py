@@ -136,7 +136,8 @@ def do_match(
                     match_runtime,
                     upload_id
                 ),
-                result_ttl=5000
+                result_ttl=5000,
+                timeout=3600
             )
             logger.info(f'Notified the webapp that {status_message}')
         logger.info('Matcher done!!')
