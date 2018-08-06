@@ -45,16 +45,42 @@ describe('syncRoleAction', () => {
 
 
 describe('confirmUpload', () => {
-  it('should tell the server to merge the file and then save the results locally', () => {
+  it('should indicate loading, tell the server to merge the file and on success save the results locally and stop loading', () => {
     fetchMock.postOnce(
       'api/upload/merge_file?uploadId=123',
       {
-        body: { totalUniqueRows: 5, newUniqueRows: 4 } ,
+        body: { status: 'success', totalUniqueRows: 5, newUniqueRows: 4 } ,
         headers: { 'content-type': 'application/json' }
-      }
+      },
+      { overwriteRoutes: true }
     )
     const expectedActions = [
-      { type: constants.SAVE_MERGE_RESULTS, payload: { totalUniqueRows: 5, newUniqueRows: 4 } }
+      { type: constants.SET_APP_STATE, payload: { stateKey: 'mergeResults.status', value: '' } },
+      { type: constants.SET_APP_STATE, payload: { stateKey: 'mergingIsLoading', value: true } },
+      { type: constants.SAVE_MERGE_RESULTS, payload: { totalUniqueRows: 5, newUniqueRows: 4, status: 'success' } },
+      { type: constants.SET_APP_STATE, payload: { stateKey: 'mergingIsLoading', value: false } },
+    ]
+    const store = mockStore({mergeResults: {}})
+    return store.dispatch(actions.confirmUpload('123')).then(() => {
+      expect(store.getActions()).toEqual(expectedActions)
+    })
+  })
+
+  it('should indicate loading, tell the server to merge the file and on server error set the status to error and stop loading', () => {
+    fetchMock.postOnce(
+      'api/upload/merge_file?uploadId=123',
+      {
+        body: { status: 'error' } ,
+        status: 500,
+        headers: { 'content-type': 'application/json' }
+      },
+      { overwriteRoutes: true }
+    )
+    const expectedActions = [
+      { type: constants.SET_APP_STATE, payload: { stateKey: 'mergeResults.status', value: '' } },
+      { type: constants.SET_APP_STATE, payload: { stateKey: 'mergingIsLoading', value: true } },
+      { type: constants.SAVE_MERGE_RESULTS, payload: { status: 'error' } },
+      { type: constants.SET_APP_STATE, payload: { stateKey: 'mergingIsLoading', value: false } },
     ]
     const store = mockStore({mergeResults: {}})
     return store.dispatch(actions.confirmUpload('123')).then(() => {

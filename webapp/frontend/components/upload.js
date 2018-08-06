@@ -19,7 +19,7 @@ function mapStateToStep(state) {
     return 2
   } else if (state.app.validationResponse.status === '' || state.app.validationResponse.status === 'invalid' || state.app.validationResponse.status === 'error') {
     return 1
-  } else if (state.app.mergeResults.totalUniqueRows !== '') {
+  } else if (state.app.mergeResults.status === 'success') {
     return 4
   } else if (state.app.validationResponse.status === 'valid') {
     return 3
@@ -29,7 +29,8 @@ function mapStateToStep(state) {
 function mapStateToProps(state) {
   return {
     uploadProblem: ['invalid', 'error'].includes(state.app.validationResponse.status ),
-    step: mapStateToStep(state)
+    step: mapStateToStep(state),
+    mergeProblem: state.app.mergeResults.status === 'error',
   }
 }
 
@@ -97,7 +98,10 @@ class UploadPage extends React.Component {
               >Validate File</StepLabel>
             </Step>
             <Step>
-              <StepLabel>Confirm Upload</StepLabel>
+              <StepLabel
+                icon={this.props.mergeProblem ? <WarningIcon color={red500} /> : 4}
+                style={this.props.mergeProblem ? { color: red500} : {}}
+              >Confirm Upload</StepLabel>
             </Step>
             <Step>
               <StepLabel>Done!</StepLabel>
