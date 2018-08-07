@@ -1,0 +1,10 @@
+machine: python
+general:
+  artifacts:
+    - "site/"
+dependencies:
+  pre:
+    - pip install mkdocs
+test:
+  override:
+- cd docs && mkdocs build --clean --verbose
