@@ -9,10 +9,9 @@
 
 ## August 2018
 
-[[TOC]]
-
-
-
+markdown_extensions:
+    - toc:
+        baselevel: 2
 
 
 
