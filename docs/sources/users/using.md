@@ -5,21 +5,21 @@ Matching Tool User Documentation
 August 2018
 
 # Table of Contents
-## Introduction 3
-## Login Page	3
-## Home Page	3
-## Uploading Data	4
-### Step 1: Select Upload Data	4
-### Step 2: Choose Data Type	5
-### Step 3: Upload File	6
-### Step 4: Validate File	7
-### Step 5: Confirm Upload and Return to Home Page	9
-## Results Page	9
-### Data Fields	10
-### Control Panel	11
-### Duration Charts	11
-## Downloading Results	12
-## Logout	14
+[https://github.com/varshantdhar/matching-tool/edit/master/docs/sources/users/using.md#introduction](## Introduction) 
+## Login Page	
+## Home Page	
+## Uploading Data	
+### Step 1: Select Upload Data	
+### Step 2: Choose Data Type	
+### Step 3: Upload File	
+### Step 4: Validate File	
+### Step 5: Confirm Upload and Return to Home Page	
+## Results Page	
+### Data Fields	
+### Control Panel
+### Duration Charts
+## Downloading Results
+## Logout
 
 
 
