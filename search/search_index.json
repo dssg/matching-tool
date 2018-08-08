@@ -22,13 +22,93 @@
         },
         {
             "location": "/users/using/",
-            "text": "User Guide\n\u00b6",
+            "text": "Matching Tool User Documentation\n\u00b6\n\n\nAugust 2018\n\u00b6\n\n\nIntroduction\n\u00b6\n\n\nThe Matching Tool is a web-based platform that assists communities in matching Homeless Management Information System (HMIS) and criminal justice records in order to identify people who are cycling through both systems and prioritize them for supportive housing. The tool is fed tabular data, which is securely stored and matched with data from other systems within the same jurisdiction. The tool then displays results from the matched data to find overlaps between the populations and frequent utilizers of both systems. \n\n\nLogin Page\n\u00b6\n\n\nThis is the first page of the tool. Accessing the tool requires a registered email address and password combination. This must be entered and submitted in the form on the Login page, as seen in Figure 1. After entering the details, click \"Login\" to be directed to the Home Page. \n\n\nFigure 1: Login Page\n\n\n\n\nHome Page\n\u00b6\n\n\nThe first page that a user will see after logging in is the Home page of the Web based tool that explains the two major steps of the tool process, which are \nUpload\n and \nResults\n. On the right of the Home page is a column that provides a list of successful and unsuccessful tasks (no errors while uploading tabular data) that have been processed or are currently being processed by the matching tool. This ticker on the right of the Home web page provides the status and duration times for the matching, validation and uploading of each file. \n\n\nFigure 2: Matching Tool Home Page\n\n\n\n\nUploading Data\n\u00b6\n\n\nIn order to upload data onto the matching tool, the following steps must be carried out. \n\n\nStep 1: Select Upload Data\n\u00b6\n\n\nOn the Home page, the user will be directed to the uploading page after selecting \nUpload\n from the Home page, as seen in Figure 2. Here, you will be able to able to upload the data you would like to have matched with data from other systems.\n\n\nFigure 3: Uploading Data\n\n\nStep 2: Choose Data Type\n\u00b6\n\n\nAfter selecting Upload from the Home page, the user will then be taken to the Upload Data Main Page (shown in Figure 3). The user then chooses the type of data that needs to be uploaded. The options are \"HMIS Service Stays\", \u201cJail Bookings\u201d, \u201cJail Booking Charges\u201d, \u201cHMIS AKA/Aliases\u201d, \u201cCase Charges\u201d or \u201cBy-name list\u201d as seen in Figure 4. \n\n\nFigure 4: Upload Data Main Page\n\n\nStep 3: Upload File\n\u00b6\n\n\nAllows you to browse computer files for upload. File needs to be tabular (CSV is preferred) and represent user data from an existing county system. This data will be stored securely and matched with existing data from other county systems \n\n\nFigure 5: Select and Upload File\n\n\n\n\nStep 4: Validate File\n\u00b6\n\n\nThe matching tool checks that the required fields and formats of the uploaded file satisfies the necessary requirements. \n\n\nFailed Uploads:\n The most common error encountered with the tool would be because of an unknown delimiter used in the file. Only commas (,) or pipes (|) are permitted. You can also download the report in a CSV format by clicking \"Download Full Error Report\". Figure 5 gives an example of a common upload failing.\n\n\nFigure 6: Failed Upload - Unknown Delimiter\n\n\n\n\nIf instead you encounter a System error as seen in Figure 7, please contact your system administrator.  \n\n\nFigure 7: Failed Upload - System Error\n\n\n\n\nSuccessful Uploads:\n If the data is validated successfully, then the screen will present the first 10 rows of the uploaded data  and the total number of rows found. After reviewing the first 10 rows, the user has the option to confirm or cancel the upload. Figure 8 gives an example of an upload confirmation.\n\n\nFigure 8: Successful Upload\n\n\n\n\nStep 5: Confirm Upload and Return to Home Page\n\u00b6\n\n\nAfter you have confirmed your upload, the next screen will show the number of total unique rows  and the total number of rows that had not been uploaded before. You can then go back to the home page and see your data being processed on the ticker. \n\n\nFigure 9: Final Upload Confirmation\n\n\n\n\nResults Page\n\u00b6\n\n\nThe Results page provides a summary of the results based on the data uploaded and matched from the County\u2019s jail bookings and HMIS stays. \n\n\nEach of the data fields can be clicked on to sort the data based on the field specified in either ascending or descending order. The Results page also provides the total number of records, the number of jail booking records, the number of HMIS stay records, and the number of records and  percent of HMIS and Jail booking records found in both datasets. The tool also provides the data field information by clicking on the question mark icon at the top of the page (under Upload Data).\n\n\nFigure 10: Results Page Overview\n\n\n\n\nData Fields\n\u00b6\n\n\n\n\n\n\nmatched_id: The id for this person generated by the matching algorithm\n\n\n\n\n\n\nfirst_name: The most recent first name in the data\n\n\n\n\n\n\nlast_name: The most recent last name in the data\n\n\n\n\n\n\nbooking_id: The jail database\u2019s ID number for the person\n\n\n\n\n\n\njail_contact: The number of contacts (bookings) with the jail in the last year\n\n\n\n\n\n\nlast_jail_contact: The most recent jail booking date as of the data transfer\n\n\n\n\n\n\ncumu_jail_days: The total number of days in jail for all jail stays that had any days in the last year\n\n\n\n\n\n\nhmis_id: The homeless database\u2019s ID number for the person\n\n\n\n\n\n\nhmis_contact: The number of contacts with homeless services in the last year\n\n\n\n\n\n\nlast_hmis_contact: The most recent start date of homeless service contact as of the data transfer\n\n\n\n\n\n\ncumu_hmis_days: The total number of days in homeless services for all homeless service stays that had any days in the last year\n\n\n\n\n\n\ntotal_contact: The total number of contacts with jail and homeless services in the last year\n\n\n\n\n\n\nControl Panel\n\u00b6\n\n\nThe control panel in the results page allows you to query data by specifying start & end dates. The default end date is the date in which the file was uploaded. \n\n\nUnder the button that toggles between the viewing of duration charts and the list of results, there are Venn diagrams providing information on the division of all data between the two data types. While looking at the list of results, areas in the Venn diagram can also be selected to filter the results being displayed on the page. In order to revert back to displaying data results for all records, one can simply select \"All\" right above the Venn diagrams. In the Venn diagram, the left circle will contain the most records out of the two datasets and will update according the control panel criteria selected by the user.\n\n\nFigure 11: Control Panel Options: Venn Diagram Selection\n\n\n\n\nDuration Charts\n\u00b6\n\n\nInstead of viewing a list of results from the data that was matched, the tool also allows you to view duration charts for number of days spent in a shelter as well as number of contacts with homeless services.\n\n\nFigure 12: Duration Charts for Length of Booking/Stay and Number of Contacts\n\n\n\n\nDownloading Results\n\u00b6\n\n\nThe list of results queried can also be downloaded as a CSV file by clicking the \"Download List of Results\" button at the bottom of the Control Panel. This can also be done for duration charts when \u201cShow Duration Chart\u201d is selected.  Selecting the updated \u201cDownload Duration Charts\u201d button will download the charts in a PNG file.\n\n\nFigure 13: Downloading Duration Charts or List of Results\n\n\n\n\nThe original source data with matched ids can be downloaded as well by scrolling to the bottom of the Control Panel. \n\n\nFigure 14: Downloading original source data from event\n\n\n\n\n\n\nOn clicking \"Event Type\" a dropdown menu pops up with the different event options. On selecting the desired event, the source data for that event can be downloaded by clicking \u201cDownload Source Events\u201d. \n\n\n\n\nFigure 15: Selecting Event Type using dropdown menu\n\n\n\n\nLogout\n\u00b6\n\n\nLogs you out of the tool",
             "title": "Using the Tool"
         },
         {
-            "location": "/users/using/#user-guide",
+            "location": "/users/using/#matching-tool-user-documentation",
             "text": "",
-            "title": "User Guide"
+            "title": "Matching Tool User Documentation"
+        },
+        {
+            "location": "/users/using/#august-2018",
+            "text": "",
+            "title": "August 2018"
+        },
+        {
+            "location": "/users/using/#introduction",
+            "text": "The Matching Tool is a web-based platform that assists communities in matching Homeless Management Information System (HMIS) and criminal justice records in order to identify people who are cycling through both systems and prioritize them for supportive housing. The tool is fed tabular data, which is securely stored and matched with data from other systems within the same jurisdiction. The tool then displays results from the matched data to find overlaps between the populations and frequent utilizers of both systems.",
+            "title": "Introduction"
+        },
+        {
+            "location": "/users/using/#login-page",
+            "text": "This is the first page of the tool. Accessing the tool requires a registered email address and password combination. This must be entered and submitted in the form on the Login page, as seen in Figure 1. After entering the details, click \"Login\" to be directed to the Home Page.   Figure 1: Login Page",
+            "title": "Login Page"
+        },
+        {
+            "location": "/users/using/#home-page",
+            "text": "The first page that a user will see after logging in is the Home page of the Web based tool that explains the two major steps of the tool process, which are  Upload  and  Results . On the right of the Home page is a column that provides a list of successful and unsuccessful tasks (no errors while uploading tabular data) that have been processed or are currently being processed by the matching tool. This ticker on the right of the Home web page provides the status and duration times for the matching, validation and uploading of each file.   Figure 2: Matching Tool Home Page",
+            "title": "Home Page"
+        },
+        {
+            "location": "/users/using/#uploading-data",
+            "text": "In order to upload data onto the matching tool, the following steps must be carried out.",
+            "title": "Uploading Data"
+        },
+        {
+            "location": "/users/using/#step-1-select-upload-data",
+            "text": "On the Home page, the user will be directed to the uploading page after selecting  Upload  from the Home page, as seen in Figure 2. Here, you will be able to able to upload the data you would like to have matched with data from other systems.  Figure 3: Uploading Data",
+            "title": "Step 1: Select Upload Data"
+        },
+        {
+            "location": "/users/using/#step-2-choose-data-type",
+            "text": "After selecting Upload from the Home page, the user will then be taken to the Upload Data Main Page (shown in Figure 3). The user then chooses the type of data that needs to be uploaded. The options are \"HMIS Service Stays\", \u201cJail Bookings\u201d, \u201cJail Booking Charges\u201d, \u201cHMIS AKA/Aliases\u201d, \u201cCase Charges\u201d or \u201cBy-name list\u201d as seen in Figure 4.   Figure 4: Upload Data Main Page",
+            "title": "Step 2: Choose Data Type"
+        },
+        {
+            "location": "/users/using/#step-3-upload-file",
+            "text": "Allows you to browse computer files for upload. File needs to be tabular (CSV is preferred) and represent user data from an existing county system. This data will be stored securely and matched with existing data from other county systems   Figure 5: Select and Upload File",
+            "title": "Step 3: Upload File"
+        },
+        {
+            "location": "/users/using/#step-4-validate-file",
+            "text": "The matching tool checks that the required fields and formats of the uploaded file satisfies the necessary requirements.   Failed Uploads:  The most common error encountered with the tool would be because of an unknown delimiter used in the file. Only commas (,) or pipes (|) are permitted. You can also download the report in a CSV format by clicking \"Download Full Error Report\". Figure 5 gives an example of a common upload failing.  Figure 6: Failed Upload - Unknown Delimiter   If instead you encounter a System error as seen in Figure 7, please contact your system administrator.    Figure 7: Failed Upload - System Error   Successful Uploads:  If the data is validated successfully, then the screen will present the first 10 rows of the uploaded data  and the total number of rows found. After reviewing the first 10 rows, the user has the option to confirm or cancel the upload. Figure 8 gives an example of an upload confirmation.  Figure 8: Successful Upload",
+            "title": "Step 4: Validate File"
+        },
+        {
+            "location": "/users/using/#step-5-confirm-upload-and-return-to-home-page",
+            "text": "After you have confirmed your upload, the next screen will show the number of total unique rows  and the total number of rows that had not been uploaded before. You can then go back to the home page and see your data being processed on the ticker.   Figure 9: Final Upload Confirmation",
+            "title": "Step 5: Confirm Upload and Return to Home Page"
+        },
+        {
+            "location": "/users/using/#results-page",
+            "text": "The Results page provides a summary of the results based on the data uploaded and matched from the County\u2019s jail bookings and HMIS stays.   Each of the data fields can be clicked on to sort the data based on the field specified in either ascending or descending order. The Results page also provides the total number of records, the number of jail booking records, the number of HMIS stay records, and the number of records and  percent of HMIS and Jail booking records found in both datasets. The tool also provides the data field information by clicking on the question mark icon at the top of the page (under Upload Data).  Figure 10: Results Page Overview",
+            "title": "Results Page"
+        },
+        {
+            "location": "/users/using/#data-fields",
+            "text": "matched_id: The id for this person generated by the matching algorithm    first_name: The most recent first name in the data    last_name: The most recent last name in the data    booking_id: The jail database\u2019s ID number for the person    jail_contact: The number of contacts (bookings) with the jail in the last year    last_jail_contact: The most recent jail booking date as of the data transfer    cumu_jail_days: The total number of days in jail for all jail stays that had any days in the last year    hmis_id: The homeless database\u2019s ID number for the person    hmis_contact: The number of contacts with homeless services in the last year    last_hmis_contact: The most recent start date of homeless service contact as of the data transfer    cumu_hmis_days: The total number of days in homeless services for all homeless service stays that had any days in the last year    total_contact: The total number of contacts with jail and homeless services in the last year",
+            "title": "Data Fields"
+        },
+        {
+            "location": "/users/using/#control-panel",
+            "text": "The control panel in the results page allows you to query data by specifying start & end dates. The default end date is the date in which the file was uploaded.   Under the button that toggles between the viewing of duration charts and the list of results, there are Venn diagrams providing information on the division of all data between the two data types. While looking at the list of results, areas in the Venn diagram can also be selected to filter the results being displayed on the page. In order to revert back to displaying data results for all records, one can simply select \"All\" right above the Venn diagrams. In the Venn diagram, the left circle will contain the most records out of the two datasets and will update according the control panel criteria selected by the user.  Figure 11: Control Panel Options: Venn Diagram Selection",
+            "title": "Control Panel"
+        },
+        {
+            "location": "/users/using/#duration-charts",
+            "text": "Instead of viewing a list of results from the data that was matched, the tool also allows you to view duration charts for number of days spent in a shelter as well as number of contacts with homeless services.  Figure 12: Duration Charts for Length of Booking/Stay and Number of Contacts",
+            "title": "Duration Charts"
+        },
+        {
+            "location": "/users/using/#downloading-results",
+            "text": "The list of results queried can also be downloaded as a CSV file by clicking the \"Download List of Results\" button at the bottom of the Control Panel. This can also be done for duration charts when \u201cShow Duration Chart\u201d is selected.  Selecting the updated \u201cDownload Duration Charts\u201d button will download the charts in a PNG file.  Figure 13: Downloading Duration Charts or List of Results   The original source data with matched ids can be downloaded as well by scrolling to the bottom of the Control Panel.   Figure 14: Downloading original source data from event    On clicking \"Event Type\" a dropdown menu pops up with the different event options. On selecting the desired event, the source data for that event can be downloaded by clicking \u201cDownload Source Events\u201d.    Figure 15: Selecting Event Type using dropdown menu",
+            "title": "Downloading Results"
+        },
+        {
+            "location": "/users/using/#logout",
+            "text": "Logs you out of the tool",
+            "title": "Logout"
         },
         {
             "location": "/users/schemas/booking-akaalias-data/",
