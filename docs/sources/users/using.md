@@ -5,7 +5,7 @@ Matching Tool User Documentation
 August 2018
 
 # Table of Contents
-[##Introduction](https://github.com/varshantdhar/matching-tool/edit/master/docs/sources/users/using.md#introduction) 
+[Introduction](#introduction) 
 ## Login Page	
 ## Home Page	
 ## Uploading Data	
