@@ -9,29 +9,7 @@
 
 ## August 2018
 
-
-
-
-
-
-
-# Table of Contents
-## [Introduction](#introduction-1) 
-## [Login Page](#login-page-1)	
-## [Home Page](#home-page-1)	
-## [Uploading Data](#uploading-data-1)
-#### [Step 1: Select Upload Data](#step-1-select-upload-data-1)	
-#### [Step 2: Choose Data Type](#step-2-choose-data-type-1)	
-#### [Step 3: Upload File](#step-3-upload-file-1)	
-#### [Step 4: Validate File](#step-4-validate-file-1)	
-#### [Step 5: Confirm Upload and Return to Home Page](#step-5-confirm-upload-and-return-to-home-page-1)	
-## [Results Page](#results-page-1)	
-### [Data Fields](#data-fields-1)	
-### [Control Panel](#control-panel-1)
-### [Duration Charts](#duration-charts-1)
-## [Downloading Results](#downloading-results-1)
-## [Logout](#logout-1)
-
+[[TOC]]
 
 
 
