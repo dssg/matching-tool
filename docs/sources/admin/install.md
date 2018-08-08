@@ -24,6 +24,7 @@
 	The script is run like this: `./scripts/2_prepare_db PGSERVER PGPORT SUPER_USER NEW_DATABASE`
 	Example: `./scripts/2_prepare_db mypostgres.county.gov 5432 postgresadmin matching_tool`
 	In addition to the Postgres database, this will prepopulate a .env file of environment variables that the Docker infrastructure will use.
+
 7. Add AWS environment variables for S3 access:
 	- Open up your .env file and modify the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` variables with your values. Visit [Managing Access Keys for your AWS Account](https://docs.aws.amazon.com/general/latest/gr/managing-aws-access-keys.html) if you don't have an access key yet.
 	- Open up the webapp.env file and modify all the instances of `your-bucket` to an S3 bucket you want to use to store data.

@@ -1,11 +1,15 @@
 site_name: Matching Tool
 docs_dir: sources
 theme: material
+markdown_extensions:
+    - toc:
+        permalink: True
+        baselevel: 2
 pages:
     - {Home: index.md}
     - For Users:
         - {Using the Tool: users/using.md}
-        - {Schemas: users/schemas.md}
+        - Schemas:
             - {Booking AKA/Alias Schema: users/schemas/booking-akaalias-data.md}
             - {Booking Charge Schema: users/schemas/booking-charging-data.md}
             - {Booking Schema: users/schemas/booking-data.md}

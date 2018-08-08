@@ -72,6 +72,7 @@ const initialState = {
     mergeResults: {
       totalUniqueRows: '',
       newUniqueRows: '',
+      status: '',
     },
     selectedJurisdiction: {
       name: '',
@@ -187,7 +188,8 @@ const app = createReducer(initialState, {
     const newState = Object.assign({}, state, {
       mergeResults: {
         newUniqueRows: payload.new_unique_rows,
-        totalUniqueRows: payload.total_unique_rows
+        totalUniqueRows: payload.total_unique_rows,
+        status: payload.status
       }
     })
     return newState
