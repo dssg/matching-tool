@@ -8,9 +8,9 @@ August 2018
 ## [Introduction](#introduction) 
 ## [Login Page](#login-page)	
 ## [Home Page](#home-page)	
-## [Uploading Data](#uploading data)
-#### [Step 1: Select Upload Data](#step-1-:-select-upload-data)	
-### Step 2: Choose Data Type	
+## [Uploading Data](#uploading-data)
+#### [Step 1: Select Upload Data](#step-1-select-upload-data-1)	
+#### [Step 2: Choose Data Type](#step-2-choose-data-type)	
 ### Step 3: Upload File	
 ### Step 4: Validate File	
 ### Step 5: Confirm Upload and Return to Home Page	
