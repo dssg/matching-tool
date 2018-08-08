@@ -1,4 +1,4 @@
-![image alt text](images/image_0.png)
+![image alt text](images/logo.png)
 
 Matching Tool User Documentation
 
@@ -16,7 +16,7 @@ This is the first page of the tool. Accessing the tool requires a registered ema
 
 **Figure 1: Login Page**
 
-![image alt text](images/image_1.png)
+![image alt text](images/login.png)
 
 # Home Page
 
@@ -24,7 +24,7 @@ The first page that a user will see after logging in is the Home page of the Web
 
 **Figure 2: Matching Tool Home Page**
 
-![image alt text](images/image_2.png)
+![image alt text](images/home.png)
 
 # Uploading Data
 
@@ -34,13 +34,13 @@ In order to upload data onto the matching tool, the following steps must be carr
 
 On the Home page, the user will be directed to the uploading page after selecting **Upload** from the Home page, as seen in Figure 2. Here, you will be able to able to upload the data you would like to have matched with data from other systems.
 
-**Figure 3: Uploading Data**![image alt text](images/image_3.png)
+**Figure 3: Uploading Data**![image alt text](images/uploading_data.png)
 
 ## Step 2: Choose Data Type 
 
 After selecting Upload from the Home page, the user will then be taken to the Upload Data Main Page (shown in Figure 3). The user then chooses the type of data that needs to be uploaded. The options are "HMIS Service Stays", “Jail Bookings”, “Jail Booking Charges”, “HMIS AKA/Aliases”, “Case Charges” or “By-name list” as seen in Figure 4. 
 
-**Figure 4: Upload Data Main Page**![image alt text](images/image_4.png)
+**Figure 4: Upload Data Main Page**![image alt text](images/upload_main.png)
 
 ## Step 3: Upload File 
 
@@ -48,7 +48,7 @@ Allows you to browse computer files for upload. File needs to be tabular (CSV is
 
 **Figure 5: Select and Upload File**
 
-![image alt text](images/image_5.png)
+![image alt text](images/select_upload.png)
 
 ## Step 4: Validate File 
 
@@ -58,19 +58,19 @@ The matching tool checks that the required fields and formats of the uploaded fi
 
 **Figure 6: Failed Upload - Unknown Delimiter**
 
-![image alt text](images/image_6.png)
+![image alt text](images/failed_upload.png)
 
 If instead you encounter a System error as seen in Figure 7, please contact your system administrator.  
 
 **Figure 7: Failed Upload - System Error**
 
-![image alt text](images/image_7.png)
+![image alt text](images/system_error.png)
 
 **Successful ****Uploads:** If the data is validated successfully, then the screen will present the first 10 rows of the uploaded data  and the total number of rows found. After reviewing the first 10 rows, the user has the option to confirm or cancel the upload. Figure 8 gives an example of an upload confirmation.
 
 **Figure 8: Successful Upload**
 
-![image alt text](images/image_8.png)
+![image alt text](images/successful_upload.png)
 
 ## Step 5: Confirm Upload and Return to Home Page
 
@@ -78,7 +78,7 @@ After you have confirmed your upload, the next screen will show the number of to
 
 **Figure 9: Final Upload Confirmation**
 
-![image alt text](images/image_9.png)
+![image alt text](images/upload_confirmation.png)
 
 # Results Page
 
@@ -88,7 +88,7 @@ Each of the data fields can be clicked on to sort the data based on the field sp
 
 **Figure 10: Results Page Overview**
 
-![image alt text](images/image_10.png)
+![image alt text](images/results_page.png)
 
 ## Data Fields
 
@@ -124,7 +124,7 @@ Under the button that toggles between the viewing of duration charts and the lis
 
 **Figure 11: Control Panel Options: Venn Diagram Selection**
 
-![image alt text](images/image_11.png)
+![image alt text](images/venn_diagram.png)
 
 ## Duration Charts
 
@@ -132,7 +132,7 @@ Instead of viewing a list of results from the data that was matched, the tool al
 
 **Figure 12: Duration Charts for Length of Booking/Stay and Number of Contacts**
 
-![image alt text](images/image_12.png)
+![image alt text](images/duration_charts.png)
 
 # Downloading Results
 
@@ -140,19 +140,19 @@ The list of results queried can also be downloaded as a CSV file by clicking the
 
 **Figure 13: Downloading Duration Charts or List of Results**
 
-![image alt text](images/image_13.png)
+![image alt text](images/download_charts.png)
 
 The original source data with matched ids can be downloaded as well by scrolling to the bottom of the Control Panel. 
 
 **Figure 14: Downloading original source data from event**
 
-![image alt text](images/image_14.png)
+![image alt text](images/download_source.png)
 
 * On clicking "Event Type" a dropdown menu pops up with the different event options. On selecting the desired event, the source data for that event can be downloaded by clicking “Download Source Events”. 
 
 **Figure 15: Selecting Event Type using dropdown menu**
 
-![image alt text](images/image_15.png)
+![image alt text](images/source_dropdown.png)
 
 # Logout
 
