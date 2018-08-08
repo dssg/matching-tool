@@ -4,7 +4,24 @@ Matching Tool User Documentation
 
 August 2018
 
-[[TOC]]
+# Table of Contents
+## Introduction 3
+## Login Page	3
+## Home Page	3
+## Uploading Data	4
+### Step 1: Select Upload Data	4
+### Step 2: Choose Data Type	5
+### Step 3: Upload File	6
+### Step 4: Validate File	7
+### Step 5: Confirm Upload and Return to Home Page	9
+## Results Page	9
+### Data Fields	10
+### Control Panel	11
+### Duration Charts	11
+## Downloading Results	12
+## Logout	14
+
+
 
 # Introduction
 
@@ -66,7 +83,7 @@ If instead you encounter a System error as seen in Figure 7, please contact your
 
 ![image alt text](images/system_error.png)
 
-**Successful ****Uploads:** If the data is validated successfully, then the screen will present the first 10 rows of the uploaded data  and the total number of rows found. After reviewing the first 10 rows, the user has the option to confirm or cancel the upload. Figure 8 gives an example of an upload confirmation.
+**Successful Uploads:** If the data is validated successfully, then the screen will present the first 10 rows of the uploaded data  and the total number of rows found. After reviewing the first 10 rows, the user has the option to confirm or cancel the upload. Figure 8 gives an example of an upload confirmation.
 
 **Figure 8: Successful Upload**
 
