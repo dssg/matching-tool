@@ -1,10 +1,8 @@
 ![image alt text](images/logo.png)
 
-Matching Tool User Documentation
+# Matching Tool User Documentation
 
-August 2018
-
-[[TOC]]
+### August 2018
 
 # Introduction
 
@@ -66,7 +64,7 @@ If instead you encounter a System error as seen in Figure 7, please contact your
 
 ![image alt text](images/system_error.png)
 
-**Successful ****Uploads:** If the data is validated successfully, then the screen will present the first 10 rows of the uploaded data  and the total number of rows found. After reviewing the first 10 rows, the user has the option to confirm or cancel the upload. Figure 8 gives an example of an upload confirmation.
+**Successful Uploads:** If the data is validated successfully, then the screen will present the first 10 rows of the uploaded data  and the total number of rows found. After reviewing the first 10 rows, the user has the option to confirm or cancel the upload. Figure 8 gives an example of an upload confirmation.
 
 **Figure 8: Successful Upload**
 
