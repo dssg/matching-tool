@@ -1,8 +1,19 @@
 ![image alt text](images/logo.png)
 
-Matching Tool User Documentation
+# Matching Tool User Documentation
 
-August 2018
+
+
+
+
+
+## August 2018
+
+
+
+
+
+
 
 # Table of Contents
 ## [Introduction](#introduction-1) 
@@ -20,6 +31,14 @@ August 2018
 ### [Duration Charts](#duration-charts-1)
 ## [Downloading Results](#downloading-results-1)
 ## [Logout](#logout-1)
+
+
+
+
+
+
+
+
 
 
 
