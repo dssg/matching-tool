@@ -10,11 +10,11 @@ August 2018
 ## [Home Page](#home-page)	
 ## [Uploading Data](#uploading-data)
 #### [Step 1: Select Upload Data](#step-1-select-upload-data-1)	
-#### [Step 2: Choose Data Type](#step-2-choose-data-type)	
-### Step 3: Upload File	
-### Step 4: Validate File	
-### Step 5: Confirm Upload and Return to Home Page	
-## Results Page	
+#### [Step 2: Choose Data Type](#step-2-choose-data-type-1)	
+#### [Step 3: Upload File](#step-3-upload-file-1)	
+#### [Step 4: Validate File](#step-4-validate-file-1)	
+#### [Step 5: Confirm Upload and Return to Home Page](#step-5-confirm-upload-and-return-to-home-page-1)	
+## [Results Page](#results-page)	
 ### Data Fields	
 ### Control Panel
 ### Duration Charts
