@@ -5,11 +5,11 @@ Matching Tool User Documentation
 August 2018
 
 # Table of Contents
-[Introduction](#introduction) 
-[Login Page](#Login Page)	
-## Home Page	
-## Uploading Data	
-### Step 1: Select Upload Data	
+## [Introduction](#introduction) 
+## [Login Page](#login-page)	
+## [Home Page](#home-page)	
+## [Uploading Data](#uploading data)
+#### [Step 1: Select Upload Data](#step-1-:-select-upload-data)	
 ### Step 2: Choose Data Type	
 ### Step 3: Upload File	
 ### Step 4: Validate File	
