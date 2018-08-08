@@ -2,22 +2,7 @@
 
 # Matching Tool User Documentation
 
-
-
-
-
-
-## August 2018
-
-markdown_extensions:
-    - toc:
-        baselevel: 2
-
-
-
-
-
-
+### August 2018
 
 # Introduction
 
