@@ -6,7 +6,7 @@ August 2018
 
 # Table of Contents
 [Introduction](#introduction) 
-## Login Page	
+[Login Page](#Login Page)	
 ## Home Page	
 ## Uploading Data	
 ### Step 1: Select Upload Data	
