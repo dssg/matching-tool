@@ -30,13 +30,13 @@ In order to upload data onto the matching tool, the following steps must be carr
 
 ## Step 1: Select Upload Data
 
-On the Home page, the user will be directed to the uploading page after selecting **Upload** from the Home page, as seen in Figure 2. Here, you will be able to able to upload the data you would like to have matched with data from other systems.
+On the Home page, the user will be directed to the uploading page after selecting **Upload** from the Home page, as seen in Figure 3. Here, you will be able to able to upload the data you would like to have matched with data from other systems.
 
 **Figure 3: Uploading Data**![image alt text](images/uploading_data.png)
 
 ## Step 2: Choose Data Type 
 
-After selecting Upload from the Home page, the user will then be taken to the Upload Data Main Page (shown in Figure 3). The user then chooses the type of data that needs to be uploaded. The options are "HMIS Service Stays", “Jail Bookings”, “Jail Booking Charges”, “HMIS AKA/Aliases”, “Case Charges” or “By-name list” as seen in Figure 4. 
+After selecting Upload from the Home page, the user will then be taken to the Upload Data Main Page (shown in Figure 4). The user then chooses the type of data that needs to be uploaded. The options are "HMIS Service Stays", “Jail Bookings”, “Jail Booking Charges”, “HMIS AKA/Aliases”, “Case Charges” or “By-name list” as seen in Figure 4. 
 
 **Figure 4: Upload Data Main Page**![image alt text](images/upload_main.png)
 
@@ -52,7 +52,7 @@ Allows you to browse computer files for upload. File needs to be tabular (CSV is
 
 The matching tool checks that the required fields and formats of the uploaded file satisfies the necessary requirements. 
 
-**Failed Uploads:** The most common error encountered with the tool would be because of an unknown delimiter used in the file. Only commas (,) or pipes (|) are permitted. You can also download the report in a CSV format by clicking "Download Full Error Report". Figure 5 gives an example of a common upload failing.
+**Failed Uploads:** The most common error encountered with the tool would be because of an unknown delimiter used in the file. Only commas (,) or pipes (|) are permitted. You can also download the report in a CSV format by clicking "Download Full Error Report". Figure 6 gives an example of a common upload failing.
 
 **Figure 6: Failed Upload - Unknown Delimiter**
 
@@ -155,3 +155,5 @@ The original source data with matched ids can be downloaded as well by scrolling
 # Logout
 
 Logs you out of the tool
+
+![image alt text](images/logout.png)
