@@ -404,6 +404,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#using-the-filesystem" title="Using the Filesystem" class="md-nav__link">
+    Using the Filesystem
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -581,6 +588,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#using-the-filesystem" title="Using the Filesystem" class="md-nav__link">
+    Using the Filesystem
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -614,7 +628,7 @@
 <h3 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Docker and Docker-Compose; this is not strictly needed, but the only way to install that DSaPP is supporting and documenting.</li>
-<li>AWS S3; For development and testing purposes, <a href="#s3-credentials">Moto standalone S3 server</a> can work, but it is not meant for production as the stored S3 data will disappear as soon as the process ends.</li>
+<li>AWS S3 by default, or enough space on the local filesystem to handle uploaded files.</li>
 </ul>
 <h3 id="deploy-with-docker">Deploy with Docker<a class="headerlink" href="#deploy-with-docker" title="Permanent link">&para;</a></h3>
 <h4 id="production">Production<a class="headerlink" href="#production" title="Permanent link">&para;</a></h4>
@@ -637,11 +651,15 @@ Example: <code>./scripts/2_prepare_db mypostgres.county.gov 5432 postgresadmin m
 In addition to the Postgres database, this will prepopulate a .env file of environment variables that the Docker infrastructure will use.</p>
 </li>
 <li>
-<p>Add AWS environment variables for S3 access:</p>
-<ul>
+<p>Set up storage.</p>
+<ol>
+<li>Option 1 (S3):<ul>
 <li>Open up your .env file and modify the <code>AWS_ACCESS_KEY_ID</code> and <code>AWS_SECRET_ACCESS_KEY</code> variables with your values. Visit <a href="https://docs.aws.amazon.com/general/latest/gr/managing-aws-access-keys.html">Managing Access Keys for your AWS Account</a> if you don't have an access key yet.</li>
 <li>Open up the webapp.env file and modify all the instances of <code>your-bucket</code> to an S3 bucket you want to use to store data.</li>
 </ul>
+</li>
+<li>Option 2 (Filesystem): <a href="./#using-the-filesystem">configuration changes</a></li>
+</ol>
 </li>
 <li>(optional) If you would like the web application to be able to send mail (e.g. for the reset password form), also modify the <code>MAIL_SERVER</code>, <code>MAIL_USERNAME</code>, <code>MAIL_PASSWORD</code>, and <code>MAIL_DEFAULT_SENDER</code> variables. Depending on your mailing setup, <code>MAIL_PORT</code> (default: 465), <code>MAIL_USE_SSL</code> (default: True), <code>MAIL_USE_TLS</code> (default: False) can be overridden. If you don't set any mail environment variables, the reset password form will not work, but the rest of the app will.</li>
 <li>(optional) Perform Redis tweaks. This is tested on Ubuntu. For other OSes, the method for making these changes may be different. Also, the need these changes may not be there for all OSes; Ubuntu's default configuration is not ideal for Redis within docker. If you're not sure, when you start up docker-compose in step 4, if Redis throws any warnings, listen to them. It will run without these, but without doing this you may increase the chances for weird system errors.<ul>
@@ -669,6 +687,11 @@ Example: <code>./scripts/3_create_user mycounty thcrockett@uchicago.edu password
 <li>Bring up the docker containers using our development docker-compose: <code>docker-compose up</code></li>
 <li>Initialize the database and users. You can use this script to get set up easily, including a user 'testuser@example.com' with password 'password', that you can use to log in: <code>sh scripts/create_test_users_docker.sh</code></li>
 </ol>
+<h4 id="using-the-filesystem">Using the Filesystem<a class="headerlink" href="#using-the-filesystem" title="Permanent link">&para;</a></h4>
+<p>The code in both the webapp and the matching service support both S3 and filesystem schemes for storage. However, since they need to communicate data between each other, and by default they are in separate Docker containers with separate filesystems, to use the filesystem you must also modify the docker-compose.yml to mount a shared volume from the host machine between the <code>webapp</code>, <code>webapp_worker</code>, and <code>matcher_worker</code> containers.</p>
+<p>For instance: <code>mkdir ./shared-volume; chmod 777 ./shared-volume</code> would then allow you to add the following volume to each of those containers:</p>
+<p><code>- ./shared-volume:/shared-volume</code></p>
+<p>With this in place, each container will have a <code>/shared-volume</code> directory that can be used as a base path in <code>webapp.env</code></p>
                 
                   
                 
