@@ -444,6 +444,33 @@
     Creating or Modifying a Schema
   </a>
   
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#modifying-an-existing-schema" title="Modifying an Existing Schema" class="md-nav__link">
+    Modifying an Existing Schema
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-a-new-schema" title="Creating a new Schema" class="md-nav__link">
+    Creating a new Schema
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limitations-when-creating-a-new-schema" title="Limitations when creating a new Schema" class="md-nav__link">
+    Limitations when creating a new Schema
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
       
@@ -509,6 +536,33 @@
     Creating or Modifying a Schema
   </a>
   
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#modifying-an-existing-schema" title="Modifying an Existing Schema" class="md-nav__link">
+    Modifying an Existing Schema
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-a-new-schema" title="Creating a new Schema" class="md-nav__link">
+    Creating a new Schema
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limitations-when-creating-a-new-schema" title="Limitations when creating a new Schema" class="md-nav__link">
+    Limitations when creating a new Schema
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
       
@@ -531,6 +585,50 @@
                   <h1>Creating or Modifying a Schema</h1>
                 
                 <h2 id="creating-or-modifying-a-schema">Creating or Modifying a Schema<a class="headerlink" href="#creating-or-modifying-a-schema" title="Permanent link">&para;</a></h2>
+<p>The matching tool can be extended to work with schemas not defined in the initial release. This document defines how this can be done and what limitations are involved.</p>
+<h3 id="modifying-an-existing-schema">Modifying an Existing Schema<a class="headerlink" href="#modifying-an-existing-schema" title="Permanent link">&para;</a></h3>
+<p>To modify the columns or checks in an existing schema:</p>
+<ol>
+<li>
+<p>Find the schema in <a href="https://github.com/dssg/matching-tool/tree/master/webapp/schemas/uploader">webapp/schemas/uploader/</a>.</p>
+</li>
+<li>
+<p>Modify the name, datatype, or constraints for an individual field, or the 'primaryKey' that should uniquely define each row. If it is not clear how to modify an individual schema to, for instance, express a constraint in a given way, refer to either the <a href="https://github.com/frictionlessdata/goodtables-py">goodtables-py docs</a> (the general library used by the matching tool) or the <a href="https://github.com/dssg/matching-tool/blob/master/webapp/webapp/validations/__init__.py">webapp.validations</a> module (the file where custom checks for the matching tool are defined).</p>
+</li>
+<li>
+<p>If any of the column names, data types, or primary key have changed, you will have to delete the installation's master table as this information is encoded in the master table's schema. Refer your administrator to <a href="../../admin/updating/#clearing-a-master-table-for-a-schema">Clearing a Master Table for a Schema</a>.</p>
+</li>
+</ol>
+<h3 id="creating-a-new-schema">Creating a new Schema<a class="headerlink" href="#creating-a-new-schema" title="Permanent link">&para;</a></h3>
+<p>To create a new schema:</p>
+<ol>
+<li>Create a JSON file containing the schema in <a href="https://github.com/dssg/matching-tool/tree/master/webapp/schemas/uploader">webapp/schemas/uploader/</a>, obeying the same name scheme (<code>lowercase-separated-by-dashes.json</code>). Copying an example from one of the existing schemas is recommended. The important parts of the schema:<ul>
+<li>The top-level <code>name</code> field simply contains a human-readable name for the schema. This is used in the web UI.</li>
+<li>The <code>fields</code> field contains a list of column names, their datatypes, and any necessary constraints on them. If you have questions about standard constraints that are not clear from the existing .json files, refer to the <a href="https://github.com/frictionlessdata/goodtables-py">goodtables-py docs</a> (the general library used by the matching tool). If a field is intended to be matched with a field from existing schemas, <em>use the same field names, types, and constraints</em> for that field from the existing schemas. The matcher will assume that these are formatted similarly, and you can get poor results if this isn't true.</li>
+<li>The <code>primaryKey</code> field contains a list of column names that uniquely identify a row in the schema. This is important to get right, as this primary key is enforced in the database. If a new row is uploaded that matches the primary key of an existing row, <em>that row will be updated with the information from the new row</em>. So ensure that you include enough fields from the schema to uniquely identify events of the event type you are concerned with. For instance, the <a href="https://github.com/dssg/matching-tool/blob/master/webapp/schemas/uploader/jail-bookings.json">jail_bookings</a> schema can include different rows for different location changes within the jail. Therefore, it has <code>location_start_date</code> as part of its primaryKey.</li>
+</ul>
+</li>
+<li>(recommended) Update the <a href="https://github.com/dssg/matching-tool/blob/master/webapp/webapp/tests/test_schemas.py">schema test file</a> with the name of this new schema, and run this test to ensure that your schema doesn't have any structural errors. This helps to do up front as otherwise the error will show up as an internal server error when attempting to upload a file.  To test it:<ul>
+<li>Install <a href="https://pip.pypa.io/en/stable/installing/">pip</a>.</li>
+<li><code>pip install virtualenv</code></li>
+<li><code>cd webapp</code></li>
+<li><code>virtualenv venv</code></li>
+<li><code>source venv/bin/activate</code></li>
+<li><code>pip install -r requirements.txt -r requirements_dev.txt</code></li>
+<li><code>PYTHONPATH='.' py.test webapp/tests/test_schemas.py</code></li>
+</ul>
+</li>
+<li>Open the <a href="https://github.com/dssg/matching-tool/blob/master/webapp/webapp/validations/__init__.py">webapp.validations</a> module.<ul>
+<li>The <code>CHECKS_BY_SCHEMA</code> dictionary is where you should add this schema, and a list of the checks that should be activated.  Simply making it <code>STANDARD_CHECKS</code> is a good start for schemas that are designed to be similar to the shipped schemas. In the basic case, this is all you should have to do in this file.</li>
+<li>If you want to add any checks that contain custom logic, you can define them in this file. We will not include a custom check tutorial here, but the examples in that file (any function with the '@check' decorator) and the <a href="https://github.com/frictionlessdata/goodtables-py">goodtables-py docs</a> will be helpful.</li>
+</ul>
+</li>
+<li>Open the <a href="https://github.com/dssg/matching-tool/blob/master/matcher/matcher_config.yaml">matcher config</a> and make any changes needed. Refer to the <a href="../matching/">guide on changing the matching config</a> for details, but of note if there are columns in your new schema that you wish to use for matching that aren't present in existing schemas you will have to add them here and configure how they will be used for matching.</li>
+<li>Have your administrator <a href="../../admin/updating/#updating-code">install the new code</a> (new schema+validation file updates), and <a href="../../admin/updating/#-user-and-role-management">add your user to the new event type</a>: the event type will be the name of the .json file, dashes replaced with underscores. Alternately, if you have a local installation you can do those steps yourself.</li>
+<li>At this point, you should be able to upload new files for this schema type, the matcher should be able to produce results, and you can download these results with the original source data with match ids in the results dashboard ('Download Source Events', bottom of the left control panel).</li>
+</ol>
+<h3 id="limitations-when-creating-a-new-schema">Limitations when creating a new Schema<a class="headerlink" href="#limitations-when-creating-a-new-schema" title="Permanent link">&para;</a></h3>
+<p>Creating a new schema <em>does not make its events show up on the results dashboard</em>. The logic for populating the Venn diagrams and results table are highly customized for HMIS Service Stays and Jail Bookings. Adding a third event type to this dashboard raises many interface design questions that are not easy to answer. If you wish to customize this interface, you can refer to <a href="../webapp/">Modifying the Webapp</a> but know that at this point your version of the code will be highly customized and it will be tough to receive code updates. It is recommended that you import these source events with match ids into your spreadsheet/reporting tool of choice for visualization.</p>
                 
                   
                 

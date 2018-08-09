@@ -414,6 +414,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#clearing-a-master-table-for-a-schema" title="Clearing a Master Table for a Schema" class="md-nav__link">
+    Clearing a Master Table for a Schema
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#user-and-role-management" title="User and Role Management" class="md-nav__link">
     User and Role Management
   </a>
@@ -554,6 +561,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#clearing-a-master-table-for-a-schema" title="Clearing a Master Table for a Schema" class="md-nav__link">
+    Clearing a Master Table for a Schema
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#user-and-role-management" title="User and Role Management" class="md-nav__link">
     User and Role Management
   </a>
@@ -600,6 +614,9 @@ docker rm webapp
 ./scripts/run start
 </code></pre>
 
+<h3 id="clearing-a-master-table-for-a-schema">Clearing a Master Table for a Schema<a class="headerlink" href="#clearing-a-master-table-for-a-schema" title="Permanent link">&para;</a></h3>
+<p>If column names, data types, or the primary key have changed in one of the schemas, you will have to delete the master table for that schema in the database. This is because once data has been uploaded for a particular schema, this master table will reflect the column names and data types present in the schema at that time, and all uploads are merged into this table for a coherent timeline of events. There is no procedure for 'upgrading' a master table with a new schema, because many schema updates will invalidate existing data. We recommend simply deleting the table and re-uploading any data.</p>
+<p>The master table resides in the <code>{jurisdiction}_{event_type}_master</code> in the <a href="../troubleshooting/#querying-the-database">Postgres database</a>. Example: A jurisdiction of <code>cook</code>, and event type of <code>hmis_service_stays</code> would be stored in <code>cook_hmis_service_stays_master</code>. Once this table has been deleted, it will be recreated upon the next user upload with the new schema.</p>
 <h3 id="user-and-role-management">User and Role Management<a class="headerlink" href="#user-and-role-management" title="Permanent link">&para;</a></h3>
 <p>Access to the matching tool web application is handled with users and roles.</p>
 <p>A <strong>user</strong> is anybody who can log into the tool.</p>
