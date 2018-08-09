@@ -3,7 +3,7 @@
 ## Requirements
 
 - Docker and Docker-Compose; this is not strictly needed, but the only way to install that DSaPP is supporting and documenting.
-- AWS S3; For development and testing purposes, [Moto standalone S3 server](#s3-credentials) can work, but it is not meant for production as the stored S3 data will disappear as soon as the process ends.
+- AWS S3 by default, or enough space on the local filesystem to handle uploaded files.
 
 
 ## Deploy with Docker
@@ -25,9 +25,11 @@
 	Example: `./scripts/2_prepare_db mypostgres.county.gov 5432 postgresadmin matching_tool`
 	In addition to the Postgres database, this will prepopulate a .env file of environment variables that the Docker infrastructure will use.
 
-7. Add AWS environment variables for S3 access:
-	- Open up your .env file and modify the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` variables with your values. Visit [Managing Access Keys for your AWS Account](https://docs.aws.amazon.com/general/latest/gr/managing-aws-access-keys.html) if you don't have an access key yet.
-	- Open up the webapp.env file and modify all the instances of `your-bucket` to an S3 bucket you want to use to store data.
+7. Set up storage.
+    1. Option 1 (S3):
+	    - Open up your .env file and modify the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` variables with your values. Visit [Managing Access Keys for your AWS Account](https://docs.aws.amazon.com/general/latest/gr/managing-aws-access-keys.html) if you don't have an access key yet.
+	    - Open up the webapp.env file and modify all the instances of `your-bucket` to an S3 bucket you want to use to store data.
+    2. Option 2 (Filesystem): [configuration changes](install.md#using-the-filesystem)
 8. (optional) If you would like the web application to be able to send mail (e.g. for the reset password form), also modify the `MAIL_SERVER`, `MAIL_USERNAME`, `MAIL_PASSWORD`, and `MAIL_DEFAULT_SENDER` variables. Depending on your mailing setup, `MAIL_PORT` (default: 465), `MAIL_USE_SSL` (default: True), `MAIL_USE_TLS` (default: False) can be overridden. If you don't set any mail environment variables, the reset password form will not work, but the rest of the app will.
 9. (optional) Perform Redis tweaks. This is tested on Ubuntu. For other OSes, the method for making these changes may be different. Also, the need these changes may not be there for all OSes; Ubuntu's default configuration is not ideal for Redis within docker. If you're not sure, when you start up docker-compose in step 4, if Redis throws any warnings, listen to them. It will run without these, but without doing this you may increase the chances for weird system errors.
 	- Disable Transparent HugePage in the current session: `echo never > /sys/kernel/mm/transparent_hugepage/enabled`
@@ -48,3 +50,14 @@
 2. Install [Docker](https://docs.docker.com/install/) and [docker-compose](https://docs.docker.com/compose/install/)
 3. Bring up the docker containers using our development docker-compose: `docker-compose up`
 4. Initialize the database and users. You can use this script to get set up easily, including a user 'testuser@example.com' with password 'password', that you can use to log in: `sh scripts/create_test_users_docker.sh`
+
+
+### Using the Filesystem
+
+The code in both the webapp and the matching service support both S3 and filesystem schemes for storage. However, since they need to communicate data between each other, and by default they are in separate Docker containers with separate filesystems, to use the filesystem you must also modify the docker-compose.yml to mount a shared volume from the host machine between the `webapp`, `webapp_worker`, and `matcher_worker` containers.
+
+For instance: `mkdir ./shared-volume; chmod 777 ./shared-volume` would then allow you to add the following volume to each of those containers:
+
+`- ./shared-volume:/shared-volume`
+
+With this in place, each container will have a `/shared-volume` directory that can be used as a base path in `webapp.env`
