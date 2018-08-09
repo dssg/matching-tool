@@ -13,7 +13,7 @@ def open_sesame(path, *args, **kwargs):
     This means mock_s3 can be used for tests, instead of the mock_s3_deprecated
     """
     path_parsed = urlparse(path)
-    scheme = path_parsed.scheme  # If '' of 'file' is a regular file or 's3'
+    scheme = path_parsed.scheme  # If '' or 'file' then a regular file; if 's3' then 's3'
 
     if not scheme or scheme == 'file':  # Local file
         os.makedirs(dirname(path), exist_ok=True)
