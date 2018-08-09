@@ -28,12 +28,12 @@ ADD setup.py /csh/webapp/setup.py
 
 # Build frontend output.js
 WORKDIR /csh/webapp/frontend
-RUN npm run build && ls -alF /csh/webapp/webapp/static 
+RUN npm run build && ls -alF /csh/webapp/backend/static 
 
 # Run flask app
 WORKDIR /csh/webapp
 ENV PYTHONPATH /csh/webapp
-ENV FLASK_APP webapp.app
+ENV FLASK_APP backend.app
 ENV FLASK_DEBUG true
 
 CMD flask run --host=0.0.0.0

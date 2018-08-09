@@ -1,8 +1,8 @@
 import redis
 from flask_script import Server, Manager
 from rq import Connection, Worker
-from webapp import app
-from webapp.apis.upload import get_redis_connection
+from backend import app
+from backend.apis.upload import get_redis_connection
 
 manager = Manager(app)
 
