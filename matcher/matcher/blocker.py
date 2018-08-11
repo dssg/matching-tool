@@ -11,7 +11,7 @@ class Blocker():
         self.blocking_rules = blocking_rules
         self.metadata = {'blocker_initialization_time': datetime.datetime.now()}
 
-    def run(self, preprocessed_df:pd.DataFrame) -> pd.DataFrameGroupBy:
+    def run(self, preprocessed_df:pd.DataFrame) -> pd.core.groupby.DataFrameGroupBy:
         """ Take the preprocessed dataframe, and return a group dictionary of
             dataframes where the keys are the blocking values and the values
             are dataframes containing only records matching the key.

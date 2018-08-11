@@ -84,7 +84,7 @@ def do_match(
             logger.debug(f"Matching group {key} of size {len(group)}")
             logger.debug('Wrapping up block')
             all_block_metadata[key] = block_metadata
-            matches[key] = match_object.run(df=block)
+            matches[key] = block_name + match_object.run(df=block).astype(str)
         logger.debug('All blocks done! Yehaw!')
         matches = pd.concat(matches.values())
         metadata['data_matched_time'] = datetime.datetime.now()
