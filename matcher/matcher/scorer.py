@@ -1,16 +1,23 @@
 # coding: utf-8
 
+import datetime
 import pandas as pd
 import numpy as np
 
-from sklearn.preprocessing import MinMaxScaler
+from matcher.logger import logger
+
 
 class Scorer():
-    def __init__(self, operation="sum", reverse=True):
+    def __init__(self, operation='mean', reverse=True):
         self.operation = operation
         self.reverse = reverse
+        self.metadata{'scorer_initialization_time': datetime.datetime.now()}
 
-    def compactify(contrasted_df:pd.DataFrame) -> pd.DataFrame:
+    def run(self, contrasted_df:pd.DataFrame) -> pd.DataFrame:
+        self.metadata['scorer_run_time'] = datetime.datetime.now()
+
+        logger.debug(f'Scoring record pairs with operation {self.operation}')
+
         scored_df = contrasted_df.copy()
         
         if self.operation == 'sum':
@@ -20,12 +27,13 @@ class Scorer():
         elif self.operation == 'mean':
             scored_df['matches'] = scored_df.apply(lambda row: np.mean(row), axis=1)
         else:
-            print(f"Operation {operation} not supported")
-            scored_df["matches"] = np.nan
-        
+            raise ValueError(f'Scoring operation {operation} not supported.')
+            scored_df['matches'] = np.nan
+
         if self.reverse:
             scored_df['matches'] = 1 - scored_df['matches']
 
+        self.metadata['scorer_finished_time'] = datetime.datetime.now()
+
         return scored_df
-    
 
