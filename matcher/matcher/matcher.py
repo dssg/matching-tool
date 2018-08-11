@@ -64,7 +64,7 @@ class Matcher:
             logger.debug(f"Contrasts created")
 
             contrasts.index.rename(['matcher_index_left', 'matcher_index_right'], inplace=True)
-            contrasts = self.scorer.compactify(contrasts)
+            contrasts = self.scorer.run(contrasts)
             logger.debug('Summary distances generated. Making you some stats about them.')
             self.metadata['scores'] = utils.summarize_column(contrasts.matches)
             logger.debug('Caching those contrasts and distances for you.')
