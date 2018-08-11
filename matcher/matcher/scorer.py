@@ -4,6 +4,8 @@ import datetime
 import pandas as pd
 import numpy as np
 
+import matcher.utils as utils
+
 from matcher.logger import logger
 
 
@@ -21,18 +23,19 @@ class Scorer():
         scored_df = contrasted_df.copy()
         
         if self.operation == 'sum':
-            scored_df["matches"] = scored_df.apply(lambda row: np.sum(row), axis=1)
+            scored_df['score'] = scored_df.apply(lambda row: np.sum(row), axis=1)
         elif self.operation == 'norm':
-            scored_df["matches"] = scored_df.apply(lambda row: np.linalg.norm(row), axis=1)
+            scored_df['score'] = scored_df.apply(lambda row: np.linalg.norm(row), axis=1)
         elif self.operation == 'mean':
-            scored_df['matches'] = scored_df.apply(lambda row: np.mean(row), axis=1)
+            scored_df['score'] = scored_df.apply(lambda row: np.mean(row), axis=1)
         else:
             raise ValueError(f'Scoring operation {operation} not supported.')
-            scored_df['matches'] = np.nan
+            scored_df['score'] = np.nan
 
         if self.reverse:
-            scored_df['matches'] = 1 - scored_df['matches']
+            scored_df['score'] = 1 - scored_df['score']
 
+        self.metadata['scores'] = utils.summarize_column(scored_df.score)
         self.metadata['scorer_finished_time'] = datetime.datetime.now()
 
         return scored_df

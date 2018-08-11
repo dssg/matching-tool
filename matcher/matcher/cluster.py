@@ -9,7 +9,7 @@ import matcher.ioutils as ioutils
 from matcher.logger import logger
 
 
-class Clusterizer():
+class Clusterer():
 
     def __init__(self, algorithm=sklearn.cluster.DBSCAN, **params):
 
@@ -58,5 +58,5 @@ class Clusterizer():
         tmp_df.set_index(['matcher_index_left', 'matcher_index_right'], inplace=True)
         
         # concat original & df with swapped indices; square the matrix, filling in 0 distance for self-pairs
-        return pd.concat([df, tmp_df]).matches.unstack(level=-1, fill_value=0)
+        return pd.concat([df, tmp_df]).score.unstack(level=-1, fill_value=0)
 
