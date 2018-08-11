@@ -154,6 +154,8 @@ class Contraster:
         
         self.make_contrast_metadata(contrasts)
 
+        self.metadata['contrasts_created'] = contrasts.columns.values
+        self.metadata['contrast_dataframe_dimensions'] = contrasts.shape
         self.metadata['contraster_finished_time'] = datetime.datetime.now()
         
         return contrasts

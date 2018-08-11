@@ -65,15 +65,8 @@ class Matcher:
 
             contrasts.index.rename(['matcher_index_left', 'matcher_index_right'], inplace=True)
             contrasts = self.scorer.run(contrasts)
-            logger.debug('Summary distances generated. Making you some stats about them.')
-            self.metadata['scores'] = utils.summarize_column(contrasts.matches)
             logger.debug('Caching those contrasts and distances for you.')
             ioutils.write_dataframe(contrasts.reset_index(), filepath=f'{self.base_data_directory}/match_cache/contrasts/{self.match_job_id}/{key}')
-
-            logger.debug(f"Contrasts dataframe size: {contrasts.shape}")
-            logger.debug(f"Contrasts data without duplicated indexes: {contrasts[~contrasts.index.duplicated(keep='first')].shape}")
-            logger.debug("Duplicated keys:")
-            logger.debug(f"{contrasts[contrasts.index.duplicated(keep=False)]}")
 
             matches = cluster.generate_matched_ids(
                 distances=contrasts,
