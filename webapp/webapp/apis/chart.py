@@ -73,3 +73,17 @@ def download_source():
     output.headers["Content-Disposition"] = "attachment; filename={}.csv".format(event_type)
     output.headers["Content-type"] = "text/csv"
     return output
+
+
+@chart_api.route('/last_upload_date', methods=['GET'])
+@login_required
+def get_last_upload_date():
+    last_upload = query.last_upload_date()
+    try:
+        assert len(last_upload) == 1
+        last_upload_date = last_upload[0]['upload_start_time']
+        logger.info(type(last_upload_date))
+        last_upload_date = last_upload_date.strftime('%Y-%m-%d')
+        return jsonify(results=last_upload_date)
+    except:
+        return jsonify("no valid upload date")

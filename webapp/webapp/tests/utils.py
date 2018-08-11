@@ -7,8 +7,8 @@ from sqlalchemy import create_engine
 import contextlib
 import testing.postgresql
 from unittest.mock import patch
-from moto import mock_s3_deprecated
-import boto
+from moto import mock_s3
+import s3fs
 
 from flask_security import SQLAlchemySessionUserDatastore
 from flask_security.utils import encrypt_password
@@ -127,7 +127,7 @@ DATA_FIELDS = {
         classification          text,
         detention               text,
         location_type           text,
-        relocation_date         timestamp,
+        location_date           timestamp,
         case_number             text,
         source_name             text,
         created_date            timestamp,
@@ -164,17 +164,24 @@ def rig_test_client():
 
 
 @contextlib.contextmanager
-def rig_all_the_things():
+def full_rig_with_s3():
+    with full_rig_without_s3() as (app, engine):
+        with mock_s3():
+            s3 = s3fs.S3FileSystem()
+            s3.touch('test-bucket')
+            yield app, engine
+
+
+@contextlib.contextmanager
+def full_rig_without_s3():
     fake_redis_connection = FakeStrictRedis()
     queue = Queue(async=False, connection=fake_redis_connection)
-    with patch('webapp.apis.upload.get_redis_connection', return_value=fake_redis_connection):
-        with patch('webapp.apis.upload.get_q', return_value=queue):
-            with patch.dict('webapp.utils.app_config', SAMPLE_CONFIG):
-                with rig_test_client() as (app, engine):
-                    authenticate(app)
-                    with mock_s3_deprecated():
-                        s3_conn = boto.connect_s3()
-                        s3_conn.create_bucket('test-bucket')
+    with patch('webapp.apis.upload.notify_matcher', return_value=None):
+        with patch('webapp.apis.upload.get_redis_connection', return_value=fake_redis_connection):
+            with patch('webapp.apis.upload.get_q', return_value=queue):
+                with patch.dict('webapp.utils.app_config', SAMPLE_CONFIG):
+                    with rig_test_client() as (app, engine):
+                        authenticate(app)
                         yield app, engine
 
 
@@ -232,22 +239,26 @@ def init_app_with_options(datastore, **options):
     security.datastore = datastore
     populate_data(datastore)
 
-def create_and_populate_matched_table(table_name, db_engine, file_path=None):
+def create_and_populate_master_table(table_name, db_engine, file_path=None):
+    full_table_name = generate_master_table_name('boone', table_name)
     create_table_query = f"""
-            CREATE SCHEMA IF NOT EXISTS matched;
-            DROP TABLE IF EXISTS matched.boone_{table_name};
-            CREATE TABLE matched.boone_{table_name} ({DATA_FIELDS[table_name]})"""
+        DROP TABLE IF EXISTS {full_table_name};
+        CREATE TABLE {full_table_name} ({DATA_FIELDS[table_name]})"""
     db_engine.execute(create_table_query)
-
     if file_path:
         df = pd.read_csv(file_path)
+        df['internal_event_id'] = df['internal_event_id'].apply(str)
+        df['matched_id'] = df['matched_id'].apply(str)
         if table_name == "jail_bookings":
+            df['booking_number'] = df['booking_number'].apply(lambda x: str(x) if x else None)
             df['jail_entry_date'] = pd.to_datetime(df['jail_entry_date'])
             df['jail_exit_date'] = pd.to_datetime(df['jail_exit_date'])
+            df.to_sql(full_table_name, db_engine, if_exists='append', index=False)
+            db_engine.execute("update {} set booking_number = null where booking_number = 'nan'".format(full_table_name))
         elif table_name == "hmis_service_stays":
             df['client_location_start_date'] = pd.to_datetime(df['client_location_start_date'])
             df['client_location_end_date'] = pd.to_datetime(df['client_location_end_date'])
-        df.to_sql('boone_' + table_name, db_engine, schema='matched', if_exists='append', index=False)
+            df.to_sql(full_table_name, db_engine, if_exists='append', index=False)
 
 def create_and_populate_raw_table(raw_table, data, db_engine):
     schema = load_schema_file('test')

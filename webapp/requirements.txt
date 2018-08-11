@@ -6,7 +6,6 @@ alembic
 pyyaml
 psycopg2
 bcrypt
-smart_open==1.5.3
 sqlalchemy
 pandas
 rq
@@ -14,3 +13,5 @@ redis
 flask-script
 colorlog
 flask-mail
+s3fs
+retrying

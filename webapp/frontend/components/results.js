@@ -3,20 +3,25 @@ import DatePicker from 'material-ui/DatePicker'
 import Drawer from 'material-ui/Drawer'
 import DurationBarChart from './bar'
 import FloatingActionButton from 'material-ui/FloatingActionButton'
+import IconButton from 'material-ui/IconButton'
+import ActionHelp from 'material-ui/svg-icons/action/help';
 import Loadable from 'react-loading-overlay'
 import Header from './header'
 import moment from 'moment'
 import MenuItem from 'material-ui/MenuItem'
 import NavigationClose from 'material-ui/svg-icons/navigation/close'
+import Popover from 'material-ui/Popover'
 import RaisedButton from 'material-ui/RaisedButton'
 import React from 'react'
 import SelectField from 'material-ui/SelectField'
 import DataTables from 'material-ui-datatables'
 import Venn from './venn'
+import WarningPopup from './warning.js'
+import FieldsHelp from './fields-help'
 import { connect } from 'react-redux'
 import { join, keys, map, merge, toPairs } from 'ramda'
-import { getMatchingResults, updateControlledDate, updateTableSort, nextTablePage, prevTablePage, updateSetStatus, toggleBarFlag } from '../actions'
-import { Card, CardTitle } from 'material-ui/Card'
+import { getMatchingResults, setAppState, nextTablePage, prevTablePage, updateSetStatus, toggleBarFlag, getLastUploadDate } from '../actions'
+import { Card, CardText, CardTitle } from 'material-ui/Card'
 import {GridList, GridTile} from 'material-ui/GridList';
 import html2canvas from 'html2canvas'
 import SourceDownloader from './source-downloader'
@@ -102,6 +107,15 @@ const styles = {
   tableColumn: {
     paddingLeft: '8px',
     paddingRight: '8x'
+  },
+  helpIcon: {
+    width: 18,
+    height: 18
+  },
+  helpIconRoot: {
+    width: 36,
+    height: 36,
+    padding: 0
   }
 }
 
@@ -128,7 +142,8 @@ function mapStateToProps(state) {
     serverError: state.app.serverError,
     filters: state.app.matchingFilters,
     totalTableRows: state.app.matchingResults.totalTableRows,
-    barFlag: state.app.barFlag
+    barFlag: state.app.barFlag,
+    lastUploadDate: state.app.lastUploadDate,
   }
 }
 
@@ -141,11 +156,15 @@ function mapDispatchToProps(dispatch) {
         console.log('Short-circuiting matching results querying because no jurisdiction is selected yet')
       }
     },
-    updateDates: (startDate, endDate) => {
-      dispatch(updateControlledDate(startDate, endDate))
+    updateStartDate: (startDate) => {
+      dispatch(setAppState('matchingFilters.startDate', startDate))
+    },
+    updateEndDate: (endDate) => {
+      dispatch(setAppState('matchingFilters.endDate', endDate))
     },
     updateTableSort: (orderColumn, order) => {
-      dispatch(updateTableSort(orderColumn, order))
+      dispatch(setAppState('matchingFilters.order', order))
+      dispatch(setAppState('matchingFilters.orderColumn', orderColumn))
     },
     nextPage: (event) => {
       dispatch(nextTablePage())
@@ -158,6 +177,9 @@ function mapDispatchToProps(dispatch) {
     },
     toggleBarFlag: () => {
       dispatch(toggleBarFlag())
+    },
+    setLastUploadDate: () => {
+      dispatch(getLastUploadDate())
     }
   }
 }
@@ -166,35 +188,51 @@ export class Results extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      open: true,
+      controlPanelOpen: true,
+      helpOpen: false,
       flagJailBar: true,
-      startdate: null,
-      enddate: null,
+      showWarning: false,
     }
   }
 
-  handleToggle = () => {
+  handleControlPanelToggle = () => {
     this.setState({
-      open: !this.state.open
+      controlPanelOpen: !this.state.controlPanelOpen
     })
   }
 
-  handleClose = () => {
+  handleControlPanelClose = () => {
     this.setState({
-      open: false,
+      controlPanelOpen: false,
+    })
+  }
+
+  handleHelpToggle = () => {
+    this.setState({
+      helpOpen: !this.state.helpOpen
+    })
+  }
+
+  handleHelpClose = () => {
+    this.setState({
+      helpOpen: false,
     })
   }
 
   handleStartDate = (event, date) => {
     const startDate = moment(date).format('YYYY-MM-DD')
-    this.setState({startdate: startDate})
-    this.props.updateDates(startDate, this.state.enddate)
+    if (startDate > this.props.filters.endDate) {
+      this.setState({ showWarning: true })
+    }
+    this.props.updateStartDate(startDate)
   }
 
   handleEndDate = (event, date) => {
     const endDate = moment(date).format('YYYY-MM-DD')
-    this.setState({enddate: endDate})
-    this.props.updateDates(this.state.startdate, endDate)
+    if (this.props.filters.startDate > endDate) {
+      this.setState({ showWarning: true })
+    }
+    this.props.updateEndDate(endDate)
   }
 
   handleClickToggleChartAndList = () => {
@@ -235,8 +273,8 @@ export class Results extends React.Component {
   }
 
   intersectionPercentage = () => {
-    var h = (this.props.bothCount / this.props.homelessCount).toFixed(3)*100
-    var j = (this.props.bothCount / this.props.jailCount).toFixed(3)*100
+    var h = (100*this.props.bothCount / this.props.homelessCount).toPrecision(2)
+    var j = (100*this.props.bothCount / this.props.jailCount).toPrecision(2)
     return (
       <span>
         <strong>{h}%</strong> of HMIS, <strong>{j}%</strong> of Jail
@@ -245,9 +283,8 @@ export class Results extends React.Component {
   }
 
   componentDidMount() {
-    this.handleEndDate('blah', new moment())
+    this.props.setLastUploadDate()
     this.handleStartDate('blah', new moment().subtract(1, 'year'))
-
   }
 
   componentDidUpdate(prevProps) {
@@ -306,9 +343,7 @@ export class Results extends React.Component {
               style={styles.cardTitle}
               title={"Homeless: number of shelter days - " + this.props.filters.startDate + " to " + this.props.filters.endDate}
               titleStyle={{'fontSize': 16, 'marginLeft': 10}} />
-            <DurationBarChart
-              data={this.props.filteredData.homelessDurationBarData}
-              legendItemList={["0 day", "1 day", "2-9 days", "10-89 days", "90+ days"]} />
+            <DurationBarChart data={this.props.filteredData.homelessDurationBarData} />
           </Card>
         </GridTile>
         <GridTile>
@@ -317,9 +352,7 @@ export class Results extends React.Component {
               style={styles.cardTitle}
               title={"Homeless: number of contacts - " + this.props.filters.startDate + " to " + this.props.filters.endDate}
               titleStyle={{'fontSize': 16, 'marginLeft': 10}} />
-            <DurationBarChart
-              data={this.props.filteredData.homelessContactBarData}
-              legendItemList={["1 contact", "2-9 contacts", "10-99 contacts", "100-499 contacts", "500+ contacts"]} />
+            <DurationBarChart data={this.props.filteredData.homelessContactBarData} />
           </Card>
         </GridTile>
       </GridList>
@@ -385,9 +418,19 @@ export class Results extends React.Component {
     }
   }
 
+  handleWarningClose = () => {
+    this.setState({showWarning: false});
+  }
+
+  renderWarningPopup() {
+    return (
+      <WarningPopup open={this.state.showWarning} handleClose={this.handleWarningClose}/>
+    )
+  }
+
   render() {
     const contentStyle = {  transition: 'margin-left 300ms cubic-bezier(0.23, 1, 0.32, 1)' }
-    if (this.state.open) {
+    if (this.state.controlPanelOpen) {
       contentStyle.marginLeft = '25%'
     }
     if (this.props.serverError) {
@@ -407,20 +450,20 @@ export class Results extends React.Component {
           <FloatingActionButton
             style={styles.floatingActionButtonAdd}
             mini={true}
-            onClick={this.handleToggle} >
+            onClick={this.handleControlPanelToggle} >
             <ContentAdd />
           </FloatingActionButton>
           <Drawer
             docked={true}
             width={'25%'}
-            open={this.state.open}
+            open={this.state.controlPanelOpen}
             containerStyle={{height: 'calc(100% - 93px)', top: 48}}
-            onRequestChange={(open) => this.setState({open})} >
+            onRequestChange={(open) => this.setState({controlPanelOpen: open})} >
             <div style={styles.container}>
               <Card style={styles.panel}>
                 <CardTitle title="Control Panel" titleStyle={{'fontSize': 20, }} />
                 <FloatingActionButton
-                  onClick={this.handleClose}
+                  onClick={this.handleControlPanelClose}
                   mini={true}
                   secondary={true}
                   style={styles.floatingActionButtonClose} >
@@ -429,18 +472,20 @@ export class Results extends React.Component {
                 <div style={styles.datepicker}>
                   <h5 style={styles.h5}>Start Date:
                     <DatePicker
-                      defaultDate={new moment().subtract(1, 'year').toDate()}
+                      value={moment(this.props.filters.startDate).toDate()}
                       maxDate={new moment().toDate()}
-                      hintText="Pick the Start Date"
+                      hintText={this.props.filters.startDate}
                       onChange={this.handleStartDate} />
                   </h5>
-                  <h5 style={styles.h5}>End Date:
+                  <h5 style={styles.h5}>End Date (Last upload: {moment(this.props.lastUploadDate).format('YYYY-MM-DD')}):
                     <DatePicker
-                      defaultDate={new moment().toDate()}
+                      value={moment(this.props.filters.endDate).toDate()}
+                      onShow={this.handleOnShow}
                       maxDate={new moment().toDate()}
-                      hintText="Pick the End Date"
+                      hintText={"Last upload date " + this.props.filters.endDate}
                       onChange={this.handleEndDate} />
                   </h5>
+                  { this.renderWarningPopup() }
                   <RaisedButton
                     label={ this.props.barFlag ? "Show List of Results" : "Show Duration Chart"}
                     labelStyle={{fontSize: '10px',}}
@@ -465,7 +510,7 @@ export class Results extends React.Component {
                 label={ this.props.barFlag ? "Download Duration Charts" : "Download List of Results" }
                 labelStyle={{fontSize: '10px',}}
                 secondary={true}
-                onClick={ this.props.barFlag? this.handleDownloadChart : this.handleDownloadList}
+                onClick={ this.props.barFlag ? this.handleDownloadChart : this.handleDownloadList}
                 style={styles.button} />
             </div>
             <div style={styles.datepicker}>
@@ -476,6 +521,13 @@ export class Results extends React.Component {
         <div style={contentStyle}>
           <div>
             <h4 style={styles.h4}>Results - {this.props.filters.startDate} through {this.props.filters.endDate} - {this.props.filters.setStatus}</h4>
+            <IconButton
+              tooltip="Results Page Help"
+              onClick={this.handleHelpToggle}
+              iconStyle={styles.helpIcon}
+              style={styles.helpIconRoot} >
+              <ActionHelp />
+            </IconButton>
             <h5 style={styles.summary}>
                 Total: <strong>{this.props.totalCount}</strong>&nbsp;
                 Jail: <strong>{this.props.jailCount}</strong>&nbsp;
@@ -485,6 +537,28 @@ export class Results extends React.Component {
             <hr style={styles.hr}/>
           </div>
           { this.props.barFlag ? this.renderBarChart() : this.renderTable() }
+          <Drawer
+            openSecondary={true}
+            width={'25%'}
+            open={this.state.helpOpen}
+            containerStyle={{height: 'calc(100% - 93px)', top: 48}}
+            onRequestChange={(open) => this.setState({helpOpen: open})}>
+            <div style={styles.container}>
+              <Card style={styles.panel}>
+                <CardTitle title="Results Fields" titleStyle={{'fontSize': 20, }} />
+                <FloatingActionButton
+                  onClick={this.handleHelpClose}
+                  mini={true}
+                  secondary={true}
+                  style={styles.floatingActionButtonClose} >
+                  <NavigationClose />
+                </FloatingActionButton>
+                <CardText>
+                  <FieldsHelp />
+                </CardText>
+              </Card>
+            </div>
+          </Drawer>
         </div>
       </div>
     )

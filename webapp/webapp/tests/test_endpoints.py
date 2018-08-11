@@ -1,21 +1,26 @@
 import unittest
 import re
+import os
 import json
 import requests_mock
-from webapp.tests.utils import rig_all_the_things, rig_test_client_with_engine,\
-    authenticate,\
-    create_and_populate_matched_table, load_json_example
+from webapp.tests.utils import full_rig_with_s3, full_rig_without_s3,\
+    create_and_populate_master_table, load_json_example
 from datetime import date
-from smart_open import smart_open
+from webapp.storage import open_sesame
 from webapp.database import db_session
 from webapp.models import Upload, MergeLog
+from webapp.utils import generate_master_table_name, generate_raw_table_name, table_exists
 from io import BytesIO
 import unicodecsv as csv
 import pandas as pd
+from unittest.mock import patch
+from tempfile import TemporaryDirectory
 
 GOOD_HMIS_FILE = 'sample_data/uploader_input/hmis_service_stays/good.csv'
 ROWS_IN_GOOD_HMIS_FILE = 11
 HMIS_FILE_WITH_DUPLICATES = 'sample_data/uploader_input/hmis_service_stays/duplicates.csv'
+HMIS_FILE_TOO_MANY_ERRORS = 'sample_data/uploader_input/hmis_service_stays/too-many-errors.csv'
+HMIS_FILE_BAD_DELIMITER = 'sample_data/uploader_input/hmis_service_stays/bad-delimiter.csv'
 BOOKINGS_FILE = 'sample_data/uploader_input/jail_bookings/missing-fields.csv'
 MATCHED_BOOKING_FILE = 'sample_data/matched/matched_bookings_data_20171207.csv'
 MATCHED_HMIS_FILE = 'sample_data/matched/matched_hmis_data_20171207.csv'
@@ -27,13 +32,13 @@ class GetMatchedResultsCase(unittest.TestCase):
     maxDiff = None
 
     def both_schema_test(self, booking_file, hmis_file, url, expected_data):
-        with rig_all_the_things() as (app, engine):
+        with full_rig_with_s3() as (app, engine):
             # Create matched jail_bookings
             table_name = 'jail_bookings'
-            create_and_populate_matched_table(table_name, engine, booking_file)
+            create_and_populate_master_table(table_name, engine, booking_file)
             # Create matched hmis_service_stays
             table_name = 'hmis_service_stays'
-            create_and_populate_matched_table(table_name, engine, hmis_file)
+            create_and_populate_master_table(table_name, engine, hmis_file)
             response = app.get(url)
             self.assertEqual(response.status_code, 200)
 
@@ -101,7 +106,7 @@ class GetMatchedResultsCase(unittest.TestCase):
 
 class UploadFileTestCase(unittest.TestCase):
     def test_good_file(self):
-        with rig_all_the_things() as (app, engine):
+        with full_rig_with_s3() as (app, engine):
             response = app.post(
                 '/api/upload/upload_file?jurisdiction=boone&eventType=hmis_service_stays',
                 content_type='multipart/form-data',
@@ -132,8 +137,8 @@ class UploadFileTestCase(unittest.TestCase):
 
             current_date = date.today().isoformat()
             expected_s3_path = 's3://test-bucket/boone/hmis_service_stays/uploaded/{}/{}'.format(current_date, response_data['upload_result']['uploadId'])
-            with smart_open(expected_s3_path) as expected_s3_file:
-                with smart_open(GOOD_HMIS_FILE) as source_file:
+            with open_sesame(expected_s3_path) as expected_s3_file:
+                with open_sesame(GOOD_HMIS_FILE) as source_file:
                     # we do not expect the file on s3 to be the same as the
                     # uploaded source file - missing columns should be filled in
                     s3_df = pd.read_csv(expected_s3_file)
@@ -143,7 +148,7 @@ class UploadFileTestCase(unittest.TestCase):
             assert db_session.query(Upload).filter(Upload.id == response_data['upload_result']['uploadId']).one
 
     def test_file_with_duplicates(self):
-        with rig_all_the_things() as (app, engine):
+        with full_rig_with_s3() as (app, engine):
             response = app.post(
                 '/api/upload/upload_file?jurisdiction=boone&eventType=hmis_service_stays',
                 content_type='multipart/form-data',
@@ -159,6 +164,39 @@ class UploadFileTestCase(unittest.TestCase):
             assert response_data['validation']['status'] == 'invalid'
             assert 'Duplicate key' in response_data['upload_result']['errorReport'][0]['message']
 
+    def test_file_too_many_errors(self):
+        with full_rig_with_s3() as (app, engine):
+            response = app.post(
+                '/api/upload/upload_file?jurisdiction=boone&eventType=hmis_service_stays',
+                content_type='multipart/form-data',
+                data={'file_field': (open(HMIS_FILE_TOO_MANY_ERRORS, 'rb'), 'myfile.csv')}
+            )
+            response_data = json.loads(response.get_data().decode('utf-8'))
+            job_key = response_data['jobKey']
+            assert response_data['status'] == 'validating'
+
+            response = app.get('/api/upload/validated_result/' + job_key)
+            response_data = json.loads(response.get_data().decode('utf-8'))
+            assert 'validation' in response_data
+            assert response_data['validation']['status'] == 'invalid'
+            assert any('Too many errors' in row['message'] for row in response_data['upload_result']['errorReport'])
+
+    def test_file_bad_delimiter(self):
+        with full_rig_with_s3() as (app, engine):
+            response = app.post(
+                '/api/upload/upload_file?jurisdiction=boone&eventType=hmis_service_stays',
+                content_type='multipart/form-data',
+                data={'file_field': (open(HMIS_FILE_BAD_DELIMITER, 'rb'), 'myfile.csv')}
+            )
+            response_data = json.loads(response.get_data().decode('utf-8'))
+            job_key = response_data['jobKey']
+            assert response_data['status'] == 'validating'
+
+            response = app.get('/api/upload/validated_result/' + job_key)
+            response_data = json.loads(response.get_data().decode('utf-8'))
+            assert 'validation' in response_data
+            assert response_data['validation']['status'] == 'invalid'
+            assert any('Unknown delimiter' in row['message'] for row in response_data['upload_result']['errorReport'])
 
 class MergeFileTestCase(unittest.TestCase):
     def do_upload(self, app, request_mock):
@@ -188,35 +226,36 @@ class MergeFileTestCase(unittest.TestCase):
 
     @requests_mock.mock()
     def test_good_file(self, request_mock):
-        with rig_all_the_things() as (app, engine):
+        with full_rig_with_s3() as (app, engine):
             upload_id = self.do_upload(app, request_mock)
             # okay, here's what we really want to test.
             # call the merge endpoint
             response = app.post('/api/upload/merge_file?uploadId={}'.format(upload_id))
             response_data = json.loads(response.get_data().decode('utf-8'))
-            assert response_data['status'] == 'valid'
+            assert response_data['status'] == 'success'
             # make sure that there is a new merged file on s3
             expected_s3_path = 's3://test-bucket/boone/hmis_service_stays/merged'
-            with smart_open(expected_s3_path, 'rb') as expected_s3_file:
+            with open_sesame(expected_s3_path, 'rb') as expected_s3_file:
                 reader = csv.reader(expected_s3_file)
                 assert len([row for row in reader]) == ROWS_IN_GOOD_HMIS_FILE
 
             # and make sure that the merge log has a record of this
             assert db_session.query(MergeLog).filter(MergeLog.upload_id == '123-456').one
 
-            # make sure that the matched table has been bootstrapped
-            total_rows = db_session.query('count(*) from matched.boone_hmis_service_stays').one()
+            # make sure that the master table has been bootstrapped
+            master_table = generate_master_table_name('boone', 'hmis_service_stays')
+            total_rows = db_session.query('count(*) from {}'.format(master_table)).one()
             assert total_rows == (ROWS_IN_GOOD_HMIS_FILE - 1, )
 
-            # make sure that we filled in some source ids
+            # make sure that we filled in some matched ids
             total_rows = db_session.query(
-                'count(source_id is not null) from matched.boone_hmis_service_stays'
+                'count(matched_id is not null) from {}'.format(master_table)
             ).one()
             assert total_rows == (ROWS_IN_GOOD_HMIS_FILE - 1, )
 
     @requests_mock.mock()
     def test_error_transaction(self, request_mock):
-        with rig_all_the_things() as (app, engine):
+        with full_rig_with_s3() as (app, engine):
             upload_id = self.do_upload(app, request_mock)
             # try and merge an id that doesn't exist, should cause error
             response = app.post('/api/upload/merge_file?uploadId={}'.format('garbage'))
@@ -225,7 +264,7 @@ class MergeFileTestCase(unittest.TestCase):
             # now merge the right one, the db should not be in a weird state
             response = app.post('/api/upload/merge_file?uploadId={}'.format(upload_id))
             response_data = json.loads(response.get_data().decode('utf-8'))
-            assert response_data['status'] == 'valid'
+            assert response_data['status'] == 'success'
 
 
 class MergeBookingsFileTestCase(unittest.TestCase):
@@ -257,38 +296,67 @@ class MergeBookingsFileTestCase(unittest.TestCase):
 
     @requests_mock.mock()
     def test_good_file(self, request_mock):
-        with rig_all_the_things() as (app, engine):
+        with full_rig_with_s3() as (app, engine):
             upload_id = self.do_upload(app, request_mock)
             # okay, here's what we really want to test.
             # call the merge endpoint
             response = app.post('/api/upload/merge_file?uploadId={}'.format(upload_id))
             response_data = json.loads(response.get_data().decode('utf-8'))
-            assert response_data['status'] == 'valid'
+            assert response_data['status'] == 'success'
             # make sure that there is a new merged file on s3
             expected_s3_path = 's3://test-bucket/boone/jail_bookings/merged'
-            with smart_open(expected_s3_path, 'rb') as expected_s3_file:
+            with open_sesame(expected_s3_path, 'rb') as expected_s3_file:
                 reader = csv.reader(expected_s3_file)
                 assert len([row for row in reader]) == 11
 
             # and make sure that the merge log has a record of this
             assert db_session.query(MergeLog).filter(MergeLog.upload_id == '123-456').one
 
+            # and make sure that the raw table is no longer there
+            assert not table_exists(generate_raw_table_name(upload_id), db_session.bind)
+
+    @requests_mock.mock()
+    def test_file_storage(self, request_mock):
+        with TemporaryDirectory() as temp_dir:
+            root_dir = os.getcwd()
+            s3_less_config = {
+                'raw_uploads_path': os.path.join(temp_dir, '{jurisdiction}-{event_type}-uploaded-{date}-{upload_id}'),
+                'merged_uploads_path': os.path.join(temp_dir, '{jurisdiction}-{event_type}-merged')
+            }
+            with full_rig_without_s3() as (app, engine):
+                with patch.dict('webapp.utils.app_config', s3_less_config):
+                    upload_id = self.do_upload(app, request_mock)
+                    # okay, here's what we really want to test.
+                    # call the merge endpoint
+                    response = app.post('/api/upload/merge_file?uploadId={}'.format(upload_id))
+                    response_data = json.loads(response.get_data().decode('utf-8'))
+                    assert response_data['status'] == 'success'
+                    # make sure that there is a new merged file on the FS
+                    expected_path = os.path.join(temp_dir, 'boone-jail_bookings-merged')
+                    with open(expected_path, 'rb') as expected_file:
+                        reader = csv.reader(expected_file)
+                        assert len([row for row in reader]) == 11
+
+                    # and make sure that the merge log has a record of this
+                    assert db_session.query(MergeLog).filter(MergeLog.upload_id == '123-456').one
+
+
 class DownloadSourceTestCase(unittest.TestCase):
     def test_download_file(self):
-        with rig_all_the_things() as (app, engine):
+        with full_rig_with_s3() as (app, engine):
             # Create matched jail_bookings
             table_name = 'jail_bookings'
-            create_and_populate_matched_table(table_name, engine, MATCHED_BOOKING_FILE)
+            create_and_populate_master_table(table_name, engine, MATCHED_BOOKING_FILE)
             # Create matched hmis_service_stays
             table_name = 'hmis_service_stays'
-            create_and_populate_matched_table(table_name, engine, MATCHED_HMIS_FILE)
+            create_and_populate_master_table(table_name, engine, MATCHED_HMIS_FILE)
             db_session.commit()
             response = app.get('/api/chart/download_source?jurisdiction=boone&eventType=jail_bookings')
             assert response.status_code == 200
             assert response.headers["Content-Disposition"] == "attachment; filename=jail_bookings.csv"
             assert response.headers["Content-type"] == "text/csv"
             data = response.get_data()
-            reader = csv.reader(BytesIO(data), delimiter='|')
+            reader = csv.reader(BytesIO(data))
             with open(MATCHED_BOOKING_FILE, 'rb') as source_file:
                 source_reader = csv.reader(source_file)
                 for returned_row, expected_row in zip(reader, source_reader):

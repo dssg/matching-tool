@@ -9,11 +9,13 @@ import {
   SAVE_UPLOAD_RESPONSE,
   RESET_UPLOAD_RESPONSE,
   RESET_APP_STATE,
+  SET_APP_STATE,
   SAVE_MERGE_RESULTS,
   SET_ERROR_MESSAGE,
   MATCHING_RESULTS,
   MATCHING_IS_LOADING,
-  UPDATE_CONTROLLED_DATE,
+  UPDATE_START_DATE,
+  UPDATE_END_DATE,
   UPDATE_TABLE_SORT,
   NEXT_TABLE_PAGE,
   PREV_TABLE_PAGE,
@@ -23,17 +25,20 @@ import {
   FETCHING_RESULT,
   SHOW_JOBS,
   SHOW_HISTORY,
-  TOGGLE_BAR_FLAG
+  TOGGLE_BAR_FLAG,
+  SET_LAST_UPLOAD_DATE
 } from '../constants/index'
 
 import resetAppState from './reset-app-state'
+import setAppState from './set-app-state'
 import { nextTablePage, prevTablePage } from './update-table-page'
 
 import { combineReducers } from 'redux'
 import { routerReducer } from 'react-router-redux'
 import update from 'immutability-helper'
+import moment from 'moment'
 
-
+const today = new moment().format('YYYY-MM-DD')
 const initialState = {
   app: {
     serverError: null,
@@ -53,6 +58,7 @@ const initialState = {
       q: []
     },
     history: [],
+    lastUploadDate: '',
     uploadResponse: {
       status: '',
       isFetching: false,
@@ -62,9 +68,11 @@ const initialState = {
       rowCount: '',
       uploadId: ''
     },
+    mergingIsLoading: false,
     mergeResults: {
       totalUniqueRows: '',
       newUniqueRows: '',
+      status: '',
     },
     selectedJurisdiction: {
       name: '',
@@ -72,8 +80,8 @@ const initialState = {
     },
     availableJurisdictionalRoles: [],
     matchingFilters: {
-      startDate: '',
-      endDate: '',
+      startDate: today,
+      endDate: today,
       limit: 11,
       offset: 0,
       orderColumn: 'matched_id',
@@ -151,10 +159,17 @@ const app = createReducer(initialState, {
       matchingResults: payload
     })
   },
-  [UPDATE_CONTROLLED_DATE]: (state, payload) => {
+  [UPDATE_START_DATE]: (state, payload) => {
     const newState = update(state, {
       matchingFilters: {
         startDate: {$set: payload.startDate},
+      }
+    })
+    return newState
+  },
+  [UPDATE_END_DATE]: (state, payload) => {
+    const newState = update(state, {
+      matchingFilters: {
         endDate: {$set: payload.endDate}
       }
     })
@@ -173,12 +188,14 @@ const app = createReducer(initialState, {
     const newState = Object.assign({}, state, {
       mergeResults: {
         newUniqueRows: payload.new_unique_rows,
-        totalUniqueRows: payload.total_unique_rows
+        totalUniqueRows: payload.total_unique_rows,
+        status: payload.status
       }
     })
     return newState
   },
   [RESET_APP_STATE]: resetAppState,
+  [SET_APP_STATE]: setAppState,
   [NEXT_TABLE_PAGE]: nextTablePage,
   [PREV_TABLE_PAGE]: prevTablePage,
   [UPDATE_TABLE_DATA]: (state, payload) => {
@@ -250,6 +267,12 @@ const app = createReducer(initialState, {
   [TOGGLE_BAR_FLAG]: (state, payload) => {
     const newState = update(state, {
       barFlag: {$set: !state.barFlag}
+    })
+    return newState
+  },
+  [SET_LAST_UPLOAD_DATE]: (state, payload) => {
+    const newState = update(state, {
+      lastUploadDate: {$set: payload}
     })
     return newState
   }

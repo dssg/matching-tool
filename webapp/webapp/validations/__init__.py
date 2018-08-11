@@ -22,7 +22,7 @@ CHECKS_BY_SCHEMA = {
         'booking-num-or-event-id',
     ],
     'hmis_service_stays': STANDARD_CHECKS,
-    'by_name_list': STANDARD_CHECKS,
+    'by_name_list': ['type-or-format-error'],
     'hmis_aliases': STANDARD_CHECKS,
     'jail_booking_aliases': STANDARD_CHECKS,
     'jail_booking_charges': STANDARD_CHECKS + [

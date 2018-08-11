@@ -9,12 +9,10 @@ import {
   RESET_UPLOAD_RESPONSE,
   SAVE_MERGE_RESULTS,
   RESET_APP_STATE,
+  SET_APP_STATE,
   SET_ERROR_MESSAGE,
   MATCHING_RESULTS,
   MATCHING_IS_LOADING,
-  UPDATE_CONTROLLED_DATE,
-  UPDATE_TABLE_SORT,
-  UPDATE_DURATION,
   UPDATE_TABLE_DATA,
   NEXT_TABLE_PAGE,
   PREV_TABLE_PAGE,
@@ -23,10 +21,12 @@ import {
   FETCHING_RESULT,
   SHOW_JOBS,
   SHOW_HISTORY,
-  TOGGLE_BAR_FLAG
+  TOGGLE_BAR_FLAG,
+  SET_LAST_UPLOAD_DATE
 } from '../constants/index'
 import { length, filter } from 'ramda'
 import { validJurisdictions } from '../utils/jurisdictions'
+import moment from 'moment'
 
 export function selectEventType(eventType) {
   return {
@@ -154,26 +154,6 @@ export function getMatchingResults(matchingURLParams) {
   }
 }
 
-export function updateControlledDate(startDate, endDate) {
-  return {
-    type: UPDATE_CONTROLLED_DATE,
-    payload: {
-      startDate: startDate,
-      endDate: endDate
-    }
-  }
-}
-
-export function updateTableSort(orderColumn, order) {
-  return {
-    type: UPDATE_TABLE_SORT,
-    payload: {
-      orderColumn: orderColumn,
-      order: order
-    }
-  }
-}
-
 export function nextTablePage() {
   return {
     type: NEXT_TABLE_PAGE
@@ -200,13 +180,28 @@ export function resetAppState(stateKey) {
   }
 }
 
+export function setAppState(stateKey, value) {
+  return {
+    type: SET_APP_STATE,
+    payload: { stateKey, value }
+  }
+}
+
 export function confirmUpload(uploadId) {
   return function(dispatch) {
+    dispatch(setAppState('mergeResults.status', ''))
+    dispatch(setAppState('mergingIsLoading', true))
     return fetch('api/upload/merge_file?uploadId='+uploadId, { method: 'POST', credentials: 'include'})
-        .then((resp) => resp.json())
-        .then((data) => {
-          dispatch(saveMergeResults(data))
-        })
+      .then((resp) => {
+        if(!resp.ok) {
+          return {'status': 'error'}
+        }
+        return resp.json()
+      })
+      .then((data) => {
+        dispatch(saveMergeResults(data))
+        dispatch(setAppState('mergingIsLoading', false))
+      })
   }
 }
 
@@ -336,5 +331,26 @@ export function getHistory() {
 export function toggleBarFlag() {
   return {
     type: TOGGLE_BAR_FLAG,
+  }
+}
+
+export function getLastUploadDate() {
+  return function(dispatch) {
+    return fetch('api/chart/last_upload_date', { 'method': 'GET', dataType: 'json', credentials: 'include'})
+      .then((resp) => {
+        return resp.json()
+      })
+      .then((data) => {
+        dispatch(setLastUploadDate(data['results']))
+        dispatch(setAppState('matchingFilters.endDate', moment(data['results']).format('YYYY-MM-DD')))
+        dispatch(setAppState('matchingFilters.startDate',moment(data['results']).subtract(1, 'year').format('YYYY-MM-DD')))
+      })
+  }
+}
+
+function setLastUploadDate(result) {
+  return {
+    type: SET_LAST_UPLOAD_DATE,
+    payload: result
   }
 }

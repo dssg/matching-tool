@@ -1,15 +1,13 @@
 # coding: utf-8
 
 import os
+from os.path import dirname
 
 import pandas as pd
-from io import StringIO
-import boto3
-import psycopg2
-import smart_open
-import botocore
-import datetime
+import s3fs
 import yaml
+from urllib.parse import urlparse
+from contextlib import contextmanager
 
 from matcher.logger import logger
 from matcher import  utils
@@ -21,7 +19,27 @@ dotenv_path = os.path.join(APP_ROOT, '.env')
 load_dotenv(dotenv_path)
 
 
-def load_data_for_matching(base_data_directory:str, event_types:list, keys:list, match_job_id:str):
+@contextmanager
+def open_sesame(path, *args, **kwargs):
+    """Opens files either on s3 or a filesystem according to the path's scheme
+
+    Uses s3fs so boto3 is used.
+    This means mock_s3 can be used for tests, instead of the mock_s3_deprecated
+    """
+    path_parsed = urlparse(path)
+    scheme = path_parsed.scheme  # If '' or 'file' then a regular file; if 's3' then 's3'
+
+    if not scheme or scheme == 'file':  # Local file
+        os.makedirs(dirname(path), exist_ok=True)
+        with open(path, *args, **kwargs) as f:
+            yield f
+    elif scheme == 's3':
+        s3 = s3fs.S3FileSystem()
+        with s3.open(path, *args, **kwargs) as f:
+            yield f
+
+
+def load_data_for_matching(base_data_directory:str, event_types:list, keys:list, match_job_id:str) -> list:
     # We will frame the record linkage problem as a deduplication problem
     logger.debug(f'Loading data for event types: {event_types}')
     try:
@@ -96,20 +114,20 @@ def write_matched_data(
     person_keys:list,
     schema_pk_lookup:dict,
     match_job_id:str
-) -> list:
+) -> dict:
     write_dataframe(df=matches.reset_index(), filepath=f'{base_data_directory}/match_cache/matcher_results/{match_job_id}')
-    matched_results_paths = []
+    matched_results_paths = {}
     logger.debug(schema_pk_lookup)
     for event_type, primary_keys in schema_pk_lookup.items():
         logger.info(f'Writing matched data for {base_data_directory} {event_type}')
-        matched_results_paths.append(write_one_event_type(
+        matched_results_paths[event_type] = write_one_event_type(
             df=matches,
             base_data_directory=base_data_directory,
             event_type=event_type,
             person_keys=person_keys,
             primary_keys=primary_keys,
             match_job_id=match_job_id
-        ))
+        )
 
     return matched_results_paths
 
@@ -156,7 +174,7 @@ def join_matched_and_merged_data(
 
 
 def write_dataframe(df:pd.DataFrame, filepath:str) -> None:
-    with smart_open.smart_open(filepath, 'wb') as fout:
+    with open_sesame(filepath, 'wb') as fout:
         fout.write(df.to_csv(sep='|', index=False).encode())
 
     logger.info(f'Wrote data to {filepath}')
@@ -164,7 +182,7 @@ def write_dataframe(df:pd.DataFrame, filepath:str) -> None:
 
 def write_dict_to_yaml(dict_to_write:dict, filepath:str):
     logger.debug(f'Writing some dictionary data to {filepath}! Oooooo!')
-    with smart_open.smart_open(filepath, 'wb') as fout:
+    with open_sesame(filepath, 'wb') as fout:
         fout.write(yaml.dump(dict_to_write).encode())
     logger.info(f'Wrote metadata to {filepath}')
 

@@ -60,7 +60,7 @@ class Venn extends React.Component {
 
   createVenn() {
     const self = this
-    const chart = venn.VennDiagram().width(340).height(250)
+    const chart = venn.VennDiagram().width(0.24*window.innerWidth)
     const node = this.node
     const div = select(node)
     const venndata = self.filterVenn(self.props.data)

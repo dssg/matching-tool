@@ -8,40 +8,48 @@ import json
 import tempfile
 from datetime import date
 from webapp.config import config as app_config
+from webapp.logger import logger
 from webapp import SCHEMA_DIRECTORY
 
 from contextlib import contextmanager
 import requests
+import psycopg2
+from retrying import retry
 from sqlalchemy import MetaData, Table
 
 from redis import Redis
 from rq.job import Job
+from rq import Queue
 
 
 def unique_upload_id():
     return str(uuid4())
 
 
-def s3_upload_path(jurisdiction, event_type, upload_id):
+def generate_raw_table_name(upload_id):
+    return 'raw_{}'.format(upload_id)
+
+
+def upload_path(jurisdiction, event_type, upload_id):
     datestring = date.today().isoformat()
     path_template = app_config['raw_uploads_path']
 
-    full_s3_path = path_template.format(
+    full_path = path_template.format(
         event_type=event_type,
         jurisdiction=jurisdiction,
         date=datestring,
         upload_id=upload_id
     )
-    return full_s3_path
+    return full_path
 
 
 def merged_file_path(jurisdiction, event_type):
     path_template = app_config['merged_uploads_path']
-    full_s3_path = path_template.format(
+    full_path = path_template.format(
         event_type=event_type,
         jurisdiction=jurisdiction
     )
-    return full_s3_path
+    return full_path
 
 
 @contextmanager
@@ -112,32 +120,31 @@ def generate_master_table_name(jurisdiction, event_type):
 def master_table_column_list(goodtables_schema):
     base_column_list = column_list_from_goodtables_schema(goodtables_schema)
     # mutate column list
-    full_column_list = base_column_list + [('inserted_ts', 'timestamp'), ('updated_ts', 'timestamp')]
+    full_column_list = base_column_list + [('inserted_ts', 'timestamp'), ('updated_ts', 'timestamp'), ('matched_id', 'varchar')]
     return full_column_list
 
 
-def generate_matched_table_name(jurisdiction, event_type):
-    return 'matched.{jurisdiction}_{event_type}'.format(**locals())
-
-
-def notify_matcher(upload_id=None):
+def notify_matcher(jurisdiction, upload_id=None):
     schema_pk_lookup = list_all_schemas_primary_keys(SCHEMA_DIRECTORY)
     base_data_directory = app_config['base_data_path']
+    directory_to_pass = base_data_directory.format(jurisdiction=jurisdiction)
 
     redis_connection = Redis(host='redis', port=6379)
     q = Queue('matching', connection=redis_connection)
+    logger.info('Enqueueing do_match job')
 
     job = q.enqueue(
-        func="matcher.do_match",
-        args=(base_data_directory, schema_pk_lookup, upload_id),
+        f="matcher.do_match",
+        args=(directory_to_pass, schema_pk_lookup, upload_id),
         result_ttl=5000,
         timeout=100000,
         meta={'upload_id': upload_id}
     )
+    logger.info("Enqueued job %s", job)
 
 
 def lower_first(iterator):
-    return itertools.chain([next(iterator).lower()], iterator)
+    return itertools.chain([next(iterator).lower().replace(b' ', b'_')], iterator)
 
 
 def infer_delimiter(infilename):
@@ -152,7 +159,7 @@ def infer_delimiter(infilename):
         first_row = next(reader)
         if len(first_row) > 1:
             return ','
-        raise ValueError('Unknown delimiter')
+        raise ValueError('Unknown delimiter. Must use either comma (,) or pipe (|)')
 
 
 def split_table(table_name):
@@ -189,5 +196,18 @@ def list_all_schemas_primary_keys(path=SCHEMA_DIRECTORY):
     all_event_types = [os.path.basename(x).split('.')[0] for x in glob.glob(os.path.join(path, '*.json'))]
     for event_type in all_event_types:
         schema = load_schema_file(event_type)
-        result[event_type] = schema['primaryKey']
+        result[event_type.replace('-', '_')] = schema['primaryKey']
     return result
+
+def retry_if_db_error(exception):
+    is_db_error = isinstance(exception, psycopg2.DatabaseError)
+    logger.warning('Inspected exception %s to see if it is a db error. Decided %s', str(exception), is_db_error)
+    return is_db_error
+
+DEFAULT_RETRY_KWARGS = {
+    'retry_on_exception': retry_if_db_error,
+    'wait_fixed': 1000,
+    'stop_max_delay': 10000
+}
+
+db_retry = retry(**DEFAULT_RETRY_KWARGS)

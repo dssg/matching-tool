@@ -6,17 +6,17 @@ from webapp.logger import logger
 from webapp.database import db_session
 from webapp.models import Upload, MergeLog
 from webapp.tasks import \
-    upload_to_s3,\
+    upload_to_storage,\
     sync_upload_metadata,\
     copy_raw_table_to_db,\
     upsert_raw_table_to_master,\
-    sync_merged_file_to_s3,\
+    bootstrap_master_tables,\
+    sync_merged_file_to_storage,\
     add_missing_fields,\
-    validate_file,\
-    validate_header,\
-    bootstrap_matched_tables
+    two_pass_validation,\
+    validate_header
 from webapp.users import can_upload_file, get_jurisdiction_roles
-from webapp.utils import s3_upload_path, notify_matcher, infer_delimiter, unique_upload_id
+from webapp.utils import upload_path, notify_matcher, infer_delimiter, unique_upload_id
 
 from werkzeug.utils import secure_filename
 
@@ -190,8 +190,18 @@ def format_error_report(exception_message):
     }
 
 
-def validate_async(uploaded_file_name, jurisdiction, full_filename, event_type, flask_user_id, upload_id, row_limit):
+def validate_async(uploaded_file_name, jurisdiction, full_filename, event_type, flask_user_id, upload_id):
     validate_start_time = datetime.today()
+    sync_upload_metadata_partial = partial(
+        sync_upload_metadata,
+        upload_id=upload_id,
+        event_type=event_type,
+        jurisdiction=jurisdiction,
+        flask_user_id=flask_user_id,
+        given_filename=uploaded_file_name,
+        local_filename=full_filename,
+        db_session=db_session
+    )
     try:
         # 1. validate header
         validate_header(event_type, full_filename)
@@ -199,17 +209,7 @@ def validate_async(uploaded_file_name, jurisdiction, full_filename, event_type, 
         filename_with_all_fields = add_missing_fields(event_type, full_filename)
 
         # 3. validate body
-        body_validation_report = validate_file(event_type, filename_with_all_fields, row_limit)
-        sync_upload_metadata_partial = partial(
-            sync_upload_metadata,
-            upload_id=upload_id,
-            event_type=event_type,
-            jurisdiction=jurisdiction,
-            flask_user_id=flask_user_id,
-            given_filename=uploaded_file_name,
-            local_filename=full_filename,
-            db_session=db_session
-        )
+        body_validation_report = two_pass_validation(event_type, filename_with_all_fields)
 
         validate_complete_time = datetime.today()
         if not body_validation_report['valid']:
@@ -231,12 +231,12 @@ def validate_async(uploaded_file_name, jurisdiction, full_filename, event_type, 
         try:
             # 4. upload to s3
             upload_start_time = datetime.today()
-            upload_path = s3_upload_path(jurisdiction, event_type, upload_id)
-            upload_to_s3(upload_path, filename_with_all_fields)
+            final_upload_path = upload_path(jurisdiction, event_type, upload_id)
+            upload_to_storage(final_upload_path, filename_with_all_fields)
 
             # 5. load into raw table
             copy_raw_table_to_db(
-                upload_path,
+                final_upload_path,
                 event_type,
                 upload_id,
                 db_session.get_bind()
@@ -245,7 +245,7 @@ def validate_async(uploaded_file_name, jurisdiction, full_filename, event_type, 
             upload_complete_time = datetime.today()
             # 6. sync upload metadata to db
             sync_upload_metadata_partial(
-                s3_upload_path=upload_path,
+                s3_upload_path=final_upload_path,
                 validate_start_time=validate_start_time,
                 validate_complete_time=validate_complete_time,
                 validate_status=True,
@@ -306,13 +306,15 @@ def upload_file():
         uploaded_file = request.files[filenames[0]]
         filename = secure_filename(uploaded_file.filename)
         cwd = os.getcwd()
-        full_filename = os.path.join(cwd + '/tmp', filename)
+        tmp_dir = os.path.join(cwd, 'tmp')
+        os.makedirs(tmp_dir, exist_ok=True)
+        full_filename = os.path.join(tmp_dir, filename)
         uploaded_file.save(full_filename)
         upload_id = unique_upload_id()
         q = get_q(get_redis_connection())
         job = q.enqueue_call(
             func=validate_async,
-            args=(uploaded_file.filename, jurisdiction, full_filename, event_type, current_user.id, upload_id, 10000000),
+            args=(uploaded_file.filename, jurisdiction, full_filename, event_type, current_user.id, upload_id),
             result_ttl=5000,
             timeout=3600,
             meta={'event_type': event_type, 'filename': filename, 'upload_id': upload_id}
@@ -353,12 +355,9 @@ def merge_file():
             )
             logger.info('Syncing merged file to s3')
 
-            bootstrap_matched_tables(
-                jurisdiction=upload_log.jurisdiction_slug,
-                db_session=db_session
-            )
+            bootstrap_master_tables(upload_log.jurisdiction_slug, db_session)
 
-            sync_merged_file_to_s3(
+            sync_merged_file_to_storage(
                 upload_log.jurisdiction_slug,
                 upload_log.event_type_slug,
                 db_session.get_bind()
@@ -366,14 +365,14 @@ def merge_file():
             merge_log = db_session.query(MergeLog).get(merge_id)
             try:
                 logger.info('Merge succeeded. Now querying matcher')
-                notify_matcher(upload_id)
+                notify_matcher(upload_log.jurisdiction_slug, upload_id)
             except Exception as e:
                 logger.error('Error matching: ', e)
                 db_session.rollback()
                 return make_response(jsonify(status='error'), 500)
             db_session.commit()
             return jsonify(
-                status='valid',
+                status='success',
                 new_unique_rows=merge_log.new_unique_rows,
                 total_unique_rows=merge_log.total_unique_rows
             )
