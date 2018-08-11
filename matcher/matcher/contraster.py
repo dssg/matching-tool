@@ -49,32 +49,69 @@ class Contraster:
         logger.debug(f'Doing an exact comparison on {col_name}')
         if n_chars is not None:
             logger.debug(f'Doing an exact comparison of {n_chars} characters of {col_name}')
-            self.contraster.compare_vectorized(compare_exact_n_chars, col_name, col_name, n_chars['n_chars'], label=f"{col_name}_exact_{n_chars['n_chars']}_distance")
+            self.contraster.compare_vectorized(
+                comp_func=compare_exact_n_chars,
+                labels_left=col_name,
+                labels_right=col_name,
+                n_chars['n_chars'],
+                label=f"{col_name}_exact_{n_chars['n_chars']}_distance"
+            )
         else:
             logger.debug(f'Doing an exact comparison of all characters in {col_name}')
-            self.contraster.exact(col_name, col_name, label=f'{col_name}_exact_distance')
+            self.contraster.exact(
+                left_on=col_name,
+                right_on=col_name,
+                label=f'{col_name}_exact_distance'
+            )
     
     def compare_string_distance(self, col_name:str, args:dict):
         logger.debug(f'Doing a comparison of {col_name} using {args}')
-        self.contraster.string(col_name, col_name, label=f'{col_name}_{utils.convert_dict_to_str(args)}_distance', **args)
+        self.contraster.string(
+            left_on=col_name,
+            right_on=col_name,
+            label=f'{col_name}_{utils.convert_dict_to_str(args)}_distance',
+            **args
+        )
 
     def compare_swap_month_days(self, col_name:str, args:dict):
         logger.debug(f'Checking if the month and day are swapped in {col_name}')
-        self.contraster.date(col_name, col_name, label=f'{col_name}_swap_month_days_distance', **args)
+        self.contraster.date(
+            left_on=col_name,
+            right_on=col_name,
+            label=f'{col_name}_swap_month_days_distance',
+            **args
+        )
 
     def compare_numeric_distance(self, col_name:str, args:dict):
         logger.debug(f'Doing a numeric distance calculation on {col_name}')
-        self.contraster.date(col_name, col_name, label=f'{col_name}_numeric_{utils.convert_dict_to_str(args)}_distance', **args)
+        self.contraster.numeric(
+            left_on=col_name,
+            right_on=col_name,
+            label=f'{col_name}_numeric_{utils.convert_dict_to_str(args)}_distance',
+            **args
+        )
 
     def compare_list(self, col_name:str, args:dict):
         if args['method'] == 'any':
             logger.debug(f'Checking if {col_name} shares any value.')
-            self.contraster.compare_vectorized(lists_share_any_values, col_name, col_name, label=f'{col_name}_any_list_item_distance')
+            self.contraster.compare_vectorized(
+                comp_func=lists_share_any_values,
+                labels_left=col_name,
+                labels_right=col_name,
+                label=f'{col_name}_any_list_item_distance'
+            )
+
         elif args['method'] == 'all':
             logger.debug(f'Checking if {col_name} shares all values.')
-            self.contraster.compare_vectorized(lists_share_all_values, col_name, col_name, label=f'{col_name}_all_list_items_distance')
+            self.contraster.compare_vectorized(
+                comp_func=lists_share_all_values,
+                labels_left=col_name,
+                labels_right=col_name,
+                label=f'{col_name}_all_list_items_distance'
+            )
+
         else:
-            raise ValueError(f"I don't know how to compare lists with this method ({method}). Please send me 'all' or 'any'.")
+            raise ValueError(f"I don't know how to compare lists with method {method}. Please send me 'all' or 'any'.")
 
     def make_contrast_metadata(self, contrasts):
         contrast_metadata = {}
@@ -94,7 +131,7 @@ class Contraster:
             We will loop over the column names and the contrast definitions and
             call the appropriate method for each.
         """
-        self.metadata['contraster_start_time'] = datetime.datetime.now()
+        self.metadata['contraster_run_time'] = datetime.datetime.now()
         logger.debug(f'Making the following contrasts: \n{self.config}')
         
         for col_name, contrast_definitions in self.config.items():
@@ -117,7 +154,7 @@ class Contraster:
         
         self.make_contrast_metadata(contrasts)
 
-        self.metadata['contraster_end_time'] = datetime.datetime.now()
+        self.metadata['contraster_finished_time'] = datetime.datetime.now()
         
         return contrasts
 
