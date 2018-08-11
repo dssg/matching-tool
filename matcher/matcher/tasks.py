@@ -9,6 +9,7 @@ import datetime
 import pandas as pd
 import yaml
 
+import matcher.blocker as blocker
 import matcher.matcher as matcher
 import matcher.preprocess as preprocess
 import matcher.utils as utils
@@ -16,13 +17,10 @@ import matcher.ioutils as ioutils
 
 from matcher.logger import logger
 
-
 from redis import Redis
 from rq import Queue
 redis_connection = Redis(host='redis', port=6379)
 q = Queue('webapp', connection=redis_connection)
-
-
 
 
 def do_match(
@@ -65,18 +63,32 @@ def do_match(
         metadata['preprocessed_data_shape'] = list(df.shape)
         metadata['data_preprocessed_time'] = datetime.datetime.now()
 
-        # Matching: block the data, generate pairs and features, and cluster entities
+        # Blocking: reduce comparisons by finding subsets of data more likely to contain matches
+        logger.info(f"Running blocker")
+        block_object = blocker.Blocker(
+            blocking_rules=config['blocking_rules']
+        )
+        blocked_df = block_object.run(df)
+
+        # Record Linkage: block the data, generate pairs and features, and cluster entities
         logger.info(f"Running matcher")
         match_object = matcher.Matcher(
             base_data_directory=base_data_directory,
             match_job_id=metadata['match_job_id'],
             clustering_rules=config['clusterer']['args'],
-            contrast_rules=config['contrasts'],
-            blocking_rules=config['blocking_rules']
+            contrast_rules=config['contrasts']
         )
-        matches = match_object.block_and_match(df=df)
+        all_block_metadata = {}
+        matches = {}
+        for key, block in blocked_df:
+            logger.debug(f"Matching group {key} of size {len(group)}")
+            logger.debug('Wrapping up block')
+            all_block_metadata[key] = block_metadata
+            matches[key] = match_object.run(df=block)
+        logger.debug('All blocks done! Yehaw!')
+        matches = pd.concat(matches.values())
         metadata['data_matched_time'] = datetime.datetime.now()
-        metadata.update(match_object.metadata)
+        metadata.update(match_object.all_block_metadata)
         logger.debug('Matching done!')
 
         logger.debug(f"Number of matched pairs: {len(matches)}")
