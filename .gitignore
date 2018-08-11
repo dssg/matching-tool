@@ -109,7 +109,7 @@ config.yaml
 database.yaml
 webapp/frontend/node_modules
 webapp/frontend/coverage
-webapp/webapp/static/output.js
+webapp/backend/static/output.js
 webapp/webapp/static/main.*.css
 webapp/sample_data/uploader_input/*/*.filled
 matcher/.env
