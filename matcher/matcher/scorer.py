@@ -13,7 +13,7 @@ class Scorer():
     def __init__(self, operation='mean', reverse=True):
         self.operation = operation
         self.reverse = reverse
-        self.metadata{'scorer_initialization_time': datetime.datetime.now()}
+        self.metadata = {'scorer_initialization_time': datetime.datetime.now()}
 
     def run(self, contrasted_df:pd.DataFrame) -> pd.DataFrame:
         self.metadata['scorer_run_time'] = datetime.datetime.now()

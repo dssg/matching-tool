@@ -8,6 +8,7 @@ sklearn==0.0
 psycopg2==2.7.3.2
 redis
 rq
+s3fs
 recordlinkage
 colorlog
 PyYAML==3.12

@@ -3,6 +3,7 @@
 import pandas as pd
 import datetime
 import numpy as np
+import sklearn
 
 from typing import List
 
@@ -33,14 +34,15 @@ class Matcher:
         self.blocking_rules = blocking_rules
         self.metadata = {'matcher_initialization_time': datetime.datetime.now()}
         self.scorer = scorer.Scorer(operation='mean')
+        self.clusterer = cluster.Clusterer(clustering_algorithm=sklearn.cluster.DBSCAN, **clustering_rules)
 
     def run(self, df:pd.DataFrame, key='all') -> pd.DataFrame:
         self.metadata['matcher_run_time'] = datetime.datetime.now()
-
+        
         # If there's only 1 record, nothing to link; make a matched_id and exit
-        if len(group) = 1:
+        if len(df) == 1:
             logger.debug(f"Dataframe only has one record, making a singleton id")
-            matches = cluster.generate_singleton_id(df, str(key))
+            matches = pd.Series(data=[1], index=df.index)
             self.metadata.update({
                 'size': 1,
                 'n_pairs': 0,
@@ -68,14 +70,9 @@ class Matcher:
             logger.debug('Caching those contrasts and distances for you.')
             ioutils.write_dataframe(contrasts.reset_index(), filepath=f'{self.base_data_directory}/match_cache/contrasts/{self.match_job_id}/{key}')
 
-            matches = cluster.generate_matched_ids(
-                distances=contrasts,
-                DF=df,
-                clustering_params=self.clustering_rules,
-                base_data_directory=self.base_data_directory, # at some point, we may want to consider making the matcher into a class
-                match_job_id=self.match_job_id,       # rather than passing around keys, match_job_ids, base_data_directorys, etc.
-                block_name=str(key)
-            )
+            matches = self.clusterer.run(distances=contrasts)
+            self.metadata.update(self.clusterer.metadata)
+            self.metadata['matcher_finished_time'] = datetime.datetime.now()
 
         return matches
 

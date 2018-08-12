@@ -53,7 +53,7 @@ class Contraster:
                 comp_func=compare_exact_n_chars,
                 labels_left=col_name,
                 labels_right=col_name,
-                n_chars['n_chars'],
+                n=n_chars['n_chars'],
                 label=f"{col_name}_exact_{n_chars['n_chars']}_distance"
             )
         else:

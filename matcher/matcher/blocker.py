@@ -1,8 +1,9 @@
 # coding: utf-8
 
-
 import datetime
 import pandas as pd
+
+from matcher.logger import logger
 
 
 class Blocker():
@@ -19,10 +20,10 @@ class Blocker():
         self.metadata['blocker_run_time'] = datetime.datetime.now()
         logger.info(f"Blocking by {self.blocking_rules}")
 
-        grouped_df = df.groupby([
+        grouped_df = preprocessed_df.groupby([
             self._unpack_blocking_rule(preprocessed_df, column_name, position)
             for column_name, position
-            in blocking_rules.items()
+            in self.blocking_rules.items()
         ])
 
         logger.info(f"Blocking is done: got {len(grouped_df)} blocks.")
@@ -35,7 +36,7 @@ class Blocker():
 
     def _unpack_blocking_rule(
             self,
-            df:pd.Dataframe,
+            df:pd.DataFrame,
             column_name:str,
             position:int
         ) -> pd.Series:

@@ -81,14 +81,15 @@ def do_match(
         all_block_metadata = {}
         matches = {}
         for key, block in blocked_df:
-            logger.debug(f"Matching group {key} of size {len(group)}")
+            logger.debug(f"Matching group {key} of size {len(block)}")
             logger.debug('Wrapping up block')
-            all_block_metadata[key] = block_metadata
-            matches[key] = block_name + match_object.run(df=block).astype(str)
+            matches[key] = ''.join(key) + match_object.run(df=block).astype(str)
+            all_block_metadata[key] = match_object.metadata
         logger.debug('All blocks done! Yehaw!')
-        matches = pd.concat(matches.values())
+        matches = pd.DataFrame({'matched_id': pd.concat(matches.values())})
+        logger.debug(matches)
         metadata['data_matched_time'] = datetime.datetime.now()
-        metadata.update(match_object.all_block_metadata)
+        metadata.update(all_block_metadata)
         logger.debug('Matching done!')
 
         logger.debug(f"Number of matched pairs: {len(matches)}")

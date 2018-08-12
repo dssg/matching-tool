@@ -12,16 +12,16 @@ from matcher.logger import logger
 
 class Clusterer():
 
-    def __init__(self, algorithm=sklearn.cluster.DBSCAN, **params):
-        self.params = params
-        self.clusterer = algorithm(**params)
-        self.metadata = {'clusterer_initialization_time'} = datetime.datetime.now()
+    def __init__(self, clustering_algorithm=sklearn.cluster.DBSCAN, **kwargs):
+        self.kwargs = kwargs
+        self.clusterer = clustering_algorithm(**kwargs)
+        self.metadata = {'clusterer_initialization_time': datetime.datetime.now()}
 
     def run(self, distances:pd.DataFrame) -> pd.DataFrame:
         """ Cluster the scored entities into individuals. Return the cluster ids
         indexed with the source row_id.
         """
-        self.metadata['clusterer_run_time'] = datetime.datetime.run()
+        self.metadata['clusterer_run_time'] = datetime.datetime.now()
         logger.info('Beginning clustering & id generation.')
 
         squared_distances = self._square_distance_matrix(distances)
@@ -32,7 +32,7 @@ class Clusterer():
         self.metadata['clusterer_fit_time'] = datetime.datetime.now
 
         logger.debug('Clustering done! Assigning matched ids.')
-        ids = _generate_ids(distances.index, clusterer.labels_).astype(str)
+        ids = self._generate_ids(squared_distances.index.values, self.clusterer.labels_).astype(str)
         self.metadata['clusterer_finished_time'] = datetime.datetime.now()
 
         return ids
@@ -52,12 +52,14 @@ class Clusterer():
         # square (unstack) the matrix, filling in 0 distance for self-pairs
         return pd.concat([df, tmp_df]).score.unstack(level=-1, fill_value=0)
 
-    def _generate_ids(self, index:pd.Index, labels:np.array) -> pd.series:
-        ids = pd.Series(index=index, data=labels)
-        
+    def _generate_ids(self, index:pd.Index, labels:np.array) -> pd.Series:
+        logger.debug(f'index {len(index)}')
+        logger.debug(f'labels {len(labels)}')
+        ids = pd.Series(index=index, data=labels, name='matched_id')
+        logger.debug(f'ids {ids}')
         max_cluster_id = ids.max()
         self.metadata['num_clusters_found'] = max_cluster_id
-        self.metadata['num_noisy_clusters'] = len(ids[ids == -1]
+        self.metadata['num_noisy_clusters'] = len(ids[ids == -1])
 
         replacement_ids = pd.Series(
             data=range(max_cluster_id + 1, max_cluster_id + len(ids[ids == -1]) + 1),
