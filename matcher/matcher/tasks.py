@@ -82,14 +82,15 @@ def do_match(
         matches = {}
         for key, block in blocked_df:
             logger.debug(f"Matching group {key} of size {len(block)}")
-            logger.debug('Wrapping up block')
             matches[key] = ''.join(key) + match_object.run(df=block).astype(str)
-            all_block_metadata[key] = match_object.metadata
+            logger.debug(f'mocher  metadata: {match_object.metadata}')
+            all_block_metadata[''.join(key)] = match_object.metadata.copy()
+            logger.debug('Wrapping up block')
         logger.debug('All blocks done! Yehaw!')
         matches = pd.DataFrame({'matched_id': pd.concat(matches.values())})
         logger.debug(matches)
         metadata['data_matched_time'] = datetime.datetime.now()
-        metadata.update(all_block_metadata)
+        metadata['all_block_metadata'] = all_block_metadata
         logger.debug('Matching done!')
 
         logger.debug(f"Number of matched pairs: {len(matches)}")
@@ -106,7 +107,7 @@ def do_match(
         metadata['data_written_time'] = datetime.datetime.now()
         ioutils.write_dict_to_yaml(metadata, f"{base_data_directory}/match_cache/metadata/{metadata['match_job_id']}")
 
-        logger.info('Finished')
+        logger.info('Finished successfully!')
         match_end_time = datetime.datetime.now()
         match_runtime =  match_end_time - metadata['match_job_start_time']
 

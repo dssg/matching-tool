@@ -46,8 +46,10 @@ class Matcher:
             self.metadata.update({
                 'size': 1,
                 'n_pairs': 0,
-                'contrasts': None,
-                'scores': None
+                'scores': None,
+                'contraster_metadata': None,
+                'scorer_metadata': None,
+                'clusterer_metadata': None
             })
 
         # If there's more than one record, start linking records
@@ -62,17 +64,19 @@ class Matcher:
             logger.debug(f"Initializing contrasting")
             contraster_obj = contraster.Contraster(self.contrast_rules)
             contrasts = contraster_obj.run(pairs, df)
-            self.metadata['contraster_metadata'] = contraster_obj.metadata
+            self.metadata['contraster_metadata'] = contraster_obj.metadata.copy()
             logger.debug(f"Contrasts created")
 
             contrasts.index.rename(['matcher_index_left', 'matcher_index_right'], inplace=True)
             contrasts = self.scorer.run(contrasts)
+            self.metadata['scorer_metadata'] = self.scorer.metadata.copy()
             logger.debug('Caching those contrasts and distances for you.')
             ioutils.write_dataframe(contrasts.reset_index(), filepath=f'{self.base_data_directory}/match_cache/contrasts/{self.match_job_id}/{key}')
 
             matches = self.clusterer.run(distances=contrasts)
-            self.metadata.update(self.clusterer.metadata)
-            self.metadata['matcher_finished_time'] = datetime.datetime.now()
+            self.metadata['clusterer_metadata'] = self.clusterer.metadata.copy()
+
+        self.metadata['matcher_finished_time'] = datetime.datetime.now()
 
         return matches
 

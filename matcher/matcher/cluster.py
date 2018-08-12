@@ -25,11 +25,11 @@ class Clusterer():
         logger.info('Beginning clustering & id generation.')
 
         squared_distances = self._square_distance_matrix(distances)
-        self.metadata['square_distance_matrix_dimensions'] = squared_distances.shape
+        self.metadata['square_distance_matrix_dimensions'] = list(squared_distances.shape)
 
         logger.debug('Squared the distances. Beginning clustering.')
         self.clusterer.fit(X=squared_distances)
-        self.metadata['clusterer_fit_time'] = datetime.datetime.now
+        self.metadata['clusterer_fit_time'] = datetime.datetime.now()
 
         logger.debug('Clustering done! Assigning matched ids.')
         ids = self._generate_ids(squared_distances.index.values, self.clusterer.labels_).astype(str)
@@ -58,7 +58,7 @@ class Clusterer():
         ids = pd.Series(index=index, data=labels, name='matched_id')
         logger.debug(f'ids {ids}')
         max_cluster_id = ids.max()
-        self.metadata['num_clusters_found'] = max_cluster_id
+        self.metadata['num_clusters_found'] = int(max_cluster_id)
         self.metadata['num_noisy_clusters'] = len(ids[ids == -1])
 
         replacement_ids = pd.Series(
