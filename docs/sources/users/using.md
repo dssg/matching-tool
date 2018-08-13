@@ -140,18 +140,20 @@ The list of results queried can also be downloaded as a CSV file by clicking the
 
 The original source data with matched ids can be downloaded as well by scrolling to the bottom of the Control Panel. 
 
-**Figure 14: Downloading original source data from event**
+**Figure 14: Downloading Original Source Data from Event**
 
 ![image alt text](images/download_source.png)
 
-* On clicking "Event Type" a dropdown menu pops up with the different event options. On selecting the desired event, the source data for that event can be downloaded by clicking “Download Source Events”. 
+By clicking "Event Type", a dropdown menu pops up with the different event options. On selecting the desired event, the source data for that event can be downloaded by clicking “Download Source Events”. 
 
-**Figure 15: Selecting Event Type using dropdown menu**
+**Figure 15: Selecting Event Type Using Dropdown menu**
 
 ![image alt text](images/source_dropdown.png)
 
 # Logout
 
-Logs you out of the tool
+In order to logout of the matching tool, the user can click on LOGOUT at the upper-right corner as shown in Figure 16.
 
+
+**Figure 16: Logging Out of Matching Tool**
 ![image alt text](images/logout.png)
