@@ -1,5 +1,5 @@
 from tableschema import Schema
-from webapp import SCHEMA_DIRECTORY
+from backend import SCHEMA_DIRECTORY
 
 
 def test_all_schemas():

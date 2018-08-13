@@ -2,10 +2,10 @@ from flask import make_response, request, jsonify, Blueprint
 from flask_security import login_required
 from flask_login import current_user
 
-from webapp.logger import logger
-from webapp.database import db_session
-from webapp.models import Upload, MergeLog
-from webapp.tasks import \
+from backend.logger import logger
+from backend.database import db_session
+from backend.models import Upload, MergeLog
+from backend.tasks import \
     upload_to_storage,\
     sync_upload_metadata,\
     copy_raw_table_to_db,\
@@ -15,8 +15,8 @@ from webapp.tasks import \
     add_missing_fields,\
     two_pass_validation,\
     validate_header
-from webapp.users import can_upload_file, get_jurisdiction_roles
-from webapp.utils import upload_path, notify_matcher, infer_delimiter, unique_upload_id
+from backend.users import can_upload_file, get_jurisdiction_roles
+from backend.utils import upload_path, notify_matcher, infer_delimiter, unique_upload_id
 
 from werkzeug.utils import secure_filename
 

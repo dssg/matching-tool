@@ -1,9 +1,9 @@
 from flask import abort, request, jsonify, Blueprint, make_response, Response
 from flask_security import login_required
-from webapp.logger import logger
+from backend.logger import logger
 import pandas as pd
-from webapp.apis import query
-from webapp.users import can_upload_file
+from backend.apis import query
+from backend.users import can_upload_file
 
 chart_api = Blueprint('chart_api', __name__, url_prefix='/api/chart')
 

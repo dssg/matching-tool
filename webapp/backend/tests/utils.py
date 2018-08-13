@@ -1,8 +1,8 @@
-from webapp import app
-from webapp.app import security
-from webapp.models import User, Role
-from webapp.database import Base, db_session
-from webapp.utils import create_statement_from_goodtables_schema, load_schema_file, generate_master_table_name, master_table_column_list, create_statement_from_column_list
+from backend import app
+from backend.app import security
+from backend.models import User, Role
+from backend.database import Base, db_session
+from backend.utils import create_statement_from_goodtables_schema, load_schema_file, generate_master_table_name, master_table_column_list, create_statement_from_column_list
 from sqlalchemy import create_engine
 import contextlib
 import testing.postgresql
@@ -176,10 +176,10 @@ def full_rig_with_s3():
 def full_rig_without_s3():
     fake_redis_connection = FakeStrictRedis()
     queue = Queue(async=False, connection=fake_redis_connection)
-    with patch('webapp.apis.upload.notify_matcher', return_value=None):
-        with patch('webapp.apis.upload.get_redis_connection', return_value=fake_redis_connection):
-            with patch('webapp.apis.upload.get_q', return_value=queue):
-                with patch.dict('webapp.utils.app_config', SAMPLE_CONFIG):
+    with patch('backend.apis.upload.notify_matcher', return_value=None):
+        with patch('backend.apis.upload.get_redis_connection', return_value=fake_redis_connection):
+            with patch('backend.apis.upload.get_q', return_value=queue):
+                with patch.dict('backend.utils.app_config', SAMPLE_CONFIG):
                     with rig_test_client() as (app, engine):
                         authenticate(app)
                         yield app, engine

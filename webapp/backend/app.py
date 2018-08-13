@@ -1,14 +1,14 @@
 from flask import render_template
 from flask_security import Security, login_required, \
      SQLAlchemySessionUserDatastore
-from webapp import app
-from webapp.config import config as app_config
-from webapp.database import db_session, engine
-from webapp.models import User, Role
-from webapp.apis.upload import upload_api
-from webapp.apis.chart import chart_api
-from webapp.apis.jobs import jobs_api
-from webapp.utils import generate_master_table_name
+from backend import app
+from backend.config import config as app_config
+from backend.database import db_session, engine
+from backend.models import User, Role
+from backend.apis.upload import upload_api
+from backend.apis.chart import chart_api
+from backend.apis.jobs import jobs_api
+from backend.utils import generate_master_table_name
 import click
 import s3fs
 

@@ -1,7 +1,7 @@
 from flask_login import current_user
 
-from webapp.logger import logger
-from webapp.utils import load_schema_file
+from backend.logger import logger
+from backend.utils import load_schema_file
 
 
 PRETTY_JURISDICTION_MAP = {

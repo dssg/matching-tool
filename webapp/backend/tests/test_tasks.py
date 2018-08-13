@@ -1,13 +1,13 @@
 import moto
 import s3fs
-from webapp.database import Base
-from webapp.models import MergeLog, MatchLog
+from backend.database import Base
+from backend.models import MergeLog, MatchLog
 import time
 from unittest.mock import patch
 from unittest import TestCase
 import testing.postgresql
-from webapp.storage import open_sesame
-from webapp.tasks import \
+from backend.storage import open_sesame
+from backend.tasks import \
     upload_to_storage,\
     copy_raw_table_to_db,\
     upsert_raw_table_to_master,\
@@ -16,8 +16,8 @@ from webapp.tasks import \
     write_upload_log,\
     write_matches_to_db,\
     match_finished
-from webapp.utils import makeNamedTemporaryCSV, upload_path, generate_master_table_name
-from webapp.tests.utils import create_and_populate_raw_table, rig_test_client, create_and_populate_master_table
+from backend.utils import makeNamedTemporaryCSV, upload_path, generate_master_table_name
+from backend.tests.utils import create_and_populate_raw_table, rig_test_client, create_and_populate_master_table
 from datetime import date, datetime, timedelta
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -37,7 +37,7 @@ def test_upload_to_s3():
             sample_config = {
                 'raw_uploads_path': 's3://test-bucket/{jurisdiction}/{event_type}/uploaded/{date}/{upload_id}'
             }
-            with patch.dict('webapp.utils.app_config', sample_config):
+            with patch.dict('backend.utils.app_config', sample_config):
                 final_upload_path = upload_path('boone', 'hmis', '123-567-abc')
                 upload_to_storage(final_upload_path, filename)
 
@@ -337,8 +337,8 @@ class WriteMatchesToDBTest(TestCase):
             assert retrieved_matched_ids == expected_matched_ids
 
 @moto.mock_s3()
-@patch('webapp.tasks.write_matches_to_db')
-@patch('webapp.tasks.write_match_log')
+@patch('backend.tasks.write_matches_to_db')
+@patch('backend.tasks.write_match_log')
 def test_match_finished(write_match_log_mock, write_matches_to_db_mock):
     s3 = s3fs.S3FileSystem()
     s3.touch('bucket')

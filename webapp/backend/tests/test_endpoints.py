@@ -3,13 +3,13 @@ import re
 import os
 import json
 import requests_mock
-from webapp.tests.utils import full_rig_with_s3, full_rig_without_s3,\
+from backend.tests.utils import full_rig_with_s3, full_rig_without_s3,\
     create_and_populate_master_table, load_json_example
 from datetime import date
-from webapp.storage import open_sesame
-from webapp.database import db_session
-from webapp.models import Upload, MergeLog
-from webapp.utils import generate_master_table_name, generate_raw_table_name, table_exists
+from backend.storage import open_sesame
+from backend.database import db_session
+from backend.models import Upload, MergeLog
+from backend.utils import generate_master_table_name, generate_raw_table_name, table_exists
 from io import BytesIO
 import unicodecsv as csv
 import pandas as pd
@@ -324,7 +324,7 @@ class MergeBookingsFileTestCase(unittest.TestCase):
                 'merged_uploads_path': os.path.join(temp_dir, '{jurisdiction}-{event_type}-merged')
             }
             with full_rig_without_s3() as (app, engine):
-                with patch.dict('webapp.utils.app_config', s3_less_config):
+                with patch.dict('backend.utils.app_config', s3_less_config):
                     upload_id = self.do_upload(app, request_mock)
                     # okay, here's what we really want to test.
                     # call the merge endpoint

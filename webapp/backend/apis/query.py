@@ -1,8 +1,8 @@
 import logging
 import pandas as pd
-from webapp import db
-from webapp.utils import generate_master_table_name, table_exists
-from webapp.logger import logger
+from backend import db
+from backend.utils import generate_master_table_name, table_exists
+from backend.logger import logger
 import numpy as np
 import io
 

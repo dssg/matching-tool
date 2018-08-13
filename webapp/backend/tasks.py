@@ -1,10 +1,10 @@
 from datetime import datetime
 from goodtables import validate
-from webapp.database import db_session, engine
-from webapp.logger import logger
-from webapp.models import Upload, MergeLog, MatchLog
-from webapp.storage import open_sesame
-from webapp.utils import load_schema_file,\
+from backend.database import db_session, engine
+from backend.logger import logger
+from backend.models import Upload, MergeLog, MatchLog
+from backend.storage import open_sesame
+from backend.utils import load_schema_file,\
     create_statement_from_goodtables_schema,\
     column_list_from_goodtables_schema,\
     create_statement_from_column_list,\
@@ -20,7 +20,7 @@ from webapp.utils import load_schema_file,\
     split_table,\
     generate_raw_table_name,\
     db_retry
-from webapp.validations import CHECKS_BY_SCHEMA
+from backend.validations import CHECKS_BY_SCHEMA
 from hashlib import md5
 import logging
 import os

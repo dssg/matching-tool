@@ -38,9 +38,9 @@ setup(
     author_email='datascifellows@gmail.com',
     url='https://github.com/dssg/matching-tool',
     packages=[
-        'webapp',
-        'webapp.apis',
-        'webapp.validations'
+        'backend',
+        'backend.apis',
+        'backend.validations'
     ],
     include_package_data=True,
     install_requires=REQUIREMENTS,

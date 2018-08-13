@@ -8,7 +8,7 @@ const rootAssetPath = './'
 module.exports = {
   entry: ['babel-polyfill', 'whatwg-fetch', path.resolve(__dirname, './index.js')],
   output: {
-    path: '../webapp/static/',
+    path: '../backend/static/',
     publicPath: 'http://localhost:2992/assets/',
     filename: 'output.js',
   },

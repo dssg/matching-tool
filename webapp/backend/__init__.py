@@ -1,6 +1,6 @@
 from flask import Flask
 import os
-from webapp.dbconfig import dburl
+from backend.dbconfig import dburl
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail
 from werkzeug.contrib.fixers import ProxyFix
@@ -34,4 +34,4 @@ db = SQLAlchemy(app)
 mail = Mail(app)
 
 
-from webapp.tasks import match_finished
+from backend.tasks import match_finished

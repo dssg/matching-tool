@@ -1,7 +1,7 @@
 from goodtables import validate
-from webapp.validations import composite_primary_key
-from webapp.utils import load_schema_file
-from webapp import tasks
+from backend.validations import composite_primary_key
+from backend.utils import load_schema_file
+from backend import tasks
 from collections import Counter
 import argparse
 import os

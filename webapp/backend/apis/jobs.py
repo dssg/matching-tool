@@ -8,7 +8,7 @@ from rq import Queue
 from rq.job import Job
 from rq.registry import StartedJobRegistry
 
-from webapp.apis import query
+from backend.apis import query
 
 from datetime import datetime
 from functools import partial

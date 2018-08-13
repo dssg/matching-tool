@@ -8,7 +8,7 @@ To modify the columns or checks in an existing schema:
 
 1. Find the schema in [webapp/schemas/uploader/](https://github.com/dssg/matching-tool/tree/master/webapp/schemas/uploader).
 
-2. Modify the name, datatype, or constraints for an individual field, or the 'primaryKey' that should uniquely define each row. If it is not clear how to modify an individual schema to, for instance, express a constraint in a given way, refer to either the [goodtables-py docs](https://github.com/frictionlessdata/goodtables-py) (the general library used by the matching tool) or the [webapp.validations](https://github.com/dssg/matching-tool/blob/master/webapp/webapp/validations/__init__.py) module (the file where custom checks for the matching tool are defined).
+2. Modify the name, datatype, or constraints for an individual field, or the 'primaryKey' that should uniquely define each row. If it is not clear how to modify an individual schema to, for instance, express a constraint in a given way, refer to either the [goodtables-py docs](https://github.com/frictionlessdata/goodtables-py) (the general library used by the matching tool) or the [webapp.validations](https://github.com/dssg/matching-tool/blob/master/webapp/backend/validations/__init__.py) module (the file where custom checks for the matching tool are defined).
 
 3. If any of the column names, data types, or primary key have changed, you will have to delete the installation's master table as this information is encoded in the master table's schema. Refer your administrator to [Clearing a Master Table for a Schema](../admin/updating.md#clearing-a-master-table-for-a-schema).
 

@@ -7,9 +7,9 @@ import itertools
 import json
 import tempfile
 from datetime import date
-from webapp.config import config as app_config
-from webapp.logger import logger
-from webapp import SCHEMA_DIRECTORY
+from backend.config import config as app_config
+from backend.logger import logger
+from backend import SCHEMA_DIRECTORY
 
 from contextlib import contextmanager
 import requests

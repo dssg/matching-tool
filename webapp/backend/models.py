@@ -1,4 +1,4 @@
-from webapp.database import Base
+from backend.database import Base
 from flask_security import UserMixin, RoleMixin
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy import BigInteger, Boolean, DateTime, Column, Interval, Integer, \

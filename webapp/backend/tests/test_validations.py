@@ -1,4 +1,4 @@
-from webapp import tasks
+from backend import tasks
 from unittest import TestCase
 
 # HMIS FILES
