@@ -2,7 +2,7 @@
 
 The webapp can be modified for adding new APIs, plots or functionalities that will improve the usability as well as the analysis. This document introduce the tech stacks and design patterns in the matching tool. The web application of this matching tool follows one of the popular and productive tech stacks today, a combination of [React](https://reactjs.org/)/[Redux](https://github.com/reduxjs/react-redux) for creating UI and consuming APIs as the frontend, [Python/Flask](http://flask.pocoo.org/) for providing APIs as the backend, and [SQLAlchemy](https://www.sqlalchemy.org/) as the Python Object Relation Map (ORM) to communicate with the [PostgreSQL](https://www.postgresql.org/) database. The architecture is shown in the diagram.
 
-![diagram](https://github.com/dssg/matching-tool/blob/documentation_web/docs/sources/dev/diagram.png)
+![diagram](dev/diagram.png)
 
 ## Database
 
