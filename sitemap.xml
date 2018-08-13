@@ -1,82 +1,82 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-     <loc>/</loc>
+     <loc>None</loc>
      <lastmod>2018-08-13</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/users/using/</loc>
+     <loc>None</loc>
      <lastmod>2018-08-13</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/users/schemas/booking-akaalias-data/</loc>
+     <loc>None</loc>
      <lastmod>2018-08-13</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/users/schemas/booking-charging-data/</loc>
+     <loc>None</loc>
      <lastmod>2018-08-13</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/users/schemas/booking-data/</loc>
+     <loc>None</loc>
      <lastmod>2018-08-13</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/users/schemas/by-name-list/</loc>
+     <loc>None</loc>
      <lastmod>2018-08-13</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/users/schemas/case-charge-data/</loc>
+     <loc>None</loc>
      <lastmod>2018-08-13</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/users/schemas/hmis-akaalias-data/</loc>
+     <loc>None</loc>
      <lastmod>2018-08-13</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/users/schemas/hmis-data/</loc>
+     <loc>None</loc>
      <lastmod>2018-08-13</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/admin/install/</loc>
+     <loc>None</loc>
      <lastmod>2018-08-13</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/admin/troubleshooting/</loc>
+     <loc>None</loc>
      <lastmod>2018-08-13</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/admin/updating/</loc>
+     <loc>None</loc>
      <lastmod>2018-08-13</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/admin/matching/</loc>
+     <loc>None</loc>
      <lastmod>2018-08-13</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/dev/schemas/</loc>
+     <loc>None</loc>
      <lastmod>2018-08-13</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/dev/webapp/</loc>
+     <loc>None</loc>
      <lastmod>2018-08-13</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/dev/matching/</loc>
+     <loc>None</loc>
      <lastmod>2018-08-13</lastmod>
      <changefreq>daily</changefreq>
     </url>

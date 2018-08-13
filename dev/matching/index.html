@@ -32,7 +32,7 @@
         <meta name="lang:search.tokenizer" content="[\s\-]+">
       
       <link rel="shortcut icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-0.17.5, mkdocs-material-2.9.2">
+      <meta name="generator" content="mkdocs-1.0, mkdocs-material-3.0.3">
     
     
       
@@ -40,7 +40,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/application.ba0fd1a6.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/application.451f80e5.css">
       
       
     
@@ -71,7 +71,7 @@
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
     
-      <a href="#updating-the-matching-service" tabindex="1" class="md-skip">
+      <a href="../../#updating-the-matching-service" tabindex="1" class="md-skip">
         Skip to content
       </a>
     
@@ -152,11 +152,11 @@
                   <div class="md-sidebar__inner">
                     <nav class="md-nav md-nav--primary" data-md-level="0">
   <label class="md-nav__title md-nav__title--site" for="__drawer">
-    <span class="md-nav__button md-logo">
+    <a href="../.." title="Matching Tool" class="md-nav__button md-logo">
       
         <i class="md-icon"></i>
       
-    </span>
+    </a>
     Matching Tool
   </label>
   
@@ -711,8 +711,23 @@
 </ol>
 <h3 id="common-adjustments-to-the-matcher">Common Adjustments to the Matcher<a class="headerlink" href="#common-adjustments-to-the-matcher" title="Permanent link">&para;</a></h3>
 <h4 id="adding-or-increasing-use-of-a-data-field">Adding or Increasing Use of a Data Field<a class="headerlink" href="#adding-or-increasing-use-of-a-data-field" title="Permanent link">&para;</a></h4>
+<p>If you would like to add a new field to the matcher algorithm, you will need to add it in multiple places in the <a href="https://github.com/dssg/matching-tool/blob/master/matcher/matcher_config.yaml">matcher configuration file</a>. The column name should be listed as a key in the <code>keys</code> section of the configuration file. This will cause it to be used for exact deduplication and to be included in the data sent to the matcher algorithm. You may also wish to add <a href="https://github.com/dssg/matching-tool/blob/81ed73ba55dc4a6bccbce789325ca8c0a47c8684/matcher/matcher/preprocess.py">pre-processing steps</a> to reformat the data before matching. To compare records on this field in the matcher, you will need to add contasts to the <code>contrasts</code> section of the configuration file. </p>
+<p>Because the default behavior of the matcher when it calls the <a href="https://github.com/dssg/matching-tool/blob/master/matcher/matcher/rules.py#L18"><code>compactify()</code></a> function is to take a simple average of the contrasts, adding more contrasts for a field adds more weight to that field. For example, in the <a href="https://github.com/dssg/matching-tool/blob/master/matcher/matcher_config.yaml">default configuration file</a>, there are six comparisons for first name but only one comparison for middle name, meaning that the matcher weights the first name six times as strongly as the middle name. If we wanted to weight middle name higher, we could add additional contrasts on the middle name, such as examining the Jaro-Winkler distance between the middle names in a pair of records. Note that if you add the same contrast multiple times for a single data field, they will overwrite each other rather than being used multiple times. You can see what a newly added contrast looks like and how it affects the scores by examining the cached contrasts in the <code>match_cache/contrasts</code> folder in the jurisdiction's root storage directory.</p>
+<p>Manually assigning weights to each contrast would require code changes to the <a href="https://github.com/dssg/matching-tool/blob/master/matcher/matcher/rules.py#L18"><code>compactify()</code></a> function to support weighting (and to allow for user input of weighting).</p>
 <h4 id="removing-or-decreasing-use-of-a-data-field">Removing or Decreasing Use of a Data Field<a class="headerlink" href="#removing-or-decreasing-use-of-a-data-field" title="Permanent link">&para;</a></h4>
+<p>If you would like to remove a field from the matcher algorithm completely, you will need to remove it from both the <code>keys</code> and the <code>contrasts</code> sections of the <a href="https://github.com/dssg/matching-tool/blob/master/matcher/matcher_config.yaml">matcher configuration file</a>. The column name should be listed as a key in the <code>keys</code> section of the configuration file.</p>
+<p>If you simply would like decrease how much that matcher uses the data field, you should remove contrasts for that field. Because the default behavior of the matcher when it calls the <a href="https://github.com/dssg/matching-tool/blob/master/matcher/matcher/rules.py#L18"><code>compactify()</code></a> function is to take a simple average of the contrasts, removing some of the contrasts for a field will decrease the weight to that field. For example, in the <a href="https://github.com/dssg/matching-tool/blob/master/matcher/matcher_config.yaml">default configuration file</a>, there are six comparisons for first name but only one comparison for middle name, meaning that the matcher weights the first name six times as strongly as the middle name. If we wanted to decrease the relative weight of the first name, we could remove contrasts on the first name, such as only comparing the exact first name and its Jaro-Winkler distance. Then, first name would only be counted twice as much as middle name. However, we would also have changed <em>how</em> we use first name by discregarding partial string comparisons on the first and last 3 and 5 letters. You can see how this change affects the scores by examining the cached contrasts in the <code>match_cache/contrasts</code> folder in the jurisdiction's root storage directory.</p>
+<p>Manually assigning weights to each contrast would require code changes to the <a href="https://github.com/dssg/matching-tool/blob/master/matcher/matcher/rules.py#L18"><code>compactify()</code></a> function to support weighting (and to allow for user input of weighting).</p>
 <h4 id="stopping-the-matcher-from-caching-so-many-files">Stopping the Matcher from Caching so Many Files<a class="headerlink" href="#stopping-the-matcher-from-caching-so-many-files" title="Permanent link">&para;</a></h4>
+<p>The matcher stores a lot of information in its cache to allow you to diagnose problems and test how changes to the configuration affect different stages of the process (e.g., what does a newly added contrast look like? how does it affect the scores?). These are stored in the <code>match_cache</code> folder in your base directory. This folder can be occasionally cleared to remove the backlog of files.</p>
+<p>If you find the space used by the matcher excessive, or if you are not making changes to the matching algorithm that you want to test, you may want to disable much of this caching. To do this remove or comment out the lines in the matcher where it writes these files to disk using the <code>write_dataframe()</code> function:</p>
+<ul>
+<li><a href="https://github.com/dssg/matching-tool/blob/81ed73ba55dc4a6bccbce789325ca8c0a47c8684/matcher/matcher/cluster.py#L73">cluster.py</a> caches the squared distance matrix and the raw cluster ids for each block, so there are two lines to remove.</li>
+<li><a href="https://github.com/dssg/matching-tool/blob/81ed73ba55dc4a6bccbce789325ca8c0a47c8684/matcher/matcher/matcher.py#L83">matcher.py</a> caches the contrasts for each block.</li>
+<li><a href="https://github.com/dssg/matching-tool/blob/0dac113cb1652c956c2e7358cd1e6163ca7aff25/matcher/matcher/ioutils.py#L73">ioutils.py</a> caches the loaded, deduplicated data.</li>
+<li><a href="https://github.com/dssg/matching-tool/blob/81ed73ba55dc4a6bccbce789325ca8c0a47c8684/matcher/matcher/preprocess.py#L83">preprocess.py</a> caches the preprocessed data to allow you to examine the affect of preprocessing on the raw data.</li>
+</ul>
+<p><strong>Note:</strong> Only remove <code>write_dataframe()</code> calls writing to the <code>match_cache</code>. Other writes are critical to the function of the matching tool.</p>
                 
                   
                 
@@ -770,9 +785,9 @@
       
     </div>
     
-      <script src="../../assets/javascripts/application.a59e2a89.js"></script>
+      <script src="../../assets/javascripts/application.583bbe55.js"></script>
       
-      <script>app.initialize({version:"0.17.5",url:{base:"../.."}})</script>
+      <script>app.initialize({version:"1.0",url:{base:"../.."}})</script>
       
     
     
