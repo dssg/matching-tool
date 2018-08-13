@@ -13,10 +13,10 @@ class Scorer():
     def __init__(self, operation='mean', reverse=True):
         self.operation = operation
         self.reverse = reverse
-        self.metadata = {'scorer_initialization_time': datetime.datetime.now()}
+        self.initialized_time = datetime.datetime.now()
 
-    def run(self, contrasted_df:pd.DataFrame) -> pd.DataFrame:
-        self.metadata['scorer_run_time'] = datetime.datetime.now()
+    def run(self, contrasted_df: pd.DataFrame) -> pd.DataFrame:
+        self.run_start_time = datetime.datetime.now()
 
         logger.debug(f'Scoring record pairs with operation {self.operation}')
 
@@ -35,8 +35,9 @@ class Scorer():
         if self.reverse:
             scored_df['score'] = 1 - scored_df['score']
 
-        self.metadata['scores'] = utils.summarize_column(scored_df.score)
-        self.metadata['scorer_finished_time'] = datetime.datetime.now()
+        self.scores = scored_df['score']
+        self.score_descriptives = utils.summarize_column(scored_df.score)
+        self.run_end_time = datetime.datetime.now()
 
         return scored_df
 
