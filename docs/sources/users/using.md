@@ -1,5 +1,3 @@
-![image alt text](images/logo.png)
-
 # Matching Tool User Documentation
 
 ### August 2018
@@ -156,6 +154,6 @@ By clicking "Event Type", a dropdown menu pops up with the different event optio
 
 In order to logout of the matching tool, the user can click on LOGOUT at the upper-right corner as shown in Figure 16.
 
-**Figure 16: Logging Out of Matching Tool**
 
+**Figure 16: Logging Out of Matching Tool**
 ![image alt text](images/logout.png)
