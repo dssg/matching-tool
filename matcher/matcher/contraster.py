@@ -113,7 +113,7 @@ class Contraster:
         else:
             raise ValueError(f"I don't know how to compare lists with method {method}. Please send me 'all' or 'any'.")
 
-    def make_contrast_metadata(self, contrasts):
+    def describe_contrasts(self, contrasts):
         contrast_descriptives = {}
         for column in contrasts.columns:
             logger.debug(f'Making you some stats about {column}')
@@ -152,7 +152,7 @@ class Contraster:
         logger.debug('Running all those contrasts!')
         contrasts = self.contraster.compute(pairs, df)
         
-        self.make_contrast_metadata(contrasts)
+        self.describe_contrasts(contrasts)
 
         self.contrast_dataframe_dimensions = contrasts.shape
         self.run_end_time = datetime.datetime.now()
