@@ -15,29 +15,33 @@ class Clusterer():
     def __init__(self, clustering_algorithm=sklearn.cluster.DBSCAN, **kwargs):
         self.kwargs = kwargs
         self.clusterer = clustering_algorithm(**kwargs)
-        self.metadata = {'clusterer_initialization_time': datetime.datetime.now()}
+        self.initialized_time = datetime.datetime.now()
 
-    def run(self, distances:pd.DataFrame) -> pd.DataFrame:
+    def run(self, distances: pd.DataFrame) -> pd.DataFrame:
         """ Cluster the scored entities into individuals. Return the cluster ids
         indexed with the source row_id.
         """
-        self.metadata['clusterer_run_time'] = datetime.datetime.now()
+        self.run_start_time = datetime.datetime.now()
         logger.info('Beginning clustering & id generation.')
 
         squared_distances = self._square_distance_matrix(distances)
-        self.metadata['square_distance_matrix_dimensions'] = list(squared_distances.shape)
+        self.squared_distance_matrix_created_time = datetime.datetime.now()
+        self.square_distance_matrix_dimensions = squared_distances.shape
 
         logger.debug('Squared the distances. Beginning clustering.')
         self.clusterer.fit(X=squared_distances)
-        self.metadata['clusterer_fit_time'] = datetime.datetime.now()
+        self.clusterer_fit_time = datetime.datetime.now()
 
         logger.debug('Clustering done! Assigning matched ids.')
-        ids = self._generate_ids(squared_distances.index.values, self.clusterer.labels_).astype(str)
-        self.metadata['clusterer_finished_time'] = datetime.datetime.now()
+        ids = self._generate_ids(
+            index=squared_distances.index.values,
+            labels=self.clusterer.labels_
+        ).astype(str)
+        self.run_end_time = datetime.datetime.now()
 
         return ids
 
-    def _square_distance_matrix(self, df:pd.DataFrame) -> pd.DataFrame:
+    def _square_distance_matrix(self, df: pd.DataFrame) -> pd.DataFrame:
         # create a copy, swap the indicies
         tmp_df = df.copy()
         tmp_df.reset_index(inplace=True)
@@ -52,14 +56,14 @@ class Clusterer():
         # square (unstack) the matrix, filling in 0 distance for self-pairs
         return pd.concat([df, tmp_df]).score.unstack(level=-1, fill_value=0)
 
-    def _generate_ids(self, index:pd.Index, labels:np.array) -> pd.Series:
+    def _generate_ids(self, index: pd.Index, labels: np.array) -> pd.Series:
         logger.debug(f'index {len(index)}')
         logger.debug(f'labels {len(labels)}')
         ids = pd.Series(index=index, data=labels, name='matched_id')
         logger.debug(f'ids {ids}')
         max_cluster_id = ids.max()
-        self.metadata['num_clusters_found'] = int(max_cluster_id)
-        self.metadata['num_noisy_clusters'] = len(ids[ids == -1])
+        self.num_clusters = int(max_cluster_id)
+        self.num_noisy_clusters = len(ids[ids == -1])
 
         replacement_ids = pd.Series(
             data=range(max_cluster_id + 1, max_cluster_id + len(ids[ids == -1]) + 1),
