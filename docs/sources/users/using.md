@@ -1,5 +1,3 @@
-![image alt text](images/logo.png)
-
 # Matching Tool User Documentation
 
 ### August 2018

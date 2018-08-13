@@ -1,3 +1,5 @@
+![image alt text](images/logo.png)
+
 # Matching Tool Overview
 
 ## Background
