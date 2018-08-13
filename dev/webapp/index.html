@@ -456,6 +456,33 @@
     Modifying the Webapp
   </a>
   
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#database" title="Database" class="md-nav__link">
+    Database
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backend" title="Backend" class="md-nav__link">
+    Backend
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frontend" title="Frontend" class="md-nav__link">
+    Frontend
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
       
@@ -509,6 +536,33 @@
     Modifying the Webapp
   </a>
   
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#database" title="Database" class="md-nav__link">
+    Database
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backend" title="Backend" class="md-nav__link">
+    Backend
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frontend" title="Frontend" class="md-nav__link">
+    Frontend
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
       
@@ -531,6 +585,117 @@
                   <h1>Modifying the Webapp</h1>
                 
                 <h2 id="modifying-the-webapp">Modifying the Webapp<a class="headerlink" href="#modifying-the-webapp" title="Permanent link">&para;</a></h2>
+<p>The webapp can be modified for adding new APIs, plots or functionalities that will improve the usability as well as the analysis. This document introduce the tech stacks and design patterns in the matching tool. The web application of this matching tool follows one of the popular and productive tech stacks today, a combination of <a href="https://reactjs.org/">React</a>/<a href="https://github.com/reduxjs/react-redux">Redux</a> for creating UI and consuming APIs as the frontend, <a href="http://flask.pocoo.org/">Python/Flask</a> for providing APIs as the backend, and <a href="https://www.sqlalchemy.org/">SQLAlchemy</a> as the Python Object Relation Map (ORM) to communicate with the <a href="https://www.postgresql.org/">PostgreSQL</a> database. The architecture is shown in the diagram.</p>
+<p><img alt="diagram" src="https://github.com/dssg/matching-tool/blob/documentation_web/docs/sources/dev/diagram.png" /></p>
+<h3 id="database">Database<a class="headerlink" href="#database" title="Permanent link">&para;</a></h3>
+<ul>
+<li><a href="https://www.postgresql.org/">PostgreSQL</a>: An open source object-relational database.</li>
+<li><a href="http://alembic.zzzcomputing.com/en/latest/">alembic</a>: A database migrations tool written by the author of <a href="https://www.sqlalchemy.org/">SQLAlchemy</a>.</li>
+</ul>
+<h3 id="backend">Backend<a class="headerlink" href="#backend" title="Permanent link">&para;</a></h3>
+<p>The backend of the matching tool follows the general modern Flask patterns with some variations, and uses the Flask <a href="http://flask.pocoo.org/docs/1.0/blueprints/">Blueprints</a> for better modularization of APIs. A blueprint can be seen as a collection of APIs and can be registered to the application. The template html files go to the <code>/templates</code> and all the static files go to the <code>/static</code>, including css files, icon, and the Javascript bundle.</p>
+<pre><code>backend
+├── __init__.py
+├── app.py
+├── apis
+    ├── __init__.py
+    ├── chart.py
+    ├── jobs.py
+    ├── upload.py
+    └── query.py
+├── templates
+    ├── _base.html
+    └── index.html
+├── static
+    ├── output.js
+    ├── main.css
+    ⋮
+    └── favicon.ico
+├── models.py
+├── database.py
+├── tasks.py
+⋮
+└── validations
+    └── __init__.py
+</code></pre>
+
+<ol>
+<li>
+<p>Tech stacks</p>
+<ul>
+<li><a href="http://flask.pocoo.org/">Flask</a>: A python microservice framework. Simple restish APIs that talk json with the client side app.</li>
+<li><a href="https://github.com/frictionlessdata/goodtables-py">goodtables</a>: A framework to validate tabular data.</li>
+<li><a href="http://python-rq.org/">RQ</a>: A simple Python library for queueing jobs and processing them in the background with workers which uses <a href="https://github.com/andymccurdy/redis-py">Redis</a> as a backend. RQ (or something similar) is necessarily because webapp-triggered processes (validation, matching) can take longer than is viable to do synchronously.</li>
+<li><a href="https://www.sqlalchemy.org/">SQLAlchemy</a>: A SQL toolkit and Object Relational Mapper that gives application developers the full power and flexibility of SQL.</li>
+<li><a href="https://pandas.pydata.org/">Pandas</a>: A Python data analysis library.</li>
+</ul>
+</li>
+<li>
+<p>Details</p>
+</li>
+<li>
+<p><strong>APIs</strong>: One can modify APIs in <code>matching-tool/webapp/backend/apis</code>  Currently, the backend factors the application into 3 sets of blueprint and a <code>query.py</code> module:
+        - <code>query.py</code>: A module provides python functions as interface for querying data from postgres, which use <a href="https://pandas.pydata.org/">pandas</a> intensely for data manipulation.
+        - <code>chart.py</code>: Charts related APIs, which provide the information consumed by frontend dashboard.
+        - <code>jobs.py</code>: Async-jobs related APIs, which use <a href="http://python-rq.org/">rq</a> for getting information of jobs.
+        - <code>upload.py</code>: Upload related APIs, which contains functionalities of async uploading and validation.</p>
+</li>
+<li>
+<p><strong>Validation</strong>: If one wants to change the validation rules for the data schemas, <code>matching-tool/webapp/backend/validation</code> is where to modify the codes. This module uses certain functionalities from <a href="https://github.com/frictionlessdata/goodtables.io">goodtables</a>, a python library that implements validation of tabular data according to a given schema and customizable list of checks.</p>
+</li>
+<li>
+<p><strong>ORM</strong>: The backend uses <a href="http://www.sqlalchemy.org/">SQLAlchemy</a> as the Object Relational Mapper which presents a method of associating user-defined Python classes with database tables, and instances of those classes (objects) with rows in their corresponding tables. The database tables are defined in <code>database.py</code></p>
+</li>
+<li>
+<p><strong>output.js</strong>: It's the Javascript bundle file generated by <code>Webpack</code>.</p>
+</li>
+</ol>
+<h3 id="frontend">Frontend<a class="headerlink" href="#frontend" title="Permanent link">&para;</a></h3>
+<p>The frontend of the matching tool is basically implemented with React/Redux patterns and stuctured in a variation of Rails Style known as <strong>module index</strong>. We're organizing the sourcecode content by its type. <code>actions</code>, <code>constants</code>, <code>reducers</code>, and <code>components</code> all have dedicated files, but notice that <code>actions</code>, <code>constants</code> and <code>reducers</code> each also have a similarly-named <code>index.js</code> file. Noted that the details of React/Redux are not covered here, one should check out the official documentations.</p>
+<pre><code>frontend
+├── actions
+    └── index.js
+├── components
+    ├── app.js
+    ├── appbar.js
+    ├── timeline.js
+    ├── venn.js
+    ⋮
+    └── upload.js
+├── constants
+    └── index.js
+├── index.js
+├── reducers
+    └── index.js
+⋮
+├── store
+    └── configureStore.js
+└── webpack.config.js
+</code></pre>
+
+<ol>
+<li>
+<p>Tech stacks</p>
+<ul>
+<li><a href="https://webpack.js.org/">Webpack</a>: A module bundler which takes all module dependencies and generates static assets that represent them.</li>
+<li><a href="https://reactjs.org/">React</a>: A Javascript library for building user interface.</li>
+<li><a href="https://redux.js.org/">Redux</a>: Redux is a predictable state container for JavaScript apps.</li>
+<li><a href="https://ramdajs.com/">Ramda</a>: A Javascript library for functional programming.</li>
+<li><a href="https://v0.material-ui.com/#/">Material-UI</a>: React components that implement Google's Material Design.</li>
+<li><a href="https://uber.github.io/react-vis/">react-vis</a>: A collection of react components to render common data visualization charts.</li>
+<li><a href="https://github.com/benfred/venn.js/">venn.js</a>: A javascript library for laying out area proportional venn and euler diagrams.</li>
+</ul>
+</li>
+<li>
+<p>Details</p>
+<ul>
+<li><strong>React components</strong>: One can modify frontend React components in <code>matching-tool/webapp/frontend/components</code>. React lets you define components as classes or functions which split the UI into independent, reusable pieces, and think about each piece in isolation.</li>
+<li><strong>Actions</strong>: In Redux, <a href="https://redux.js.org/basics/actions">Actions</a> are payloads of information that send data from your application to your store which can be found the codes in <code>matching-tool/webapp/frontend/actions</code></li>
+<li><strong>Reducers</strong>: In Redux, <a href="https://redux.js.org/basics/reducers">Reducers</a> specify how the application's state changes in response to actions sent to the store which can be found in <code>matching-tool/webapp/frontend/reducers</code></li>
+<li><strong>webpack.config.js</strong>: The config tells webpack where to find the Javascript and React files, and where to put the generated Javascript bundle.</li>
+</ul>
+</li>
+</ol>
                 
                   
                 

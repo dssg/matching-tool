@@ -593,7 +593,7 @@
 <p>Find the schema in <a href="https://github.com/dssg/matching-tool/tree/master/webapp/schemas/uploader">webapp/schemas/uploader/</a>.</p>
 </li>
 <li>
-<p>Modify the name, datatype, or constraints for an individual field, or the 'primaryKey' that should uniquely define each row. If it is not clear how to modify an individual schema to, for instance, express a constraint in a given way, refer to either the <a href="https://github.com/frictionlessdata/goodtables-py">goodtables-py docs</a> (the general library used by the matching tool) or the <a href="https://github.com/dssg/matching-tool/blob/master/webapp/webapp/validations/__init__.py">webapp.validations</a> module (the file where custom checks for the matching tool are defined).</p>
+<p>Modify the name, datatype, or constraints for an individual field, or the 'primaryKey' that should uniquely define each row. If it is not clear how to modify an individual schema to, for instance, express a constraint in a given way, refer to either the <a href="https://github.com/frictionlessdata/goodtables-py">goodtables-py docs</a> (the general library used by the matching tool) or the <a href="https://github.com/dssg/matching-tool/blob/master/webapp/backend/validations/__init__.py">webapp.validations</a> module (the file where custom checks for the matching tool are defined).</p>
 </li>
 <li>
 <p>If any of the column names, data types, or primary key have changed, you will have to delete the installation's master table as this information is encoded in the master table's schema. Refer your administrator to <a href="../../admin/updating/#clearing-a-master-table-for-a-schema">Clearing a Master Table for a Schema</a>.</p>
