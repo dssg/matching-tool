@@ -32,6 +32,14 @@ If column names, data types, or the primary key have changed in one of the schem
 The master table resides in the `{jurisdiction}_{event_type}_master` in the [Postgres database](troubleshooting.md#querying-the-database). Example: A jurisdiction of `cook`, and event type of `hmis_service_stays` would be stored in `cook_hmis_service_stays_master`. Once this table has been deleted, it will be recreated upon the next user upload with the new schema.
 
 
+## Expunging Data
+
+There is a data expunging script that is provided. It does *not* expunge individual records, but rather all records for a given jurisdiction and event type, both from S3 and the database. It exists as a Flask CLI command in the webapp container. It prompts you for confirmation before doing so.
+
+- Get a docker shell: `docker exec -it webapp /bin/bash`
+- `flask expunge test jail_bookings` (in this example, 'test' is the jurisdiction and 'jail_bookings' is the event type)
+
+
 ## User and Role Management
 
 Access to the matching tool web application is handled with users and roles.
