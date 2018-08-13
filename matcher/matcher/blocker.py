@@ -8,30 +8,39 @@ from matcher.logger import logger
 
 class Blocker():
 
-    def __init__(self, blocking_rules:dict):
+    def __init__(self, blocking_rules:dict=None):
         self.blocking_rules = blocking_rules
-        self.metadata = {'blocker_initialization_time': datetime.datetime.now()}
+        self.initialization_time = datetime.datetime.now()
+        self.run_start_time = None
+        self.num_blocks = None
+        self.block_keys = None
+        self.run_end_time = None
 
     def run(self, preprocessed_df:pd.DataFrame) -> pd.core.groupby.DataFrameGroupBy:
         """ Take the preprocessed dataframe, and return a group dictionary of
             dataframes where the keys are the blocking values and the values
             are dataframes containing only records matching the key.
         """
-        self.metadata['blocker_run_time'] = datetime.datetime.now()
-        logger.info(f"Blocking by {self.blocking_rules}")
+        self.run_start_time = datetime.datetime.now()
 
-        grouped_df = preprocessed_df.groupby([
-            self._unpack_blocking_rule(preprocessed_df, column_name, position)
-            for column_name, position
-            in self.blocking_rules.items()
-        ])
+        if self.blocking_rules:
+            logger.debug(f"Blocking by {self.blocking_rules}")
+            grouped_df = preprocessed_df.groupby([
+                self._unpack_blocking_rule(preprocessed_df, column_name, position)
+                for column_name, position
+                in self.blocking_rules.items()
+            ])
 
-        logger.info(f"Blocking is done: got {len(grouped_df)} blocks.")
-        self.metadata['num_blocks'] = len(grouped_df)
-        self.metadata['block_keys'] = grouped_df.keys
+        else:
+            logger.debug('No blocking rules passed. Matching all record pairs.')
+            block = pd.Series(data=['all']*len(preprocessed_df), index=preprocessed_df.index)
+            grouped_df = preprocessed_df.groupby(block)
 
-        self.metadata['blocker_finished_time'] = datetime.datetime.now()
-
+        logger.debug(f"Blocking is done: got {len(grouped_df)} blocks.")
+        self.num_blocks = len(grouped_df)
+        self.block_keys = pd.DataFrame(grouped_df.keys).drop_duplicates().T
+        self.run_end_time = datetime.datetime.now()
+        
         return grouped_df
 
     def _unpack_blocking_rule(

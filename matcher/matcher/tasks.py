@@ -9,8 +9,7 @@ import datetime
 import pandas as pd
 import yaml
 
-import matcher.blocker as blocker
-import matcher.matcher as matcher
+import matcher.pipeline as pipeline
 import matcher.preprocess as preprocess
 import matcher.utils as utils
 import matcher.ioutils as ioutils
@@ -63,34 +62,16 @@ def do_match(
         metadata['preprocessed_data_shape'] = list(df.shape)
         metadata['data_preprocessed_time'] = datetime.datetime.now()
 
-        # Blocking: reduce comparisons by finding subsets of data more likely to contain matches
-        logger.info(f"Running blocker")
-        block_object = blocker.Blocker(
-            blocking_rules=config['blocking_rules']
-        )
-        blocked_df = block_object.run(df)
-
         # Record Linkage: block the data, generate pairs and features, and cluster entities
-        logger.info(f"Running matcher")
-        match_object = matcher.Matcher(
+        logger.info(f"Running matching pipeline.")
+        matchmaker = pipeline.Pipeline(
             base_data_directory=base_data_directory,
-            match_job_id=metadata['match_job_id'],
-            clustering_rules=config['clusterer']['args'],
-            contrast_rules=config['contrasts']
+            config=config
         )
-        all_block_metadata = {}
-        matches = {}
-        for key, block in blocked_df:
-            logger.debug(f"Matching group {key} of size {len(block)}")
-            matches[key] = ''.join(key) + match_object.run(df=block).astype(str)
-            logger.debug(f'mocher  metadata: {match_object.metadata}')
-            all_block_metadata[''.join(key)] = match_object.metadata.copy()
-            logger.debug('Wrapping up block')
-        logger.debug('All blocks done! Yehaw!')
-        matches = pd.DataFrame({'matched_id': pd.concat(matches.values())})
+        matchmaker.run(df)
+        matches = matchmaker.matches
         logger.debug(matches)
         metadata['data_matched_time'] = datetime.datetime.now()
-        metadata['all_block_metadata'] = all_block_metadata
         logger.debug('Matching done!')
 
         logger.debug(f"Number of matched pairs: {len(matches)}")
