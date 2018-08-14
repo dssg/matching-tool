@@ -65,6 +65,25 @@
       <defs>
         
         
+          <svg xmlns="http://www.w3.org/2000/svg" width="416" height="448"
+    viewBox="0 0 416 448" id="__github">
+  <path fill="currentColor" d="M160 304q0 10-3.125 20.5t-10.75 19-18.125
+        8.5-18.125-8.5-10.75-19-3.125-20.5 3.125-20.5 10.75-19 18.125-8.5
+        18.125 8.5 10.75 19 3.125 20.5zM320 304q0 10-3.125 20.5t-10.75
+        19-18.125 8.5-18.125-8.5-10.75-19-3.125-20.5 3.125-20.5 10.75-19
+        18.125-8.5 18.125 8.5 10.75 19 3.125 20.5zM360
+        304q0-30-17.25-51t-46.75-21q-10.25 0-48.75 5.25-17.75 2.75-39.25
+        2.75t-39.25-2.75q-38-5.25-48.75-5.25-29.5 0-46.75 21t-17.25 51q0 22 8
+        38.375t20.25 25.75 30.5 15 35 7.375 37.25 1.75h42q20.5 0
+        37.25-1.75t35-7.375 30.5-15 20.25-25.75 8-38.375zM416 260q0 51.75-15.25
+        82.75-9.5 19.25-26.375 33.25t-35.25 21.5-42.5 11.875-42.875 5.5-41.75
+        1.125q-19.5 0-35.5-0.75t-36.875-3.125-38.125-7.5-34.25-12.875-30.25-20.25-21.5-28.75q-15.5-30.75-15.5-82.75
+        0-59.25 34-99-6.75-20.5-6.75-42.5 0-29 12.75-54.5 27 0 47.5 9.875t47.25
+        30.875q36.75-8.75 77.25-8.75 37 0 70 8 26.25-20.5
+        46.75-30.25t47.25-9.75q12.75 25.5 12.75 54.5 0 21.75-6.75 42 34 40 34
+        99.5z" />
+</svg>
+        
       </defs>
     </svg>
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
@@ -134,6 +153,30 @@
         
       </div>
       
+        <div class="md-flex__cell md-flex__cell--shrink">
+          <div class="md-header-nav__source">
+            
+
+
+  
+
+
+  <a href="https://github.com/dssg/matching-tool/" title="Go to repository" class="md-source" data-md-source="github">
+    
+      <div class="md-source__icon">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <use xlink:href="#__github" width="24" height="24"></use>
+        </svg>
+      </div>
+    
+    <div class="md-source__repository">
+      Github
+    </div>
+  </a>
+
+          </div>
+        </div>
+      
     </div>
   </nav>
 </header>
@@ -159,6 +202,28 @@
     </a>
     Matching Tool
   </label>
+  
+    <div class="md-nav__source">
+      
+
+
+  
+
+
+  <a href="https://github.com/dssg/matching-tool/" title="Go to repository" class="md-source" data-md-source="github">
+    
+      <div class="md-source__icon">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <use xlink:href="#__github" width="24" height="24"></use>
+        </svg>
+      </div>
+    
+    <div class="md-source__repository">
+      Github
+    </div>
+  </a>
+
+    </div>
   
   <ul class="md-nav__list" data-md-scrollfix>
     
@@ -581,6 +646,8 @@
             <article class="md-content__inner md-typeset">
               
                 
+                  <a href="https://github.com/dssg/matching-tool/edit/master/docs/dev/webapp.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
+                
                 
                   <h1>Modifying the Webapp</h1>
                 
@@ -651,7 +718,12 @@
 </li>
 </ul>
 </li>
+<li>
+<p>Test Suite</p>
+</li>
 </ol>
+<p>A <a href="https://github.com/dssg/matching-tool/tree/master/webapp/backend/tests">variety of unit tests are written for the backend</a> and generally run using <code>py.test</code>. These can most easily be run using <a href="https://tox.readthedocs.io/en/latest/">tox</a>: <code>tox -e py36</code>.</p>
+<p>The backend has good test coverage, and it is good practice to modify these tests to match any new functionality. The <a href="https://github.com/dssg/matching-tool/blob/master/webapp/backend/tests/test_endpoints.py">endpoint tests</a> are especially good at finding regression bugs as they simulate the interaction between the frontend client (javascript) and the backend. The other tests are smaller-scale, more on a unit test level.</p>
 <h3 id="frontend">Frontend<a class="headerlink" href="#frontend" title="Permanent link">&para;</a></h3>
 <p>The frontend of the matching tool is basically implemented with React/Redux patterns and stuctured in a variation of Rails Style known as <strong>module index</strong>. We're organizing the sourcecode content by its type. <code>actions</code>, <code>constants</code>, <code>reducers</code>, and <code>components</code> all have dedicated files, but notice that <code>actions</code>, <code>constants</code> and <code>reducers</code> each also have a similarly-named <code>index.js</code> file. Noted that the details of React/Redux are not covered here, one should check out the official documentations.</p>
 <pre><code>frontend
@@ -697,7 +769,20 @@
 <li><strong>webpack.config.js</strong>: The config tells webpack where to find the Javascript and React files, and where to put the generated Javascript bundle.</li>
 </ul>
 </li>
+<li>
+<p>Test Suite</p>
+</li>
 </ol>
+<p>There are a minimal amount of unit tests written for the Javascript frontend, using <a href="https://jestjs.io/">Jest</a>. The coverage is not very good, but that is something we are looking to improve. Similarly to the backend tests, these can also be run using Tox: <code>tox -e js</code>, although <a href="https://nodejs.org/en/">NodeJS</a> needs to be installed first.</p>
+<p>This repository has acceptance tests written using Nightwatch, which comes bundled in our JS developer dependencies so you don't need to install it separately. However, requires a locally running Selenium server and the Chrome driver. Later we will add other browsers to this setup.</p>
+<ul>
+<li><a href="http://www.seleniumhq.org/download/">Download the Selenium standalone server</a></li>
+<li><a href="https://sites.google.com/a/chromium.org/chromedriver/downloads">Download the ChromeDriver</a></li>
+</ul>
+<p>To make the ChromeDriver executable work with our nightwatch config, it needs to be available in your PATH.</p>
+<p>The Selenium server is packaged as a JAR file, so you can run it as any other JAR file: <code>java -jar &lt;path/to/selenium/jar/file&gt;</code></p>
+<p>The acceptance tests rely on some test users and jurisdictions in the webapp's database. This is covered in the setup at the top of this README, so make sure that is completed before trying to run these tests.</p>
+<p>You can run the tests by navigating to the <code>webapp/frontend</code> directory and running <code>npm run acceptance</code>. If all goes well, you should see many instances of Chrome pop up, a bunch of text entry, clicking and page loading, and all tests passing in your console.</p>
                 
                   
                 

@@ -65,6 +65,25 @@
       <defs>
         
         
+          <svg xmlns="http://www.w3.org/2000/svg" width="416" height="448"
+    viewBox="0 0 416 448" id="__github">
+  <path fill="currentColor" d="M160 304q0 10-3.125 20.5t-10.75 19-18.125
+        8.5-18.125-8.5-10.75-19-3.125-20.5 3.125-20.5 10.75-19 18.125-8.5
+        18.125 8.5 10.75 19 3.125 20.5zM320 304q0 10-3.125 20.5t-10.75
+        19-18.125 8.5-18.125-8.5-10.75-19-3.125-20.5 3.125-20.5 10.75-19
+        18.125-8.5 18.125 8.5 10.75 19 3.125 20.5zM360
+        304q0-30-17.25-51t-46.75-21q-10.25 0-48.75 5.25-17.75 2.75-39.25
+        2.75t-39.25-2.75q-38-5.25-48.75-5.25-29.5 0-46.75 21t-17.25 51q0 22 8
+        38.375t20.25 25.75 30.5 15 35 7.375 37.25 1.75h42q20.5 0
+        37.25-1.75t35-7.375 30.5-15 20.25-25.75 8-38.375zM416 260q0 51.75-15.25
+        82.75-9.5 19.25-26.375 33.25t-35.25 21.5-42.5 11.875-42.875 5.5-41.75
+        1.125q-19.5 0-35.5-0.75t-36.875-3.125-38.125-7.5-34.25-12.875-30.25-20.25-21.5-28.75q-15.5-30.75-15.5-82.75
+        0-59.25 34-99-6.75-20.5-6.75-42.5 0-29 12.75-54.5 27 0 47.5 9.875t47.25
+        30.875q36.75-8.75 77.25-8.75 37 0 70 8 26.25-20.5
+        46.75-30.25t47.25-9.75q12.75 25.5 12.75 54.5 0 21.75-6.75 42 34 40 34
+        99.5z" />
+</svg>
+        
       </defs>
     </svg>
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
@@ -134,6 +153,30 @@
         
       </div>
       
+        <div class="md-flex__cell md-flex__cell--shrink">
+          <div class="md-header-nav__source">
+            
+
+
+  
+
+
+  <a href="https://github.com/dssg/matching-tool/" title="Go to repository" class="md-source" data-md-source="github">
+    
+      <div class="md-source__icon">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <use xlink:href="#__github" width="24" height="24"></use>
+        </svg>
+      </div>
+    
+    <div class="md-source__repository">
+      Github
+    </div>
+  </a>
+
+          </div>
+        </div>
+      
     </div>
   </nav>
 </header>
@@ -159,6 +202,28 @@
     </a>
     Matching Tool
   </label>
+  
+    <div class="md-nav__source">
+      
+
+
+  
+
+
+  <a href="https://github.com/dssg/matching-tool/" title="Go to repository" class="md-source" data-md-source="github">
+    
+      <div class="md-source__icon">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <use xlink:href="#__github" width="24" height="24"></use>
+        </svg>
+      </div>
+    
+    <div class="md-source__repository">
+      Github
+    </div>
+  </a>
+
+    </div>
   
   <ul class="md-nav__list" data-md-scrollfix>
     
@@ -421,6 +486,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#expunging-data" title="Expunging Data" class="md-nav__link">
+    Expunging Data
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#user-and-role-management" title="User and Role Management" class="md-nav__link">
     User and Role Management
   </a>
@@ -568,6 +640,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#expunging-data" title="Expunging Data" class="md-nav__link">
+    Expunging Data
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#user-and-role-management" title="User and Role Management" class="md-nav__link">
     User and Role Management
   </a>
@@ -595,6 +674,8 @@
             <article class="md-content__inner md-typeset">
               
                 
+                  <a href="https://github.com/dssg/matching-tool/edit/master/docs/admin/updating.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
+                
                 
                   <h1>Updating</h1>
                 
@@ -617,6 +698,12 @@ docker rm webapp
 <h3 id="clearing-a-master-table-for-a-schema">Clearing a Master Table for a Schema<a class="headerlink" href="#clearing-a-master-table-for-a-schema" title="Permanent link">&para;</a></h3>
 <p>If column names, data types, or the primary key have changed in one of the schemas, you will have to delete the master table for that schema in the database. This is because once data has been uploaded for a particular schema, this master table will reflect the column names and data types present in the schema at that time, and all uploads are merged into this table for a coherent timeline of events. There is no procedure for 'upgrading' a master table with a new schema, because many schema updates will invalidate existing data. We recommend simply deleting the table and re-uploading any data.</p>
 <p>The master table resides in the <code>{jurisdiction}_{event_type}_master</code> in the <a href="../troubleshooting/#querying-the-database">Postgres database</a>. Example: A jurisdiction of <code>cook</code>, and event type of <code>hmis_service_stays</code> would be stored in <code>cook_hmis_service_stays_master</code>. Once this table has been deleted, it will be recreated upon the next user upload with the new schema.</p>
+<h3 id="expunging-data">Expunging Data<a class="headerlink" href="#expunging-data" title="Permanent link">&para;</a></h3>
+<p>There is a data expunging script that is provided. It does <em>not</em> expunge individual records, but rather all records for a given jurisdiction and event type, both from S3 and the database. It exists as a Flask CLI command in the webapp container. It prompts you for confirmation before doing so.</p>
+<ul>
+<li>Get a docker shell: <code>docker exec -it webapp /bin/bash</code></li>
+<li><code>flask expunge test jail_bookings</code> (in this example, 'test' is the jurisdiction and 'jail_bookings' is the event type)</li>
+</ul>
 <h3 id="user-and-role-management">User and Role Management<a class="headerlink" href="#user-and-role-management" title="Permanent link">&para;</a></h3>
 <p>Access to the matching tool web application is handled with users and roles.</p>
 <p>A <strong>user</strong> is anybody who can log into the tool.</p>
