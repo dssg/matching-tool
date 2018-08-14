@@ -4,6 +4,15 @@
 
 The Matching Tool is a web-based platform that assists communities in matching Homeless Management Information System (HMIS) and criminal justice records in order to identify people who are cycling through both systems and prioritize them for supportive housing. The tool is fed tabular data, which is securely stored and matched with data from other systems within the same jurisdiction. The tool then displays results from the matched data to find overlaps between the populations and frequent utilizers of both systems. 
 
+## Browser Support
+The web app is tested on the following browsers:
+
+- Firefox 52 and above
+- Chrome 61
+- IE 11
+
+If you test with any other browsers, add them to this list!
+
 # Login Page
 
 This is the first page of the tool. Accessing the tool requires a registered email address and password combination. This must be entered and submitted in the form on the Login page, as seen in Figure 1. After entering the details, click "Login" to be directed to the Home Page. 

@@ -1,5 +1,7 @@
 site_name: Matching Tool
 docs_dir: sources
+repo_name: Github
+repo_url: https://github.com/dssg/matching-tool/
 theme: material
 markdown_extensions:
     - toc:
