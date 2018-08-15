@@ -3,8 +3,10 @@ from os.path import dirname
 import s3fs
 from urllib.parse import urlparse
 from contextlib import contextmanager
+from retrying import retry
 
 
+@retry(stop_max_delay=15000)
 @contextmanager
 def open_sesame(path, *args, **kwargs):
     """Opens files either on s3 or a filesystem according to the path's scheme
