@@ -8,6 +8,7 @@ import s3fs
 import yaml
 from urllib.parse import urlparse
 from contextlib import contextmanager
+from retrying import retry
 
 from matcher.logger import logger
 from matcher import  utils
@@ -19,6 +20,7 @@ dotenv_path = os.path.join(APP_ROOT, '.env')
 load_dotenv(dotenv_path)
 
 
+@retry(stop_max_delay=15000, wait_fixed=3000)
 @contextmanager
 def open_sesame(path, *args, **kwargs):
     """Opens files either on s3 or a filesystem according to the path's scheme
