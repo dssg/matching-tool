@@ -15,6 +15,11 @@
 #      found in the match_log table in the database)                          #
 #   3. CACHED_FILE_TYPE: the type of matcher cache output (contrasts,         #
 #      raw_cluster_ids, or square_distances) you would like to read           #
+#                                                                             #
+# Warning: The script will create the match_cache directory and store the     #
+# data, which includes personally identifying information, in the directory   #
+# where it is run. It is recommended to run it from outside the repo to avoid #
+# mistakenly committing any sensitive information.                            #
 ###############################################################################
 
 # Assign arguments to named variables
