@@ -6,7 +6,7 @@ from contextlib import contextmanager
 from retrying import retry
 
 
-@retry(stop_max_delay=15000)
+@retry(stop_max_delay=15000, wait_fixed=3)
 @contextmanager
 def open_sesame(path, *args, **kwargs):
     """Opens files either on s3 or a filesystem according to the path's scheme

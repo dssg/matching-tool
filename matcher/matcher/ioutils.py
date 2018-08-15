@@ -20,7 +20,7 @@ dotenv_path = os.path.join(APP_ROOT, '.env')
 load_dotenv(dotenv_path)
 
 
-@retry(stop_max_delay=15000)
+@retry(stop_max_delay=15000, wait_fixed=3)
 @contextmanager
 def open_sesame(path, *args, **kwargs):
     """Opens files either on s3 or a filesystem according to the path's scheme
