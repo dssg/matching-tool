@@ -35,14 +35,16 @@ def do_match(
     with open(config_path) as f:
         config = yaml.load(f)
 
-    # Initializing: let's get started by collecting some job metadata
+    # Initializing: let's get started by collecting and logging some job metadata
     metadata = {
         'match_job_start_time': datetime.datetime.now(),
         'match_job_id': utils.unique_match_job_id(),
         'base_data_directory': base_data_directory,
         'config': config
     }
-    logger.info("Matching process started!")
+    logger.info("Matching process started with the following configuration:")
+    for key, value in config.items():
+         logger.info(f"Matcher config {key}: {value}")
 
     try:
         # Loading: collect matching data (keys) for all available event types & record which event types were found
