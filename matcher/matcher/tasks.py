@@ -43,10 +43,8 @@ def do_match(
         'config': config
     }
     logger.info("Matching process started with the following configuration:")
-    logger.info(f"keys: {config['keys']}")
-    logger.info(f"blocking_rules: {config['blocking_rules']}")
-    logger.info(f"contrasts: {config['contrasts']}")
-    logger.info(f"clusterer: {config['clusterer']}")
+    for key, value in config.items():
+         logger.info(f"Matcher config {key}: {value}")
 
     try:
         # Loading: collect matching data (keys) for all available event types & record which event types were found
