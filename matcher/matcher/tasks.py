@@ -126,7 +126,6 @@ def do_match(
 
     finally:
         if notify_webapp:
-            logger.error("Notifying the webapp")
             job = q.enqueue_call(
                 func='backend.match_finished',
                 args=(
