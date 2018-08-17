@@ -16,5 +16,5 @@ DSaPP and CSH partnered with the following jurisdictions to standardize the deve
 The main purpose of the matching tool is to integrate data from the homeless services and criminal justice systems, which will allow a community to identify frequent users of both systems and provide intervention for those who need it the most. 
 
 ## Contributing
-For guidlines on contributing to the repository, please read the [CONTRIBUTING.md](https://github.com/dssg/matching-tool/CONTRIBUTING.md) document in the repository.
+For guidlines on contributing to the repository, please read the [CONTRIBUTING.md](https://github.com/dssg/matching-tool/blob/master/CONTRIBUTING.md) document in the repository.
 
