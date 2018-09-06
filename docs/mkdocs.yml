@@ -25,6 +25,7 @@ pages:
         - {Updating: admin/updating.md}
         - {Configuring the Matching Service: admin/matching.md}
     - For Developers:
+        - {Getting Started: dev/getting-started.md}
         - {Creating or Modifying a Schema: dev/schemas.md}
         - {Modifying the Webapp: dev/webapp.md}
         - {Modifying the Matching Service: dev/matching.md}
