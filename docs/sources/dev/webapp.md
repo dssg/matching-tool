@@ -4,10 +4,15 @@ The webapp can be modified for adding new APIs, plots or functionalities that wi
 
 ![diagram](diagram.png)
 
-## Database
-
 - [PostgreSQL](https://www.postgresql.org/): An open source object-relational database.
 - [alembic](http://alembic.zzzcomputing.com/en/latest/): A database migrations tool written by the author of [SQLAlchemy](https://www.sqlalchemy.org/).
+
+## Applying Changes
+
+Before we get into the deep dive, here's a reference on applying webapp changes to a running version of the matching tool.
+
+- If you make changes to Python code, the code itself will automatically make it to each needed container through the mounted volume designated in the docker-compose file. However, the containers have to apply the changes. The webapp container will do this automatically, as Flask is running in development mode. However, if you are changing asynchronous code that runs in the worker container (like validation code), you will have to restart the `webapp_worker` container. If you're not sure which type of code you are modifying, restart the container to be safe.
+- If you make changes to Javascript code, you have to recompile the JS file by running a command in the webapp container: `docker exec webapp -c 'cd frontend && npm run build'`. In addition, you may have to [force-refresh your browser](https://refreshyourcache.com/en/cache/) to ensure all of the new code is applied to your browser, at least until [this issue](https://github.com/dssg/matching-tool/issues/255) is fixed. 
 
 ## Backend
 

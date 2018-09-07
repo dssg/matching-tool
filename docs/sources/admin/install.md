@@ -9,9 +9,7 @@
 
 ## Deploy with Docker
 
-If you are deploying the matching tool with the goal of having users actively use it to upload real data, and you want that data to persist, follow the [Production](#production) section. If you just want to try out the tool with fake data and do active development on it, follow the [Development](#development) section.
-
-### Production
+If you are deploying the matching tool with the goal of having users actively use it to upload real data, and you want that data to persist, follow the [Production](#production) section. If you just want to try out the tool with fake data and do active development on it, follow the [Developer](/dev/getting-started) section.
 
 1. Set up a Postgres server. [Amazon RDS](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_GettingStarted.CreatingConnecting.PostgreSQL.html) is recommended, though you may set up and administrate your own if desired.
 2. Set up a machine/instance that will run the matching tool (see [requirements](#requirements) section for recommendations). Log into this machine; the rest of the steps assume that you are on the machine.
@@ -46,22 +44,7 @@ If you are deploying the matching tool with the goal of having users actively us
 	- Example: `./scripts/3_create_user mycounty thcrockett@uchicago.edu password hmis_service_stays jail_bookings`
 11. At this point, the web app should be running at port 80 on the machine.
 
-### Development
-
-1. Clone the git repository: `git clone https://github.com/dssg/matching-tool.git` (this will require git to be installed if the machine didn't come with it)
-2. `cd matching-tool` to change into the repository root directory.
-3. Install docker and docker-compose. If you are on an Ubuntu machine, you can use the included executable script `./scripts/1_install_docker` script as a convenience for doing so. Otherwise, refer to the [Docker](https://docs.docker.com/install) and [Docker Compose](https://docs.docker.com/compose/install/) documentation. If running the included install script, log out and back in when it completes as it will add your user to the 'docker' group, and that change requires a new login to take effect.
-4. Set up storage.
-    1. Option 1 (S3):
-	    - Open up your .env file and modify the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` variables with your values. Visit [Managing Access Keys for your AWS Account](https://docs.aws.amazon.com/general/latest/gr/managing-aws-access-keys.html) if you don't have an access key yet.
-	    - Open up the webapp.env file and modify all the instances of `your-bucket` to an S3 bucket you want to use to store data.
-    2. Option 2 (Filesystem): [configuration changes](install.md#using-the-filesystem)
-5. Bring up the docker containers using our development docker-compose: `docker-compose -f docker-compose-dev.yml up`
-6. Initialize the database and users. You can use [this script](https://github.com/dssg/matching-tool/blob/master/scripts/development/create_test_users_docker.sh) to get set up easily, including a user `testuser@example.com` with password `password`, that you can use to log in: `sh scripts/development/create_test_users_docker.sh`
-7. At this point, the web app should be running at port 80 on the machine.
-
-
-### Using the Filesystem
+## Using the Filesystem
 
 The code in both the webapp and the matching service support both S3 and filesystem schemes for storage. However, since they need to communicate data between each other, and by default they are in separate Docker containers with separate filesystems, to use the filesystem you must also modify the docker-compose.yml to mount a shared volume from the host machine between the `webapp`, `webapp_worker`, and `matcher_worker` containers.
 
