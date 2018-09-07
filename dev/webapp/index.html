@@ -482,6 +482,18 @@
 
 
   <li class="md-nav__item">
+    <a href="../getting-started/" title="Getting Started" class="md-nav__link">
+      Getting Started
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
     <a href="../schemas/" title="Creating or Modifying a Schema" class="md-nav__link">
       Creating or Modifying a Schema
     </a>
@@ -525,8 +537,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#database" title="Database" class="md-nav__link">
-    Database
+  <a href="#applying-changes" title="Applying Changes" class="md-nav__link">
+    Applying Changes
   </a>
   
 </li>
@@ -605,8 +617,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#database" title="Database" class="md-nav__link">
-    Database
+  <a href="#applying-changes" title="Applying Changes" class="md-nav__link">
+    Applying Changes
   </a>
   
 </li>
@@ -654,10 +666,15 @@
                 <h2 id="modifying-the-webapp">Modifying the Webapp<a class="headerlink" href="#modifying-the-webapp" title="Permanent link">&para;</a></h2>
 <p>The webapp can be modified for adding new APIs, plots or functionalities that will improve the usability as well as the analysis. This document introduce the tech stacks and design patterns in the matching tool. The web application of this matching tool follows one of the popular and productive tech stacks today, a combination of <a href="https://reactjs.org/">React</a>/<a href="https://github.com/reduxjs/react-redux">Redux</a> for creating UI and consuming APIs as the frontend, <a href="http://flask.pocoo.org/">Python/Flask</a> for providing APIs as the backend, and <a href="https://www.sqlalchemy.org/">SQLAlchemy</a> as the Python Object Relation Map (ORM) to communicate with the <a href="https://www.postgresql.org/">PostgreSQL</a> database. The architecture is shown in the diagram.</p>
 <p><img alt="diagram" src="../diagram.png" /></p>
-<h3 id="database">Database<a class="headerlink" href="#database" title="Permanent link">&para;</a></h3>
 <ul>
 <li><a href="https://www.postgresql.org/">PostgreSQL</a>: An open source object-relational database.</li>
 <li><a href="http://alembic.zzzcomputing.com/en/latest/">alembic</a>: A database migrations tool written by the author of <a href="https://www.sqlalchemy.org/">SQLAlchemy</a>.</li>
+</ul>
+<h3 id="applying-changes">Applying Changes<a class="headerlink" href="#applying-changes" title="Permanent link">&para;</a></h3>
+<p>Before we get into the deep dive, here's a reference on applying webapp changes to a running version of the matching tool.</p>
+<ul>
+<li>If you make changes to Python code, the code itself will automatically make it to each needed container through the mounted volume designated in the docker-compose file. However, the containers have to apply the changes. The webapp container will do this automatically, as Flask is running in development mode. However, if you are changing asynchronous code that runs in the worker container (like validation code), you will have to restart the <code>webapp_worker</code> container. If you're not sure which type of code you are modifying, restart the container to be safe.</li>
+<li>If you make changes to Javascript code, you have to recompile the JS file by running a command in the webapp container: <code>docker exec webapp -c 'cd frontend &amp;&amp; npm run build'</code>. In addition, you may have to <a href="https://refreshyourcache.com/en/cache/">force-refresh your browser</a> to ensure all of the new code is applied to your browser, at least until <a href="https://github.com/dssg/matching-tool/issues/255">this issue</a> is fixed. </li>
 </ul>
 <h3 id="backend">Backend<a class="headerlink" href="#backend" title="Permanent link">&para;</a></h3>
 <p>The backend of the matching tool follows the general modern Flask patterns with some variations, and uses the Flask <a href="http://flask.pocoo.org/docs/1.0/blueprints/">Blueprints</a> for better modularization of APIs. A blueprint can be seen as a collection of APIs and can be registered to the application. The template html files go to the <code>/templates</code> and all the static files go to the <code>/static</code>, including css files, icon, and the Javascript bundle.</p>
