@@ -9,20 +9,17 @@ import datetime
 import pandas as pd
 import yaml
 
-import matcher.matcher as matcher
+import matcher.pipeline as pipeline
 import matcher.preprocess as preprocess
 import matcher.utils as utils
 import matcher.ioutils as ioutils
 
 from matcher.logger import logger
 
-
 from redis import Redis
 from rq import Queue
 redis_connection = Redis(host='redis', port=6379)
 q = Queue('webapp', connection=redis_connection)
-
-
 
 
 def do_match(
@@ -67,18 +64,16 @@ def do_match(
         metadata['preprocessed_data_shape'] = list(df.shape)
         metadata['data_preprocessed_time'] = datetime.datetime.now()
 
-        # Matching: block the data, generate pairs and features, and cluster entities
-        logger.info(f"Running matcher")
-        match_object = matcher.Matcher(
+        # Record Linkage: block the data, generate pairs and features, and cluster entities
+        logger.info(f"Running matching pipeline.")
+        matchmaker = pipeline.Pipeline(
             base_data_directory=base_data_directory,
-            match_job_id=metadata['match_job_id'],
-            clustering_rules=config['clusterer']['args'],
-            contrast_rules=config['contrasts'],
-            blocking_rules=config['blocking_rules']
+            config=config
         )
-        matches = match_object.block_and_match(df=df)
+        matchmaker.run(df)
+        matches = matchmaker.matches
+        logger.debug(matches)
         metadata['data_matched_time'] = datetime.datetime.now()
-        metadata.update(match_object.metadata)
         logger.debug('Matching done!')
 
         logger.debug(f"Number of matched pairs: {len(matches)}")
@@ -95,7 +90,7 @@ def do_match(
         metadata['data_written_time'] = datetime.datetime.now()
         ioutils.write_dict_to_yaml(metadata, f"{base_data_directory}/match_cache/metadata/{metadata['match_job_id']}")
 
-        logger.info('Finished')
+        logger.info('Finished successfully!')
         match_end_time = datetime.datetime.now()
         match_runtime =  match_end_time - metadata['match_job_start_time']
 

@@ -98,8 +98,11 @@ contrasts:
           args:
                n_chars: -1
 
+scorer:
+    operation: mean 
+
 clusterer:
-    method: sklearn.cluster.DBSCAN
+    algorithm: sklearn.cluster.DBSCAN
     args:
         eps: 0.2
         min_samples: 1

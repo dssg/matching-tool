@@ -162,7 +162,8 @@ def join_matched_and_merged_data(
     primary_keys:list
 ) -> pd.DataFrame:
     left_df=read_merged_data(base_data_directory, event_type, person_keys)[primary_keys]
-
+    logger.debug(left_df.columns.values)
+    logger.debug(right_df.columns.values)
     df = left_df.merge(
         right=right_df['matched_id'].to_frame(),
         left_index=True,
