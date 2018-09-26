@@ -151,9 +151,9 @@ class Contraster:
         
         logger.debug('Running all those contrasts!')
         contrasts = self.contraster.compute(pairs, df)
-        
+        logger.debug(f'Contrasts dataframe has dimensions {contrasts.shape}')
         self.describe_contrasts(contrasts)
-
+        
         self.contrast_dataframe_dimensions = contrasts.shape
         self.run_end_time = datetime.datetime.now()
         

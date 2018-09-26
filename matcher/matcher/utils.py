@@ -5,8 +5,6 @@ import os
 import numpy as np
 import pandas as pd
 
-from matcher import ioutils
-
 from matcher.logger import logger
 
 from uuid import uuid4

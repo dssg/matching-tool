@@ -12,7 +12,6 @@ from typing import List
 from matcher.contraster import Contraster
 from matcher.scorer import Scorer
 from matcher.cluster import Clusterer
-import matcher.ioutils as ioutils
 import matcher.utils as utils
 
 from matcher.logger import logger
@@ -23,18 +22,17 @@ import recordlinkage as rl
 class Matcher:
     def __init__(
         self,
-        base_data_directory:str,
         contraster:Contraster,
         scorer:Scorer,
         clusterer:Clusterer
     ):
-        self.base_data_directory = base_data_directory
         self.contraster = contraster
         self.scorer = scorer
         self.clusterer = clusterer
         self.initialization_time = datetime.datetime.now()
         self.run_start_time = None
         self.run_end_time = None
+        self.contrasts = None
         
     def run(self, df:pd.DataFrame) -> pd.DataFrame:
         self.run_start_time = datetime.datetime.now()
@@ -54,22 +52,23 @@ class Matcher:
 
             logger.debug(f"Initializing contrasting!")
             contrasts = self.contraster.run(pairs, df)
+            contrasts.index.rename(
+                ['matcher_index_left', 'matcher_index_right'], inplace=True
+            )
+            logger.debug(contrasts)
             logger.debug("Contrasts created!")
 
             logger.debug('Scoring the distances between records.')
-            contrasts.index.rename(['matcher_index_left', 'matcher_index_right'], inplace=True)
             contrasts = self.scorer.run(contrasts)
+            self.contrasts = contrasts.copy()
             logger.debug('Caching those contrasts and distances for you.')
-            # ioutils.write_dataframe(
-            #     contrasts.reset_index(),
-            #     filepath=f'{self.base_data_directory}/match_cache/contrasts/{self.match_job_id}/{key}'
-            # )
             logger.debug('Scores created.')
 
             logger.debug('Clustering records!')
-            matches = self.clusterer.run(distances=contrasts)
+            matches = self.clusterer.run(distances=self.contrasts)
             logger.debug('Clustering done. Wrapping up matching.')
 
         self.run_end_time = datetime.datetime.now()
 
         return matches
+

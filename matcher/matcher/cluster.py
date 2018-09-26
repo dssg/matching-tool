@@ -5,8 +5,6 @@ import numpy as np
 import pandas as pd
 import sklearn
 
-import matcher.ioutils as ioutils
-
 from matcher.logger import logger
 
 
@@ -24,17 +22,17 @@ class Clusterer():
         self.run_start_time = datetime.datetime.now()
         logger.info('Beginning clustering & id generation.')
 
-        squared_distances = self._square_distance_matrix(distances)
-        self.squared_distance_matrix_created_time = datetime.datetime.now()
-        self.square_distance_matrix_dimensions = squared_distances.shape
+        square_distance_matrix = self._square_distance_matrix(distances)
+        self.square_distance_matrix_created_time = datetime.datetime.now()
+        self.square_distance_matrix_dimensions = square_distance_matrix.shape
 
         logger.debug('Squared the distances. Beginning clustering.')
-        self.clusterer.fit(X=squared_distances)
+        self.clusterer.fit(X=square_distance_matrix)
         self.clusterer_fit_time = datetime.datetime.now()
 
         logger.debug('Clustering done! Assigning matched ids.')
         ids = self._generate_ids(
-            index=squared_distances.index.values,
+            index=square_distance_matrix.index.values,
             labels=self.clusterer.labels_
         ).astype(str)
         self.run_end_time = datetime.datetime.now()
@@ -60,6 +58,7 @@ class Clusterer():
         logger.debug(f'index {len(index)}')
         logger.debug(f'labels {len(labels)}')
         ids = pd.Series(index=index, data=labels, name='matched_id')
+        self.raw_cluster_ids = ids.copy()
         logger.debug(f'ids {ids}')
         max_cluster_id = ids.max()
         self.num_clusters = int(max_cluster_id)

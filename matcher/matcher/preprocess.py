@@ -2,11 +2,9 @@
 
 import pandas as pd
 
-import matcher.ioutils as ioutils
-
 from matcher.logger import logger
 
-def preprocess(df:pd.DataFrame, match_job_id:str, base_data_directory:str) -> pd.DataFrame:
+def preprocess(df:pd.DataFrame, cache) -> pd.DataFrame:
     # full_name
     # full name is only given if name parts are not. maybe we should do some preprocessing on full names to create
     # name parts and use only the name parts, especially since it is possible for the jail and HMIS systems to
@@ -80,6 +78,6 @@ def preprocess(df:pd.DataFrame, match_job_id:str, base_data_directory:str) -> pd
     logger.info('Preprocessing done!')
     logger.debug(f"The preprocessed dataframe has the following columns: {df.columns}")
     logger.debug(f"The preprocessed dimensions of the dataframe is: {df.shape}")
-    ioutils.write_dataframe(df.reset_index(), filepath=f'{base_data_directory}/match_cache/preprocessed_data/{match_job_id}')
+    cache.cache_matcher_data(df, 'preprocessed_data') 
     return df
 

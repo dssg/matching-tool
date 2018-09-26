@@ -16,7 +16,6 @@ import matcher.contraster as contraster
 import matcher.scorer as scorer
 import matcher.cluster as cluster
 import matcher.matcher as matcher
-import matcher.ioutils as ioutils
 import matcher.utils as utils
 
 from matcher.logger import logger
@@ -25,10 +24,8 @@ from matcher.logger import logger
 class Pipeline:
     def __init__(
         self,
-        base_data_directory:str,
         config:dict
     ):
-        self.base_data_directory = base_data_directory
         self.config = config
         self.initialization_time = datetime.datetime.now()
         self.run_start_time = None
@@ -57,7 +54,6 @@ class Pipeline:
         )
 
         self.base_matcher = matcher.Matcher(
-            self.base_data_directory,
             self.contraster,
             self.scorer,
             self.clusterer

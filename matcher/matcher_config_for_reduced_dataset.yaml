@@ -2,6 +2,14 @@
 # only a small subset of personal data is available to the matcher and where
 # hashed SSNs are used.
 
+cache:
+    loaded_data: true
+    preprocessed_data: true
+    contrasts: true
+    square_distances: true
+    raw_cluster_ids: true
+    matcher_results: true
+
 keys:
     # Which columns to select for matching
     - first_name
