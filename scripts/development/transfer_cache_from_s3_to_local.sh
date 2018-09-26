@@ -11,10 +11,10 @@
 # To run the script, pass the following command line arguments:               #
 #                                                                             #
 #   1. BASE_PATH: the base S3 storage path                                    #
-#   1. JURISDICTION: the short name of the jurisdiction                       #
-#   2. MATCH_JOB: the id of the match job you want to investigate (can be     #
+#   2. JURISDICTION: the short name of the jurisdiction                       #
+#   3. MATCH_JOB: the id of the match job you want to investigate (can be     #
 #      found in the match_log table in the database)                          #
-#   3. CACHED_FILE_TYPE: the type of matcher cache output (contrasts,         #
+#   4. CACHED_FILE_TYPE: the type of matcher cache output (contrasts,         #
 #      raw_cluster_ids, or square_distances) you would like to read           #
 #                                                                             #
 # Warning: The script will create the match_cache directory and store the     #
