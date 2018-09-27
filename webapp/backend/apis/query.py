@@ -244,7 +244,7 @@ def get_records_by_time(
     rows_to_show = [dict(row) for row in db.engine.execute("""
         {}
         where {}
-        order by {} {}
+        order by {} {} nulls last
         limit {} offset %(offset)s""".format(
             base_query,
             status_filter,

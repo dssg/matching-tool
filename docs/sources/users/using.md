@@ -87,7 +87,9 @@ After you have confirmed your upload, the next screen will show the number of to
 
 The Results page provides a summary of the results based on the data uploaded and matched from the County’s jail bookings and HMIS stays. 
 
-Each of the data fields can be clicked on to sort the data based on the field specified in either ascending or descending order. The Results page also provides the total number of records, the number of jail booking records, the number of HMIS stay records, and the number of records and  percent of HMIS and Jail booking records found in both datasets. The tool also provides the data field information by clicking on the question mark icon at the top of the page (under Upload Data).
+The Results page also provides the total number of records, the number of jail booking records, the number of HMIS stay records, and the number of records and  percent of HMIS and Jail booking records found in both datasets. The tool also provides the data field information by clicking on the question mark icon at the top of the page (under Upload Data).
+
+Each of the data fields can be clicked on to sort the data based on the field specified in either ascending or descending order, with null or empty values always appearing last. This means that, for example, if you sort by last jail booking date, someone who has never been in jail will always appear at the bottom of the list, regardless of whether you sort with most recent bookings first or least recent bookings first. To see people with no jail contacts, click on the Homeless only portion of the Venn diagram.
 
 **Figure 10: Results Page Overview**
 
