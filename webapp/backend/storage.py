@@ -4,6 +4,9 @@ import s3fs
 from urllib.parse import urlparse
 from contextlib import contextmanager
 from retrying import retry
+import shutil
+import logging
+from pathlib import Path
 
 
 @retry(stop_max_delay=15000, wait_fixed=3000)
@@ -25,3 +28,20 @@ def open_sesame(path, *args, **kwargs):
         s3 = s3fs.S3FileSystem()
         with s3.open(path, *args, **kwargs) as f:
             yield f
+
+
+def remove_recursively(path):
+    path_parsed = urlparse(path)
+    scheme = path_parsed.scheme  # If '' or 'file' then a regular file; if 's3' then 's3'
+
+    if not scheme or scheme == 'file':  # Local file
+        if Path(path).exists():
+            shutil.rmtree(path)
+        else:
+            logging.info('Path %s did not exist, so no removal attempted', path)
+    elif scheme == 's3':
+        s3 = s3fs.S3FileSystem()
+        if s3.exists(path):
+            s3.rm(path, recursive=True)
+        else:
+            logging.info('Path %s did not exist, so no removal attempted', path)
