@@ -36,10 +36,8 @@ class Store(object):
 
     @contextmanager
     def _open(self, path, *args, **kwargs):
-        """Opens files either on s3 or a filesystem according to the path's scheme
-
-        Uses s3fs so boto3 is used.
-        This means mock_s3 can be used for tests, instead of the mock_s3_deprecated
+        """Opens files either on s3 or a filesystem according to the path's
+        scheme.
         """
         full_path = f'{self.base_data_directory}/{path}'
         logger.debug(f'Opening {full_path}')
@@ -64,7 +62,7 @@ class Cache(object):
         loaded_data:bool=False,
         preprocessed_data:bool=False,
         contrasts:bool=False,
-        square_distances:bool=False,
+        square_distance_matrix:bool=False,
         raw_cluster_ids:bool=False,
         matcher_results:bool=False
     ):
@@ -73,7 +71,7 @@ class Cache(object):
         self.loaded_data = loaded_data
         self.preprocessed_data = preprocessed_data
         self.contrasts = contrasts
-        self.square_distances = square_distances
+        self.square_distance_matrix = square_distance_matrix
         self.raw_cluster_ids = raw_cluster_ids
         self.matcher_results = matcher_results
 

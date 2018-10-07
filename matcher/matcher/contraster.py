@@ -133,7 +133,7 @@ class Contraster:
         """
         self.run_start_time = datetime.datetime.now()
         logger.debug(f'Making the following contrasts: \n{self.config}')
-        
+
         for col_name, contrast_definitions in self.config.items():
             logger.debug(f'Found the following contrasts for {col_name}: \n{contrast_definitions}')
 
@@ -148,12 +148,12 @@ class Contraster:
                 else:
                     logger.debug(f"Found no arguments for {col_name} {contrast_definition['method']}.")
                     contrast_method(col_name)
-        
+
         logger.debug('Running all those contrasts!')
         contrasts = self.contraster.compute(pairs, df)
         logger.debug(f'Contrasts dataframe has dimensions {contrasts.shape}')
         self.describe_contrasts(contrasts)
-        
+
         self.contrast_dataframe_dimensions = contrasts.shape
         self.run_end_time = datetime.datetime.now()
         

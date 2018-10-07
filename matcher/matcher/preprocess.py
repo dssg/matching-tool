@@ -6,8 +6,9 @@ from matcher.logger import logger
 
 def preprocess(df:pd.DataFrame, cache) -> pd.DataFrame:
     # full_name
-    # full name is only given if name parts are not. maybe we should do some preprocessing on full names to create
-    # name parts and use only the name parts, especially since it is possible for the jail and HMIS systems to
+    # full name is only given if name parts are not. maybe we should do some
+    # preprocessing on full names to create name parts and use only the name
+    # parts, especially since it is possible for the jail and HMIS systems to
     # differ on what they use
 
     # prefix
@@ -44,20 +45,23 @@ def preprocess(df:pd.DataFrame, cache) -> pd.DataFrame:
         df['dob'] = pd.to_datetime(df['dob'])
 
     # ssn
-    # THIS SHOULD BE CONVERTED TO STRING. The SSN consists of 3 words, and numerical distances are only
-    # VAGUELY meaningful (e.g., the first 3 digits increase roughly east to west but not in a rigorous way,
-    # and the second 2 digits are given out in a fixed but non-monotonic order)
-    # the first three digits are the "area code" of where the person was registered.
-    # most people living in an area will have one of a few local area codes; therefore, the distinctiveness
-    # of the area code may be useful for matching. we may want to preprocess ssn to extract the area code
-    # to make this comparison.
+    # THIS SHOULD BE CONVERTED TO STRING. The SSN consists of 3 words, and
+    # numerical distances are only VAGUELY meaningful (e.g., the first 3 digits
+    # increase roughly east to west but not in a rigorous way, and the second 2
+    # digits are given out in a fixed but non-monotonic order), and the first
+    # three digits are the "area code" of where the person was registered. Most
+    # people living in an area will have one of a few local area codes;
+    # therefore, the distinctiveness of the area code may be useful for
+    # matching. we may want to preprocess ssn to extract the area code to make
+    # this comparison.
     if 'ssn' in df.columns:
         logger.debug('Converting social security number to str')
         df['ssn'] = df['ssn'].astype(str)
 
     # dmv_number
-    # THIS SHOULD BE CAST TO STRING. In some jurisdictions, they are strings and in others ints. To ensure
-    # that we can generalize here, we need to convert to string for all of them.
+    # THIS SHOULD BE CAST TO STRING. In some jurisdictions, they are strings
+    # and in others ints. To ensure that we can generalize here, we need to
+    # convert to string for all of them.
     if 'dmv_number' in df.columns:
         logger.debug('Converting dmv number to str')
         df['dmv_number'] = df['dmv_number'].astype(str)
@@ -71,9 +75,10 @@ def preprocess(df:pd.DataFrame, cache) -> pd.DataFrame:
         logger.debug(f"Races observed in preprocessed df: {df['race']}")
 
     # ethnicity
-    # ethnicity encodes only Hispanic/Not Hispanic. for some databases, Hispanic is actually included
-    # in the race categories instead of in a separate field. we may want to do some pre-processing to
-    # to add H to the race list where the ethnicity field contains 'Hispanic'
+    # ethnicity encodes only Hispanic/Not Hispanic. for some databases, 
+    # Hispanic is actually included in the race categories instead of in a
+    # separate field. we may want to do some pre-processing to add H to the
+    # race list where the ethnicity field contains 'Hispanic'
 
     logger.info('Preprocessing done!')
     logger.debug(f"The preprocessed dataframe has the following columns: {df.columns}")

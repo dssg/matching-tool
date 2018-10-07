@@ -33,7 +33,15 @@ class Matcher:
         self.run_start_time = None
         self.run_end_time = None
         self.contrasts = None
-        
+
+    @property
+    def square_distance_matrix(self):
+        return self.clusterer.square_distance_matrix
+
+    @property
+    def raw_cluster_ids(self):
+        return self.clusterer.square_distance_matrix
+
     def run(self, df:pd.DataFrame) -> pd.DataFrame:
         self.run_start_time = datetime.datetime.now()
         

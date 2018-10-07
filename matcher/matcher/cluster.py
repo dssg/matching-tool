@@ -14,6 +14,8 @@ class Clusterer():
         self.kwargs = kwargs
         self.clusterer = clustering_algorithm(**kwargs)
         self.initialized_time = datetime.datetime.now()
+        self.square_distance_matrix = None
+        self.raw_cluster_ids = None
 
     def run(self, distances: pd.DataFrame) -> pd.DataFrame:
         """ Cluster the scored entities into individuals. Return the cluster ids
@@ -22,17 +24,17 @@ class Clusterer():
         self.run_start_time = datetime.datetime.now()
         logger.info('Beginning clustering & id generation.')
 
-        square_distance_matrix = self._square_distance_matrix(distances)
+        self.square_distance_matrix = self._square_distance_matrix(distances)
         self.square_distance_matrix_created_time = datetime.datetime.now()
-        self.square_distance_matrix_dimensions = square_distance_matrix.shape
+        self.square_distance_matrix_dimensions = self.square_distance_matrix.shape
 
         logger.debug('Squared the distances. Beginning clustering.')
-        self.clusterer.fit(X=square_distance_matrix)
+        self.clusterer.fit(X=self.square_distance_matrix)
         self.clusterer_fit_time = datetime.datetime.now()
 
         logger.debug('Clustering done! Assigning matched ids.')
         ids = self._generate_ids(
-            index=square_distance_matrix.index.values,
+            index=self.square_distance_matrix.index.values,
             labels=self.clusterer.labels_
         ).astype(str)
         self.run_end_time = datetime.datetime.now()

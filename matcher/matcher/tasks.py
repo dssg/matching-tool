@@ -63,7 +63,7 @@ def do_match(
 
         # Record Linkage: block the data, generate pairs and features, and cluster entities
         logger.info(f'Running matching pipeline.')
-        matchmaker = pipeline.Pipeline(config=config)
+        matchmaker = pipeline.Pipeline(config=config, cache=cache)
         matchmaker.run(df)
         matches = matchmaker.matches
         metadata['data_matched_time'] = datetime.datetime.now()

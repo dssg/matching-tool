@@ -22,11 +22,9 @@ from matcher.logger import logger
 
 
 class Pipeline:
-    def __init__(
-        self,
-        config:dict
-    ):
+    def __init__(self, config:dict, cache):
         self.config = config
+        self.cache = cache
         self.initialization_time = datetime.datetime.now()
         self.run_start_time = None
         self.matchers = {}
@@ -59,6 +57,19 @@ class Pipeline:
             self.clusterer
         )
 
+    def cache_dataframe(self, df_type:str) -> None:
+        logger.debug(f'Trying to cache the {df_type} for you.')
+        data_to_cache = []
+        
+        for block_name, matcher in self.matchers.items():
+            logger.debug(f'Getting the {df_type} for block {block_name}')
+            df = getattr(matcher, df_type)
+            if df is not None:
+                df['block'] = block_name
+                data_to_cache.append(df)
+
+        self.cache.cache_matcher_data(pd.concat(data_to_cache), df_type)
+
     def run(self, df:pd.DataFrame):
         self.run_start_time = datetime.datetime.now()
         logger.info('Matcher run started! Vroom vroom!')
@@ -67,15 +78,17 @@ class Pipeline:
         blocks = self.blocker.run(df)
 
         logger.info(f'Blocking done! Starting matching {len(blocks)} blocks.')
-        matchers = {}
         matches = []
         for key, block in blocks:
             logger.debug(f"Matching group {key} of size {len(block)}")
             matcher = copy.deepcopy(self.base_matcher)
             matches.append(''.join(key) + matcher.run(df=block).astype(str))
-            matchers[''.join(key)] = matcher
+            self.matchers[''.join(key)] = matcher
+        logger.debug(self.matchers)
+        
+        for df_type in ['contrasts', 'square_distance_matrix', 'raw_cluster_ids']:
+            self.cache_dataframe(df_type)
 
-        self.matchers.update(matchers)
         matches = pd.DataFrame({'matched_id': pd.concat(matches)})
         self.matches = matches
 
