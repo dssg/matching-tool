@@ -176,7 +176,7 @@ def get_records_by_time(
     ), hmis_summary AS (
         SELECT
             matched_id::text,
-            string_agg(distinct internal_person_id::text, ',') as hmis_id,
+            string_agg(distinct internal_person_id::text, ';') as hmis_id,
             sum(
                 case when client_location_end_date is not null
                     then date_part('day', client_location_end_date::timestamp - client_location_start_date::timestamp) \
@@ -199,7 +199,7 @@ def get_records_by_time(
     ), jail_summary AS (
         SELECT
             matched_id::text,
-            string_agg(distinct coalesce(nullif(internal_person_id, ''), inmate_number)::text, ',') as jail_id,
+            string_agg(distinct coalesce(nullif(internal_person_id, ''), inmate_number)::text, ';') as jail_id,
             sum(jail.length_of_stay) as cumu_jail_days,
             count(distinct(coalesce(nullif(booking_number, ''), internal_event_id))) AS jail_contact,
             to_char(max(jail_entry_date::timestamp), 'YYYY-MM-DD') as last_jail_contact,
