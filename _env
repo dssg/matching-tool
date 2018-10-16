@@ -10,14 +10,14 @@ SECRET_KEY=dev
 SECURITY_PASSWORD_SALT=abcdefg
 
 # AWS access (for S3)
-AWS_ACCESS_KEY_ID=example
-AWS_SECRET_ACCESS_KEY=example
+AWS_ACCESS_KEY_ID=EXAMPLEKEY
+AWS_SECRET_ACCESS_KEY=EXAMPLE/KEY
 
 # Mail configuration (optional, only needed for reset password functionality in webapp)
-MAIL_SERVER=example
+MAIL_SERVER=mail.example.com
 MAIL_PORT=625
 MAIL_USE_SSL=True
 MAIL_USE_TLS=False
-MAIL_USERNAME=example
-MAIL_PASSWORD=example
-MAIL_DEFAULT_SENDER=example
+MAIL_USERNAME=example_username
+MAIL_PASSWORD=example_password
+MAIL_DEFAULT_SENDER=admin@example.com
