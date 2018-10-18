@@ -14,7 +14,5 @@ ADD setup.py /csh/matcher/setup.py
 RUN pip install --editable .
 
 ENV PYTHONPATH /csh/matcher
-ENV FLASK_APP matcher.api
-ENV FLASK_DEBUG true
 
-CMD flask run --host=0.0.0.0
+CMD python manage.py
